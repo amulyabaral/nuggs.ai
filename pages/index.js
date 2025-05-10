@@ -146,6 +146,12 @@ export default function HomePage() {
                     clearInterval(currentRunningTimer.intervalId);
                 }
                 setCurrentRunningTimer({ intervalId: null, stepIndex: null });
+            } else { // If switching away from recipe tool, also clear timers
+                setInstructionTimersData({});
+                if (currentRunningTimer.intervalId) {
+                    clearInterval(currentRunningTimer.intervalId);
+                }
+                setCurrentRunningTimer({ intervalId: null, stepIndex: null });
             }
         }
     }, [selectedToolId]);
@@ -163,7 +169,7 @@ export default function HomePage() {
                             checked: false,
                             originalDuration: duration,
                             timeLeft: duration,
-                            timerActive: false,
+                            timerActive: false, // Initially all timers are inactive
                         };
                     });
                     setInstructionTimersData(newTimersData);
@@ -179,7 +185,7 @@ export default function HomePage() {
                 clearInterval(currentRunningTimer.intervalId);
             }
             setCurrentRunningTimer({ intervalId: null, stepIndex: null });
-        } else if (activeTool.id !== 'recipe') { // Clear if not recipe tool
+        } else if (activeTool.id !== 'recipe') { // Clear if not recipe tool or no results
             setInstructionTimersData({});
             if (currentRunningTimer.intervalId) {
                 clearInterval(currentRunningTimer.intervalId);
@@ -234,72 +240,103 @@ export default function HomePage() {
     };
 
     const startTimerForStep = (stepIndexToStart) => {
-        const stepData = instructionTimersData[stepIndexToStart];
-        if (!stepData || !stepData.originalDuration || stepData.checked || stepData.timerActive) {
-            return; // Don't start if no duration, already checked, or already active
+        // --- Snapshot current state at the beginning of the function execution ---
+        const initialGlobalTimerState = currentRunningTimer;
+        const initialInstructionTimersState = instructionTimersData;
+
+        const stepToStartData = initialInstructionTimersState[stepIndexToStart];
+
+        // Condition to start: step exists, has duration, not checked, not already active (in snapshot)
+        if (!stepToStartData || !stepToStartData.originalDuration || stepToStartData.checked || stepToStartData.timerActive) {
+            return;
         }
 
-        // Clear any existing global timer first
-        if (currentRunningTimer.intervalId) {
-            clearInterval(currentRunningTimer.intervalId);
-            // If the cleared timer was for a different step, mark it as inactive
-            if (currentRunningTimer.stepIndex !== null && currentRunningTimer.stepIndex !== stepIndexToStart) {
-                setInstructionTimersData(prev => ({
-                    ...prev,
-                    [currentRunningTimer.stepIndex]: {
-                        ...prev[currentRunningTimer.stepIndex],
-                        timerActive: false,
-                    }
-                }));
-            }
+        // 1. Clear any previously running global timer
+        if (initialGlobalTimerState.intervalId) {
+            clearInterval(initialGlobalTimerState.intervalId);
         }
         
-        setInstructionTimersData(prev => ({
-            ...prev,
-            [stepIndexToStart]: {
-                ...prev[stepIndexToStart],
-                timeLeft: prev[stepIndexToStart].originalDuration,
-                timerActive: true,
-                checked: false, 
-            }
-        }));
+        // 2. Update instructionTimersData state
+        setInstructionTimersData(prevTimersData => {
+            let newTimersData = { ...prevTimersData };
 
+            // Deactivate the timer for the previously active step (if it was different)
+            if (initialGlobalTimerState.stepIndex !== null &&
+                initialGlobalTimerState.stepIndex !== stepIndexToStart &&
+                newTimersData[initialGlobalTimerState.stepIndex]) { 
+                newTimersData[initialGlobalTimerState.stepIndex] = {
+                    ...newTimersData[initialGlobalTimerState.stepIndex],
+                    timerActive: false,
+                };
+            }
+
+            // Activate and reset the timer for the current step
+            newTimersData[stepIndexToStart] = {
+                ...prevTimersData[stepIndexToStart], // Use data from prevTimersData for this step
+                timeLeft: stepToStartData.originalDuration, // Reset timeLeft using the snapshot's originalDuration
+                timerActive: true,
+                checked: false, // Ensure it's not checked
+            };
+            return newTimersData;
+        });
+
+        // 3. Create the new interval
         const newIntervalId = setInterval(() => {
-            setInstructionTimersData(prevData => {
-                // Critical check: ensure this interval is still the globally active one for this step
-                if (currentRunningTimer.intervalId !== newIntervalId || 
-                    !prevData[stepIndexToStart] || 
-                    !prevData[stepIndexToStart].timerActive) {
+            setInstructionTimersData(latestTimersData => { // latestTimersData is the most current state
+                const stepDataForInterval = latestTimersData[stepIndexToStart];
+
+                // Stop condition for this interval:
+                // - Step data is missing (e.g., recipe changed)
+                // - This step is no longer marked 'timerActive' in the latest state
+                if (!stepDataForInterval || !stepDataForInterval.timerActive) {
                     clearInterval(newIntervalId);
-                    return prevData;
+                    // If this interval was the one tracked globally, clear that tracking
+                    setCurrentRunningTimer(crt => {
+                        if (crt.intervalId === newIntervalId) {
+                            return { intervalId: null, stepIndex: null };
+                        }
+                        return crt;
+                    });
+                    return latestTimersData; // No change to data, just stopping interval
                 }
 
-                const newTimeLeft = prevData[stepIndexToStart].timeLeft - 1;
-                let updatedData = { ...prevData };
+                const newTimeLeft = stepDataForInterval.timeLeft - 1;
+                let updatedTimersData = { ...latestTimersData };
 
-                if (newTimeLeft <= 0) {
+                if (newTimeLeft <= 0) { // Timer finished
                     clearInterval(newIntervalId);
-                    updatedData[stepIndexToStart] = {
-                        ...updatedData[stepIndexToStart],
+                    updatedTimersData[stepIndexToStart] = {
+                        ...stepDataForInterval,
                         timeLeft: 0,
                         timerActive: false,
                         checked: true,
                     };
-                    setCurrentRunningTimer({ intervalId: null, stepIndex: null });
+                    // This timer is done, clear global tracking if it was this one
+                    setCurrentRunningTimer(crt => {
+                        if (crt.intervalId === newIntervalId) {
+                            return { intervalId: null, stepIndex: null };
+                        }
+                        return crt;
+                    });
 
-                    // Automatically try to start the next timer
-                    const nextStepIndexAfterTimer = stepIndexToStart + 1;
-                    if (updatedData[nextStepIndexAfterTimer] && 
-                        updatedData[nextStepIndexAfterTimer].originalDuration && 
-                        !updatedData[nextStepIndexAfterTimer].checked) {
-                        setTimeout(() => startTimerForStep(nextStepIndexAfterTimer), 0);
+                    // Attempt to start next timer
+                    const nextStepIndex = stepIndexToStart + 1;
+                    if (updatedTimersData[nextStepIndex] &&
+                        updatedTimersData[nextStepIndex].originalDuration &&
+                        !updatedTimersData[nextStepIndex].checked) {
+                        setTimeout(() => startTimerForStep(nextStepIndex), 0);
                     }
-                } else {
-                    updatedData[stepIndexToStart] = { ...updatedData[stepIndexToStart], timeLeft: newTimeLeft };
+                } else { // Timer ticking
+                    updatedTimersData[stepIndexToStart] = {
+                        ...stepDataForInterval,
+                        timeLeft: newTimeLeft,
+                    };
                 }
-                return updatedData;
+                return updatedTimersData;
             });
         }, 1000);
+
+        // 4. Update the global currentRunningTimer state to this new interval
         setCurrentRunningTimer({ intervalId: newIntervalId, stepIndex: stepIndexToStart });
     };
 
@@ -545,10 +582,10 @@ IMPORTANT:
 
         const isNowChecked = !stepToToggleData.checked;
 
-        // If a timer is running for this specific step, clear it.
+        // If a timer is running for this specific step and we are interacting with it, stop it.
         if (currentRunningTimer.stepIndex === toggledIndex && currentRunningTimer.intervalId) {
             clearInterval(currentRunningTimer.intervalId);
-            setCurrentRunningTimer({ intervalId: null, stepIndex: null });
+            setCurrentRunningTimer({ intervalId: null, stepIndex: null }); // Clear global timer
         }
 
         setInstructionTimersData(prev => {
@@ -556,20 +593,21 @@ IMPORTANT:
             newData[toggledIndex] = {
                 ...newData[toggledIndex],
                 checked: isNowChecked,
-                timerActive: false, // Always stop timer on manual toggle
+                timerActive: false, // Always stop timer on manual toggle for this step
                 timeLeft: isNowChecked ? 0 : (newData[toggledIndex].originalDuration || 0),
             };
             return newData;
         });
 
         if (isNowChecked) {
-            // If the step was just checked, try to start the timer for the NEXT step
+            // If the step was just checked, try to start the timer for the NEXT UNCHECKED step
             const nextIndex = toggledIndex + 1;
-            const nextStepData = instructionTimersData[nextIndex];
-            if (nextStepData && nextStepData.originalDuration && !nextStepData.checked && !nextStepData.timerActive) {
-                 // Use setTimeout to ensure state update has processed before starting next timer
-                setTimeout(() => startTimerForStep(nextIndex), 0);
-            }
+            // Use setTimeout to ensure state update has processed before starting next timer
+            // startTimerForStep will read the latest state when it executes.
+            setTimeout(() => {
+                 // Check conditions using the latest state implicitly through startTimerForStep
+                startTimerForStep(nextIndex);
+            }, 0);
         }
     };
 
