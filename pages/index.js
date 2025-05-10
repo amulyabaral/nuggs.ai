@@ -203,20 +203,42 @@ IMPORTANT:
                 // as the primary input is the image. However, the prompt itself is static.
                 // The image data will be handled separately in handleSubmit.
                 return `You are "NuggetVision AI", a sophisticated food critic specializing in analyzing images of nuggets (all types: chicken, veggie, fish, etc.).
-Based on the provided image, please provide a concise and constructive critique. Format your response using Markdown.
+Based on the provided image, provide a concise and constructive critique.
 
-Your critique should cover:
-1.  **Appearance:**
-    *   Color (e.g., golden brown, too dark, too pale).
-    *   Shape and uniformity.
-    *   Coating texture (e.g., looks crispy, looks soggy, breading distribution).
-2.  **Probable Texture:** Based on visual cues, infer the likely texture (e.g., "appears very crispy," "might be a bit soft").
-3.  **Overall Appeal:** Give an overall impression.
-4.  **Suggestions for Improvement (Optional):** If applicable, offer 1-2 brief, actionable tips for how the nuggets could be improved next time (e.g., "Consider a slightly higher cooking temperature for better browning").
-5.  **Dipping Sauce Pairing:** Suggest 1-2 dipping sauces that would complement these nuggets well, briefly explaining why.
+Please provide the response STRICTLY as a single, valid JSON object with the following structure:
+{
+  "critiqueTitle": "string (e.g., 'NuggetVision AI Critique')",
+  "appearance": {
+    "title": "Appearance",
+    "color": "string (e.g., 'Golden brown with some darker spots')",
+    "shapeAndUniformity": "string (e.g., 'Mostly uniform, classic nugget shapes')",
+    "coatingTexture": "string (e.g., 'Appears crispy and well-adhered')"
+  },
+  "probableTexture": {
+    "title": "Probable Texture",
+    "description": "string (e.g., 'Likely crispy on the outside, tender inside')"
+  },
+  "overallAppeal": {
+    "title": "Overall Appeal",
+    "description": "string (e.g., 'Looks appetizing and well-cooked')"
+  },
+  "suggestionsForImprovement": {
+    "title": "Suggestions for Improvement",
+    "suggestion": "string (Optional: 1-2 brief, actionable tips. If none, provide 'N/A' or an empty string)"
+  },
+  "dippingSaucePairing": {
+    "title": "Dipping Sauce Pairing",
+    "sauceName": "string (e.g., 'Classic Honey Mustard')",
+    "reason": "string (e.g., 'The sweetness would complement the savory nugget well.')"
+  },
+  "error": "string (Optional: Use this field if the image is unclear, not of nuggets, or if no image is provided, e.g., 'Cannot provide critique: Image is unclear or not of nuggets.')"
+}
 
-Keep your tone encouraging and helpful. Focus only on what can be observed from the image.
-If the image is unclear or not of nuggets, or if no image is provided, politely state that you cannot provide a critique for that reason.`;
+IMPORTANT:
+- Ensure the entire response is a single, valid JSON object. Do not include any text, pleasantries, or markdown formatting outside of this JSON object.
+- All string values within the JSON must be properly escaped if they contain special characters (e.g., double quotes within a string should be \\").
+- If a specific aspect (like 'suggestion' in 'suggestionsForImprovement') is not applicable, provide a neutral placeholder like "N/A" or an empty string for that field, but ensure the parent object (e.g., 'suggestionsForImprovement') and its 'title' field are present.
+- If the image is unsuitable for critique, populate the main "error" field in the JSON and provide minimal or placeholder content for other fields.`;
             default:
                 let defaultPrompt = basePrompt + `Format your response using Markdown. `;
                 if (userInput) {
@@ -246,7 +268,7 @@ If the image is unclear or not of nuggets, or if no image is provided, politely 
             return;
         }
 
-        if (!promptText && activeTool.id !== 'trivia' && activeTool.id !== 'critic') { // Critic prompt is static, image is main input
+        if (!promptText && activeTool.id !== 'trivia' && activeTool.id !== 'critic') {
             return;
         }
 
@@ -281,16 +303,13 @@ If the image is unclear or not of nuggets, or if no image is provided, politely 
             if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
                 let aiResponseText = data.candidates[0].content.parts[0].text;
 
-                if (activeTool.id === 'recipe') {
+                if (activeTool.id === 'recipe' || activeTool.id === 'critic') {
                     // Attempt to extract JSON string if wrapped in markdown code blocks
                     // Handles ```json ... ``` or ``` ... ```
-                    // Regex ensures the markdown block is the entire string or extracts from it.
                     const markdownMatch = aiResponseText.match(/^```(?:json)?\s*([\s\S]+?)\s*```$/);
                     if (markdownMatch && markdownMatch[1]) {
                         aiResponseText = markdownMatch[1];
                     }
-                    
-                    // Trim whitespace thoroughly. This is very important for successful JSON.parse.
                     aiResponseText = aiResponseText.trim();
                 }
 
@@ -467,6 +486,87 @@ Format your response as a Markdown list. Keep it concise and helpful for a home 
                     <p className={styles.errorMessage}>
                         Oops! We had trouble displaying this recipe in the structured format. 
                         This can sometimes happen if the AI's response isn't perfect JSON. 
+                        Here's the raw data from the AI:
+                    </p>
+                    <div className={styles.resultsContent}>
+                        <ReactMarkdown>{jsonData}</ReactMarkdown>
+                    </div>
+                </>
+            );
+        }
+    };
+
+    // Helper function to render critique results from JSON
+    const renderCritiqueResults = (jsonData) => {
+        console.log("Attempting to parse critique JSON. Raw data received:", jsonData);
+        try {
+            const critique = JSON.parse(jsonData);
+            console.log("Successfully parsed critique JSON:", critique);
+
+            if (critique.error && critique.error !== "N/A" && critique.error !== "") {
+                return <p className={styles.errorMessage}>Critique Error: {critique.error}</p>;
+            }
+
+            return (
+                <div className={styles.critiqueOutputContainer}>
+                    {critique.critiqueTitle && <h2 className={styles.critiqueOverallTitle}>{critique.critiqueTitle}</h2>}
+
+                    {critique.appearance && (
+                        <div className={styles.critiqueCard}>
+                            <h3 className={styles.critiqueCardTitle}>{critique.appearance.title || 'Appearance'}</h3>
+                            <div className={styles.critiqueCardContent}>
+                                {critique.appearance.color && <p><strong>Color:</strong> {critique.appearance.color}</p>}
+                                {critique.appearance.shapeAndUniformity && <p><strong>Shape & Uniformity:</strong> {critique.appearance.shapeAndUniformity}</p>}
+                                {critique.appearance.coatingTexture && <p><strong>Coating Texture:</strong> {critique.appearance.coatingTexture}</p>}
+                            </div>
+                        </div>
+                    )}
+
+                    {critique.probableTexture && (
+                        <div className={styles.critiqueCard}>
+                            <h3 className={styles.critiqueCardTitle}>{critique.probableTexture.title || 'Probable Texture'}</h3>
+                            <div className={styles.critiqueCardContent}>
+                                <p>{critique.probableTexture.description}</p>
+                            </div>
+                        </div>
+                    )}
+
+                    {critique.overallAppeal && (
+                        <div className={styles.critiqueCard}>
+                            <h3 className={styles.critiqueCardTitle}>{critique.overallAppeal.title || 'Overall Appeal'}</h3>
+                            <div className={styles.critiqueCardContent}>
+                                <p>{critique.overallAppeal.description}</p>
+                            </div>
+                        </div>
+                    )}
+
+                    {critique.suggestionsForImprovement && critique.suggestionsForImprovement.suggestion && critique.suggestionsForImprovement.suggestion !== "N/A" && critique.suggestionsForImprovement.suggestion !== "" && (
+                        <div className={styles.critiqueCard}>
+                            <h3 className={styles.critiqueCardTitle}>{critique.suggestionsForImprovement.title || 'Suggestions for Improvement'}</h3>
+                            <div className={styles.critiqueCardContent}>
+                                <p>{critique.suggestionsForImprovement.suggestion}</p>
+                            </div>
+                        </div>
+                    )}
+
+                    {critique.dippingSaucePairing && (
+                        <div className={styles.critiqueCard}>
+                            <h3 className={styles.critiqueCardTitle}>{critique.dippingSaucePairing.title || 'Dipping Sauce Pairing'}</h3>
+                            <div className={styles.critiqueCardContent}>
+                                {critique.dippingSaucePairing.sauceName && <p><strong>Sauce:</strong> {critique.dippingSaucePairing.sauceName}</p>}
+                                {critique.dippingSaucePairing.reason && <p><strong>Reason:</strong> {critique.dippingSaucePairing.reason}</p>}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        } catch (e) {
+            console.error("Failed to parse critique JSON. Error:", e);
+            console.error("Raw JSON data that failed to parse:", jsonData);
+            return (
+                <>
+                    <p className={styles.errorMessage}>
+                        Oops! We had trouble displaying this critique in the structured format.
                         Here's the raw data from the AI:
                     </p>
                     <div className={styles.resultsContent}>
@@ -658,7 +758,8 @@ Format your response as a Markdown list. Keep it concise and helpful for a home 
                         {results && !activeTool.comingSoon && (
                             <div className={styles.resultsContainer}>
                                 <h3>Results</h3>
-                                {activeTool.id === 'recipe' ? renderRecipeResults(results) : (
+                                {activeTool.id === 'recipe' ? renderRecipeResults(results) : 
+                                 activeTool.id === 'critic' ? renderCritiqueResults(results) : (
                                     <div className={styles.resultsContent}>
                                         <ReactMarkdown>{results}</ReactMarkdown>
                                     </div>
