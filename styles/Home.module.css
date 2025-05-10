@@ -859,92 +859,23 @@
   border-left: 3px solid #ff9500;
 }
 
-/* Dip Results Styles */
-.dipResultsContainer {
+/* Styles for the new Link Out Tool Container */
+.linkOutToolContainer {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-}
-
-.dipCard {
-  background-color: #fff;
-  border: 1px solid #e8e8e8;
-  border-radius: 10px;
-  padding: 1.5rem;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.05);
-}
-
-.dipCard h3 { /* Dip Name */
-  font-size: 1.5rem;
-  color: #ff7700;
-  margin-top: 0;
-  margin-bottom: 0.5rem;
-}
-
-.dipDescription {
-  font-size: 0.95rem;
-  color: #555;
-  margin-bottom: 1rem;
-  line-height: 1.5;
-}
-
-.dipRecipeDetails {
-  margin-bottom: 1rem;
-  padding: 1rem;
-  background-color: #f9f9f9;
-  border-radius: 6px;
-  border: 1px solid #f0f0f0;
-}
-.dipRecipeDetails h4 {
-  font-size: 1.1rem;
-  color: #333;
-  margin-top: 0;
-  margin-bottom: 0.75rem;
-}
-.dipRecipeDetails ul, .dipRecipeDetails ol {
-  padding-left: 20px;
-  margin-bottom: 0.5rem;
-}
-.dipRecipeDetails li {
-  margin-bottom: 0.3rem;
-  font-size: 0.9rem;
-}
-
-.dipAmazonSection {
+  align-items: center;
+  gap: 1rem;
   margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px dashed #ddd;
-}
-.dipAmazonSection h4 {
-  font-size: 1.1rem;
-  color: #444;
-  margin-bottom: 0.75rem;
+  text-align: center;
 }
 
-/* Styles for the Amazon search link/button in dips */
-.dipAmazonSearchLinkSection {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px dashed #ddd;
-  text-align: center; /* Center the button */
-}
-
-.amazonSearchButton {
-  display: inline-block;
-  padding: 0.6rem 1.2rem;
-  background-color: #ff9500;
-  color: white;
-  text-decoration: none;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  transition: background-color 0.2s ease;
-  border: none; /* Ensure it looks like a button */
-  cursor: pointer;
-}
-
-.amazonSearchButton:hover {
-  background-color: #e67e22;
+.linkOutButton {
+  /* This class can be used for specific overrides if .submitButton isn't enough */
+  /* For example, if you want a different width or specific icon alignment */
+  text-decoration: none; /* Ensure it looks like a button even if it's an <a> tag */
+  display: inline-flex; /* Align icon and text nicely */
+  align-items: center;
+  gap: 0.5rem; /* Space between icon and text */
 }
 
 /* Styles for Suggestion Cards (Dips & Drinks in Recipe Output) */

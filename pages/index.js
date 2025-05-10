@@ -57,12 +57,12 @@ const tools = [
         buttonText: 'Analyze Nuggets',
     },
     {
-        id: 'dip',
-        name: 'Find the perfect dip',
-        description: 'Discover sauce pairings for any nugget style. Get personalized recommendations, homemade sauce recipes, and links to search for related products on Amazon.',
-        icon: '🥫',
-        inputPlaceholder: "e.g., 'Spicy chicken nuggets' or 'Plant-based nuggets with herbs'",
-        buttonText: 'Find Perfect Dip',
+        id: 'community',
+        name: 'Community Nuggs (#nuggs.ai)',
+        description: 'See what fellow nugget enthusiasts are creating! Click the button to view posts tagged with #nuggs.ai on Instagram.',
+        icon: '🌐', // Globe icon
+        isLinkOut: true, // Custom property to identify this type of tool
+        linkUrl: 'https://www.instagram.com/explore/tags/nuggs.ai/'
     },
     {
         id: 'brands',
@@ -481,6 +481,8 @@ IMPORTANT:
 - For "drinkSuggestions" (1-2 suggestions): each object needs "name", "description", "amazonSearchKeywords". "emoji" is optional.
 - For "ebayPotential": "isSellable" must be a boolean. If not sellable, "reason" should reflect that, and "estimatedValue" and "suggestion" should be appropriate (e.g., "N/A", "Better to eat"). Only suggest it's sellable if the shape is TRULY remarkable or resembles something specific and recognizable. Otherwise, default to it not being sellable.
 - If the image is unsuitable for critique, populate the main "error" field in the JSON and provide minimal or placeholder content for other fields.`;
+            case 'community': // New tool for Instagram/Community posts
+                return null; // No AI prompt needed for this tool
             default:
                 let defaultPrompt = basePrompt + `Format your response using Markdown. `;
                 if (userInput) {
@@ -502,6 +504,14 @@ IMPORTANT:
     const handleSubmit = async (event) => {
         event.preventDefault();
         if (!activeTool || activeTool.comingSoon) return;
+
+        // If it's a link-out tool, don't proceed with API call logic
+        if (activeTool.isLinkOut) {
+            if (activeTool.linkUrl) {
+                window.open(activeTool.linkUrl, '_blank', 'noopener,noreferrer');
+            }
+            return;
+        }
 
         const promptText = getPromptForTool(activeTool, inputValue);
 
@@ -800,66 +810,6 @@ IMPORTANT:
         }
     };
 
-    // Helper function to render dip results
-    const renderDipResults = (jsonData) => {
-        console.log("Attempting to parse dip JSON. Raw data received:", jsonData);
-        try {
-            const dips = JSON.parse(jsonData);
-            console.log("Successfully parsed dip JSON:", dips);
-
-            if (!Array.isArray(dips)) {
-                 throw new Error("Dip data is not an array.");
-            }
-            if (dips.length === 0) {
-                return <p>No dip suggestions found.</p>;
-            }
-            if (dips[0]?.error) {
-                return <p className={styles.errorMessage}>Error from AI: {dips[0].error}</p>;
-            }
-
-            return (
-                <div className={styles.dipResultsContainer}>
-                    {dips.map((dip, index) => (
-                        <div key={index} className={styles.dipCard}>
-                            <h3>{dip.dipName || 'Unnamed Dip'}</h3>
-                            <p className={styles.dipDescription}>{dip.description || 'No description.'}</p>
-                            <div className={styles.dipRecipeDetails}>
-                                <h4>Recipe:</h4>
-                                <ReactMarkdown>{dip.recipeDetails || 'No recipe details provided.'}</ReactMarkdown>
-                            </div>
-                            {dip.amazonSearchKeywords && dip.amazonSearchKeywords.length > 0 && (
-                                <div className={styles.dipAmazonSearchLinkSection}>
-                                    <a
-                                        href={`https://www.amazon.com/s?k=${encodeURIComponent(dip.amazonSearchKeywords.join(' '))}&tag=${AMAZON_AFFILIATE_TAG}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer sponsored"
-                                        className={styles.amazonSearchButton}
-                                    >
-                                        🛒 Search for "{dip.dipName}" related items on Amazon
-                                    </a>
-                                </div>
-                            )}
-                        </div>
-                    ))}
-                </div>
-            );
-        } catch (e) {
-            console.error("Failed to parse or render dip JSON. Error:", e);
-            console.error("Raw JSON data that failed to parse:", jsonData);
-            return (
-                <>
-                    <p className={styles.errorMessage}>
-                        Oops! We had trouble displaying these dip suggestions.
-                        Here's the raw data from the AI:
-                    </p>
-                    <div className={styles.resultsContent}>
-                        <ReactMarkdown>{jsonData}</ReactMarkdown>
-                    </div>
-                </>
-            );
-        }
-    };
-
     // Helper function to render critique results
     const renderCritiqueResults = (jsonData) => {
         console.log("Attempting to parse critique JSON. Raw data received:", jsonData);
@@ -1036,6 +986,22 @@ IMPORTANT:
                                 <h3>Coming Soon!</h3>
                                 <p>We're still perfecting this nugget tool. Check back soon!</p>
                             </div>
+                        ) : activeTool.isLinkOut ? (
+                            <div className={styles.linkOutToolContainer}>
+                                <a
+                                    href={activeTool.linkUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className={`${styles.submitButton} ${styles.linkOutButton}`} // Re-use submitButton style and add specific
+                                >
+                                    {activeTool.icon} View #nuggs.ai on Instagram
+                                </a>
+                                {activeTool.id === 'community' && (
+                                    <p className={styles.inputHint} style={{marginTop: '1rem', textAlign: 'center'}}>
+                                        Share your own creations with #nuggs.ai to be featured!
+                                    </p>
+                                )}
+                            </div>
                         ) : (
                             <form onSubmit={handleSubmit} className={styles.toolForm}>
                                 {activeTool.id === 'recipe' && (
@@ -1183,11 +1149,11 @@ IMPORTANT:
                         {error && <p className={styles.errorMessage}>Error: {error}</p>}
                         
                         {/* Display AI/Gemini results */}
-                        {results && !activeTool.comingSoon && (
+                        {results && !activeTool.comingSoon && !activeTool.isLinkOut && (
                             <div className={styles.resultsContainer}>
                                 {activeTool.id === 'recipe' ? renderRecipeResults(results) : 
                                  activeTool.id === 'critic' ? renderCritiqueResults(results) :
-                                 activeTool.id === 'dip' ? renderDipResults(results) : (
+                                 ( // Default for other AI tools like trivia
                                     <div className={styles.resultsContent}>
                                         <ReactMarkdown>{results}</ReactMarkdown>
                                     </div>
