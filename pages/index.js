@@ -58,11 +58,11 @@ const tools = [
     },
     {
         id: 'community',
-        name: 'Community Nuggs (#nuggs.ai)',
-        description: 'See what fellow nugget enthusiasts are creating! Click the button to view posts tagged with #nuggs.ai on Instagram.',
+        name: 'Community Nuggs (#nuggs #nuggsai)',
+        description: 'See what fellow nugget enthusiasts are creating! Click the button to view posts tagged with #nuggs or #nuggsai on Instagram.',
         icon: '🌐', // Globe icon
         isLinkOut: true, // Custom property to identify this type of tool
-        linkUrl: 'https://www.instagram.com/explore/tags/nuggs.ai/'
+        linkUrl: 'https://www.instagram.com/explore/tags/nuggsai/' // Links to #nuggsai, description mentions both
     },
     {
         id: 'brands',
@@ -994,11 +994,11 @@ IMPORTANT:
                                     rel="noopener noreferrer"
                                     className={`${styles.submitButton} ${styles.linkOutButton}`} // Re-use submitButton style and add specific
                                 >
-                                    {activeTool.icon} View #nuggs.ai on Instagram
+                                    {activeTool.icon} View #nuggs & #nuggsai on Instagram
                                 </a>
                                 {activeTool.id === 'community' && (
                                     <p className={styles.inputHint} style={{marginTop: '1rem', textAlign: 'center'}}>
-                                        Share your own creations with #nuggs.ai to be featured!
+                                        Share your own creations with #nuggs or #nuggsai to be featured!
                                     </p>
                                 )}
                             </div>
