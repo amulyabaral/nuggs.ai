@@ -350,6 +350,17 @@
   animation: spin 1s linear infinite;
 }
 
+.loadingSpinnerSmall { /* For modal */
+  display: block;
+  width: 24px;
+  height: 24px;
+  margin: 1rem auto;
+  border: 3px solid #f0f0f0;
+  border-top: 3px solid #ff9500;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
@@ -548,10 +559,12 @@
   gap: 0.5rem;
   border: 1px solid #ced4da;
   transition: all 0.2s ease;
+  cursor: pointer; /* Added for clickability */
 }
 .ingredientPill:hover {
   transform: translateY(-2px);
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  border-color: #ff9500; /* Highlight on hover */
 }
 .ingredientEmoji {
   font-size: 1rem;
@@ -630,6 +643,73 @@
 }
 .checkedInstruction .stepNumber {
   color: #28a745;
+}
+
+/* Modal Styles for Ingredient Substitutes */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1001; /* Ensure it's above other content */
+  padding: 1rem;
+}
+
+.modalContent {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+  max-width: 600px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+.modalCloseButton {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 1.8rem;
+  color: #888;
+  cursor: pointer;
+  line-height: 1;
+}
+.modalCloseButton:hover {
+  color: #333;
+}
+
+.modalContent h3 {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  color: #333;
+  font-size: 1.5rem;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 0.75rem;
+}
+
+.substitutesResultsContent {
+  background-color: #f8f9fa;
+  padding: 1rem;
+  border-radius: 8px;
+  white-space: pre-wrap;
+  line-height: 1.6;
+  border: 1px solid #eee;
+  font-size: 0.95rem;
+}
+.substitutesResultsContent ul {
+  padding-left: 20px; /* Indent list items */
+}
+.substitutesResultsContent li {
+  margin-bottom: 0.75rem;
 }
 
 /* Responsive Design */

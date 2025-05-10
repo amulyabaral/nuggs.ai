@@ -9,7 +9,7 @@ const tools = [
     {
         id: 'recipe',
         name: 'Get custom nugget recipes',
-        description: 'Create unique nugget recipes (meat, veggie, etc.) based on your preferences, dietary restrictions, or available ingredients. Specify difficulty and cook time!',
+        description: 'Create unique nugget recipes (meat, veggie, etc.) based on your preferences, dietary restrictions, or available ingredients. Specify difficulty, cook time, and available equipment!',
         icon: '🍳',
         inputType: 'textarea',
         inputPlaceholder: "e.g., 'Spicy gluten-free veggie nuggets' or 'Korean-inspired pork nuggets with gochujang'",
@@ -24,6 +24,13 @@ const tools = [
             { label: '< 20 min', value: '< 20 min', emoji: '⏱️' },
             { label: '20-40 min', value: '20-40 min', emoji: '⏳' },
             { label: '> 40 min', value: '> 40 min', emoji: '⏰' },
+        ],
+        equipmentOptions: [
+            { label: 'Oven', value: 'oven', emoji: '♨️' },
+            { label: 'Air Fryer', value: 'airfryer', emoji: '💨' },
+            { label: 'Deep Fryer', value: 'deepfryer', emoji: '🔥' },
+            { label: 'Pan/Stovetop', value: 'pan', emoji: '🍳' },
+            { label: 'Microwave', value: 'microwave', emoji: '💡' }, // For reheating or specific steps
         ],
     },
     {
@@ -95,7 +102,17 @@ export default function HomePage() {
 
     const [selectedDifficulty, setSelectedDifficulty] = useState(tools[0].difficultyOptions[0].value);
     const [selectedCookTime, setSelectedCookTime] = useState(tools[0].cookTimeOptions[0].value);
+    const [selectedEquipment, setSelectedEquipment] = useState({}); // For multi-select equipment
     const [checkedInstructions, setCheckedInstructions] = useState({});
+
+    // State for ingredient substitutes modal
+    const [substituteInfo, setSubstituteInfo] = useState({
+        ingredientName: null,
+        substitutesText: '',
+        isLoading: false,
+        error: '',
+        showModal: false,
+    });
 
     // Removed sliderRef and autoSlideTimeoutRef
 
@@ -113,6 +130,7 @@ export default function HomePage() {
             if (tool.id === 'recipe') {
                 setSelectedDifficulty(tool.difficultyOptions?.[0]?.value || 'Baby');
                 setSelectedCookTime(tool.cookTimeOptions?.[0]?.value || '< 20 min');
+                setSelectedEquipment({}); // Reset equipment
             }
         }
     }, [selectedToolId]);
@@ -134,10 +152,20 @@ export default function HomePage() {
                     setError("Please describe the type of nugget recipe you'd like.");
                     return null;
                 }
+                const activeEquipment = Object.keys(selectedEquipment)
+                                            .filter(key => selectedEquipment[key] && tool.equipmentOptions.find(opt => opt.value === key))
+                                            .map(key => tool.equipmentOptions.find(opt => opt.value === key).label);
+                
+                let equipmentInstructions = "standard kitchen equipment (oven, stovetop)";
+                if (activeEquipment.length > 0) {
+                    equipmentInstructions = activeEquipment.join(', ');
+                }
+
                 let recipePrompt = `You are an AI chef specializing in creative nugget recipes (including meat-based, plant-based, fish, etc.).
 Based on these preferences: "${userInput}", and the following criteria:
 - Difficulty: ${selectedDifficulty}
 - Target Cook Time: ${selectedCookTime}
+- Available Equipment: ${equipmentInstructions}
 
 Please provide the response STRICTLY as a single, valid JSON object with the following structure:
 {
@@ -146,13 +174,12 @@ Please provide the response STRICTLY as a single, valid JSON object with the fol
   "prepTime": "Estimated preparation time (e.g., '15 minutes')",
   "cookTime": "Estimated cooking time (e.g., '20 minutes')",
   "difficultyRating": "${selectedDifficulty}", 
-  "servings": "Number of servings (e.g., '4 servings' or 'Approx. 20 nuggets')",
+  "servings": "Number of servings (e.g., 'Approx. 20 nuggets' or '4 servings')",
   "ingredients": [
     { "name": "Ingredient Name", "quantity": "Amount (e.g., '1', '1/2', '2-3')", "unit": "Unit (e.g., 'lb', 'cup', 'tbsp', 'cloves', 'medium')", "notes": "Optional: brief notes like 'boneless, skinless', 'finely chopped', 'to taste'" }
   ],
   "instructions": [
-    { "stepNumber": 1, "description": "Detailed instruction for this step. Be clear and concise." },
-    { "stepNumber": 2, "description": "Another detailed instruction." }
+    { "stepNumber": 1, "description": "Detailed instruction for this step. Be clear and concise. If specific equipment was mentioned (Available Equipment above), tailor instructions for it. If multiple suitable equipment options were listed, you can prioritize one or briefly mention alternatives." }
   ],
   "dippingSauceSuggestion": "Optional: A creative suggestion for a dipping sauce that would pair well, including a very brief recipe or store-bought idea."
 }
@@ -161,7 +188,7 @@ IMPORTANT:
 - You MUST ONLY generate nugget-related recipes. If asked for any non-nugget recipe, respond with a JSON object: {"error": "I specialize only in nugget recipes."}.
 - Ensure the entire response is a single, valid JSON object. Do not include any text, pleasantries, or markdown formatting outside of this JSON object.
 - For "ingredients", "quantity" should be a string. "unit" should also be a string.
-- For "instructions", "stepNumber" should be a number.
+- For "instructions", "stepNumber" should be a number. Ensure instructions are adapted for the 'Available Equipment' specified.
 - All string values within the JSON (especially in "description", "notes", "name") must be properly escaped if they contain special characters (e.g., double quotes within a string should be \\").
 - Be creative and make the recipe sound delicious within the JSON structure!`;
                 return recipePrompt;
@@ -252,6 +279,60 @@ IMPORTANT:
         }));
     };
 
+    const handleEquipmentToggle = (equipmentValue) => {
+        setSelectedEquipment(prev => ({
+            ...prev,
+            [equipmentValue]: !prev[equipmentValue]
+        }));
+    };
+
+    const handleShowSubstitutes = async (ingredient) => {
+        if (!ingredient || !ingredient.name) return;
+
+        setSubstituteInfo({
+            ingredientName: ingredient.name,
+            substitutesText: '',
+            isLoading: true,
+            error: '',
+            showModal: true,
+        });
+
+        const substitutePrompt = `You are an AI culinary assistant. The user is looking for substitutes for the ingredient "${ingredient.name}" in a nugget recipe. 
+Please provide 3-5 common and practical substitutes. For each substitute:
+1. Clearly state the substitute.
+2. Briefly explain how it might change the taste or texture of the nuggets.
+3. Suggest any simple quantity adjustments if needed (e.g., "use 1:1" or "use half the amount").
+Format your response as a Markdown list. Keep it concise and helpful for a home cook. Only provide substitutes, no extra conversation.`;
+
+        try {
+            const response = await fetch(PROXY_API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ promptText: substitutePrompt }),
+            });
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || `API request failed for substitutes: ${response.statusText}`);
+            }
+
+            if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
+                setSubstituteInfo(prev => ({ ...prev, substitutesText: data.candidates[0].content.parts[0].text, isLoading: false }));
+            } else if (data.promptFeedback?.blockReason) {
+                setSubstituteInfo(prev => ({ ...prev, error: `Request blocked: ${data.promptFeedback.blockReason}.`, isLoading: false }));
+            } else {
+                setSubstituteInfo(prev => ({ ...prev, error: 'Received an unexpected response for substitutes.', isLoading: false }));
+            }
+        } catch (err) {
+            console.error("Substitute API Call Error:", err);
+            setSubstituteInfo(prev => ({ ...prev, error: err.message || 'Failed to fetch substitutes.', isLoading: false }));
+        }
+    };
+
+    const handleCloseSubstituteModal = () => {
+        setSubstituteInfo({ ingredientName: null, substitutesText: '', isLoading: false, error: '', showModal: false });
+    };
+
     // Helper function to render recipe results from JSON
     const renderRecipeResults = (jsonData) => {
         console.log("Attempting to parse recipe JSON. Raw data received:", jsonData); // Log the raw data
@@ -280,8 +361,12 @@ IMPORTANT:
                         <h3>Ingredients</h3>
                         <div className={styles.ingredientsGrid}>
                             {recipe.ingredients && recipe.ingredients.length > 0 ? recipe.ingredients.map((ing, index) => (
-                                <div key={index} className={styles.ingredientPill}>
-                                    <span className={styles.ingredientEmoji}>🥣</span>
+                                <div 
+                                    key={index} 
+                                    className={styles.ingredientPill}
+                                    onClick={() => handleShowSubstitutes(ing)}
+                                    title={`Click to find substitutes for ${ing.name}`}
+                                >
                                     <span className={styles.ingredientName}>{ing.name}</span>
                                     <span className={styles.ingredientQuantity}>{`${ing.quantity || ''} ${ing.unit || ''}`}</span>
                                     {ing.notes && <small className={styles.ingredientNotes}>({ing.notes})</small>}
@@ -432,6 +517,22 @@ IMPORTANT:
                                                 ))}
                                             </div>
                                         </div>
+                                        <div className={styles.recipeOptionsGroup}>
+                                            <label>Available Equipment (select all that apply):</label>
+                                            <div className={styles.radioButtonsContainer}>
+                                                {activeTool.equipmentOptions.map(opt => (
+                                                    <button
+                                                        type="button"
+                                                        key={opt.value}
+                                                        className={`${styles.radioButton} ${selectedEquipment[opt.value] ? styles.radioButtonSelected : ''}`}
+                                                        onClick={() => handleEquipmentToggle(opt.value)}
+                                                        disabled={isLoading}
+                                                    >
+                                                        {opt.emoji && <span className={styles.radioButtonEmoji}>{opt.emoji}</span>} {opt.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
                                     </>
                                 )}
 
@@ -515,6 +616,22 @@ IMPORTANT:
                         )}
                     </div>
                 </section>
+            )}
+
+            {substituteInfo.showModal && (
+                <div className={styles.modalOverlay} onClick={handleCloseSubstituteModal}>
+                    <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+                        <button className={styles.modalCloseButton} onClick={handleCloseSubstituteModal}>&times;</button>
+                        <h3>Substitutes for {substituteInfo.ingredientName}</h3>
+                        {substituteInfo.isLoading && <div className={styles.loadingSpinnerSmall}></div>}
+                        {substituteInfo.error && <p className={styles.errorMessage}>{substituteInfo.error}</p>}
+                        {substituteInfo.substitutesText && !substituteInfo.isLoading && (
+                            <div className={styles.substitutesResultsContent}>
+                                <ReactMarkdown>{substituteInfo.substitutesText}</ReactMarkdown>
+                            </div>
+                        )}
+                    </div>
+                </div>
             )}
             {/* Footer or other sections can go here */}
         </div>
