@@ -116,13 +116,15 @@ export default function HomePage() {
     const [selectedDifficulty, setSelectedDifficulty] = useState(tools[0].difficultyOptions[0].value);
     const [selectedCookTime, setSelectedCookTime] = useState(tools[0].cookTimeOptions[0].value);
     const [selectedEquipment, setSelectedEquipment] = useState({}); // For multi-select equipment
-    const [checkedInstructions, setCheckedInstructions] = useState({});
     const [currentMimeType, setCurrentMimeType] = useState(''); // Added for image uploads
 
     // New state for recipe tool inputs
     const [selectedExclusions, setSelectedExclusions] = useState({}); // For selectable exclusion buttons
 
-    // Removed sliderRef and autoSlideTimeoutRef
+    // New state for instruction timers
+    const [instructionTimersData, setInstructionTimersData] = useState({});
+    // { index: { checked: boolean, originalDuration: number | null, timeLeft: number | null, timerActive: boolean }}
+    const [currentRunningTimer, setCurrentRunningTimer] = useState({ intervalId: null, stepIndex: null });
 
     // Effect to update activeTool when selectedToolId changes
     useEffect(() => {
@@ -133,16 +135,173 @@ export default function HomePage() {
             setResults('');
             setError('');
             setSelectedFile(null);
-            setCheckedInstructions({});
             // Reset recipe-specific options if switching to the recipe tool
             if (tool.id === 'recipe') {
                 setSelectedDifficulty(tool.difficultyOptions?.[0]?.value || 'Baby');
                 setSelectedCookTime(tool.cookTimeOptions?.[0]?.value || '< 20 min');
                 setSelectedEquipment({}); // Reset equipment
                 setSelectedExclusions({}); // Reset exclusions
+                setInstructionTimersData({}); // Clear timer data
+                if (currentRunningTimer.intervalId) {
+                    clearInterval(currentRunningTimer.intervalId);
+                }
+                setCurrentRunningTimer({ intervalId: null, stepIndex: null });
             }
         }
     }, [selectedToolId]);
+
+    // Effect to initialize/reset timers when recipe results change
+    useEffect(() => {
+        if (activeTool.id === 'recipe' && results) {
+            try {
+                const recipe = JSON.parse(results);
+                if (recipe.instructions && Array.isArray(recipe.instructions)) {
+                    const newTimersData = {};
+                    recipe.instructions.forEach((instr, index) => {
+                        const duration = parseTimeFromString(instr.description);
+                        newTimersData[index] = {
+                            checked: false,
+                            originalDuration: duration,
+                            timeLeft: duration,
+                            timerActive: false,
+                        };
+                    });
+                    setInstructionTimersData(newTimersData);
+                } else {
+                     setInstructionTimersData({});
+                }
+            } catch (e) {
+                console.error("Error parsing recipe for timers:", e);
+                setInstructionTimersData({});
+            }
+            // Stop any previously running timer from an old recipe
+            if (currentRunningTimer.intervalId) {
+                clearInterval(currentRunningTimer.intervalId);
+            }
+            setCurrentRunningTimer({ intervalId: null, stepIndex: null });
+        } else if (activeTool.id !== 'recipe') { // Clear if not recipe tool
+            setInstructionTimersData({});
+            if (currentRunningTimer.intervalId) {
+                clearInterval(currentRunningTimer.intervalId);
+            }
+            setCurrentRunningTimer({ intervalId: null, stepIndex: null });
+        }
+    }, [results, activeTool.id]);
+
+    // Cleanup timer on component unmount
+    useEffect(() => {
+        return () => {
+            if (currentRunningTimer.intervalId) {
+                clearInterval(currentRunningTimer.intervalId);
+            }
+        };
+    }, [currentRunningTimer.intervalId]);
+
+    const parseTimeFromString = (text) => {
+        if (!text || typeof text !== 'string') return null;
+        // Regex for "X minutes" or "X-Y minutes"
+        const minRegex = /(?:(\d+)-)?(\d+)\s+min(?:ute)?s?/i;
+        // Regex for "X seconds" or "X-Y seconds"
+        const secRegex = /(?:(\d+)-)?(\d+)\s+sec(?:ond)?s?/i;
+
+        let totalSeconds = 0;
+        let foundTime = false;
+
+        const minMatch = text.match(minRegex);
+        if (minMatch) {
+            const val1 = minMatch[1] ? parseInt(minMatch[1], 10) : null;
+            const val2 = parseInt(minMatch[2], 10);
+            totalSeconds += (val1 || val2) * 60;
+            foundTime = true;
+        }
+
+        const secMatch = text.match(secRegex);
+        if (secMatch) {
+            const val1 = secMatch[1] ? parseInt(secMatch[1], 10) : null;
+            const val2 = parseInt(secMatch[2], 10);
+            totalSeconds += (val1 || val2);
+            foundTime = true;
+        }
+        
+        return foundTime ? totalSeconds : null;
+    };
+
+    const formatTime = (totalSeconds) => {
+        if (totalSeconds === null || totalSeconds === undefined || totalSeconds < 0) return '';
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    };
+
+    const startTimerForStep = (stepIndexToStart) => {
+        const stepData = instructionTimersData[stepIndexToStart];
+        if (!stepData || !stepData.originalDuration || stepData.checked || stepData.timerActive) {
+            return; // Don't start if no duration, already checked, or already active
+        }
+
+        // Clear any existing global timer first
+        if (currentRunningTimer.intervalId) {
+            clearInterval(currentRunningTimer.intervalId);
+            // If the cleared timer was for a different step, mark it as inactive
+            if (currentRunningTimer.stepIndex !== null && currentRunningTimer.stepIndex !== stepIndexToStart) {
+                setInstructionTimersData(prev => ({
+                    ...prev,
+                    [currentRunningTimer.stepIndex]: {
+                        ...prev[currentRunningTimer.stepIndex],
+                        timerActive: false,
+                    }
+                }));
+            }
+        }
+        
+        setInstructionTimersData(prev => ({
+            ...prev,
+            [stepIndexToStart]: {
+                ...prev[stepIndexToStart],
+                timeLeft: prev[stepIndexToStart].originalDuration,
+                timerActive: true,
+                checked: false, 
+            }
+        }));
+
+        const newIntervalId = setInterval(() => {
+            setInstructionTimersData(prevData => {
+                // Critical check: ensure this interval is still the globally active one for this step
+                if (currentRunningTimer.intervalId !== newIntervalId || 
+                    !prevData[stepIndexToStart] || 
+                    !prevData[stepIndexToStart].timerActive) {
+                    clearInterval(newIntervalId);
+                    return prevData;
+                }
+
+                const newTimeLeft = prevData[stepIndexToStart].timeLeft - 1;
+                let updatedData = { ...prevData };
+
+                if (newTimeLeft <= 0) {
+                    clearInterval(newIntervalId);
+                    updatedData[stepIndexToStart] = {
+                        ...updatedData[stepIndexToStart],
+                        timeLeft: 0,
+                        timerActive: false,
+                        checked: true,
+                    };
+                    setCurrentRunningTimer({ intervalId: null, stepIndex: null });
+
+                    // Automatically try to start the next timer
+                    const nextStepIndexAfterTimer = stepIndexToStart + 1;
+                    if (updatedData[nextStepIndexAfterTimer] && 
+                        updatedData[nextStepIndexAfterTimer].originalDuration && 
+                        !updatedData[nextStepIndexAfterTimer].checked) {
+                        setTimeout(() => startTimerForStep(nextStepIndexAfterTimer), 0);
+                    }
+                } else {
+                    updatedData[stepIndexToStart] = { ...updatedData[stepIndexToStart], timeLeft: newTimeLeft };
+                }
+                return updatedData;
+            });
+        }, 1000);
+        setCurrentRunningTimer({ intervalId: newIntervalId, stepIndex: stepIndexToStart });
+    };
 
     const getPromptForTool = (tool, userInput) => {
         let basePrompt = `You are an AI expert. `;
@@ -353,7 +512,7 @@ IMPORTANT:
 
                 setResults(aiResponseText);
                 if (activeTool.id === 'recipe') {
-                    setCheckedInstructions({});
+                    // setCheckedInstructions({}); // This line is now handled by instructionTimersData reset
                 }
             } else if (data.promptFeedback?.blockReason) {
                 setError(`Request blocked: ${data.promptFeedback.blockReason}. Try a different prompt.`);
@@ -380,11 +539,38 @@ IMPORTANT:
         }
     };
 
-    const handleInstructionToggle = (index) => {
-        setCheckedInstructions(prev => ({
-            ...prev,
-            [index]: !prev[index]
-        }));
+    const handleInstructionToggle = (toggledIndex) => {
+        const stepToToggleData = instructionTimersData[toggledIndex];
+        if (!stepToToggleData) return;
+
+        const isNowChecked = !stepToToggleData.checked;
+
+        // If a timer is running for this specific step, clear it.
+        if (currentRunningTimer.stepIndex === toggledIndex && currentRunningTimer.intervalId) {
+            clearInterval(currentRunningTimer.intervalId);
+            setCurrentRunningTimer({ intervalId: null, stepIndex: null });
+        }
+
+        setInstructionTimersData(prev => {
+            const newData = { ...prev };
+            newData[toggledIndex] = {
+                ...newData[toggledIndex],
+                checked: isNowChecked,
+                timerActive: false, // Always stop timer on manual toggle
+                timeLeft: isNowChecked ? 0 : (newData[toggledIndex].originalDuration || 0),
+            };
+            return newData;
+        });
+
+        if (isNowChecked) {
+            // If the step was just checked, try to start the timer for the NEXT step
+            const nextIndex = toggledIndex + 1;
+            const nextStepData = instructionTimersData[nextIndex];
+            if (nextStepData && nextStepData.originalDuration && !nextStepData.checked && !nextStepData.timerActive) {
+                 // Use setTimeout to ensure state update has processed before starting next timer
+                setTimeout(() => startTimerForStep(nextIndex), 0);
+            }
+        }
     };
 
     const handleEquipmentToggle = (equipmentValue) => {
@@ -462,22 +648,44 @@ IMPORTANT:
                         <h3>Instructions</h3>
                         {recipe.instructions && recipe.instructions.length > 0 ? (
                             <ul className={styles.instructionsList}>
-                                {recipe.instructions.map((instr, index) => (
-                                    <li 
-                                        key={instr.stepNumber || index} 
-                                        className={`${styles.instructionStep} ${checkedInstructions[index] ? styles.checkedInstruction : ''}`}
-                                        onClick={() => handleInstructionToggle(index)}
-                                    >
-                                        <input 
-                                            type="checkbox" 
-                                            checked={!!checkedInstructions[index]} 
-                                            readOnly 
-                                            className={styles.instructionCheckbox}
-                                        />
-                                        <span className={styles.stepNumber}>Step {instr.stepNumber}:</span>
-                                        <span className={styles.stepDescription}>{instr.description}</span>
-                                    </li>
-                                ))}
+                                {recipe.instructions.map((instr, index) => {
+                                    const timerStepData = instructionTimersData[index] || {};
+                                    const { checked, originalDuration, timeLeft, timerActive } = timerStepData;
+                                    const displayTime = timerActive ? formatTime(timeLeft) : (originalDuration ? formatTime(originalDuration) : '');
+
+                                    return (
+                                        <li
+                                            key={instr.stepNumber || index}
+                                            className={`${styles.instructionStep} ${checked ? styles.checkedInstruction : ''} ${timerActive ? styles.activeTimerInstruction : ''}`}
+                                            onClick={() => handleInstructionToggle(index)}
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                checked={!!checked}
+                                                readOnly
+                                                className={styles.instructionCheckbox}
+                                            />
+                                            <span className={styles.stepNumber}>Step {instr.stepNumber}:</span>
+                                            <span className={styles.stepDescription}>{instr.description}</span>
+                                            {originalDuration !== null && (
+                                                <span className={styles.timerDisplay}>
+                                                    {timerActive ? `⏳ ${displayTime}` : (checked && timeLeft === 0) ? `✅ Done` : (displayTime ? `⏱️ ${displayTime}` : '')}
+                                                </span>
+                                            )}
+                                            {!timerActive && !checked && originalDuration !== null && currentRunningTimer.stepIndex === null && (
+                                                <button
+                                                    className={styles.startTimerButton}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation(); // Prevent li onClick from firing
+                                                        startTimerForStep(index);
+                                                    }}
+                                                >
+                                                    Start Timer
+                                                </button>
+                                            )}
+                                        </li>
+                                    );
+                                })}
                             </ul>
                         ) : <p>No instructions provided.</p>}
                     </div>
