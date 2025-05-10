@@ -9,14 +9,6 @@
   background-color: #FAFBFB;
 }
 
-/* Tagline Styles */
-.taglineSection {
-  /* This class might be deprecated or repurposed if tagline moves into header */
-  /* padding: 1.5rem 5% 0.5rem; 
-  text-align: center;
-  background-color: #FAFBFB; */
-}
-
 .tagline {
   font-size: 1rem; /* Adjusted size */
   color: #555;
