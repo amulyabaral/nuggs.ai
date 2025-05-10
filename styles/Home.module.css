@@ -9,41 +9,65 @@
   background-color: #FAFBFB;
 }
 
-/* New Header Styles */
-.mainHeader {
+/* Tagline Styles */
+.taglineSection {
+  padding: 1.5rem 5% 0.5rem; /* Add some padding around the tagline */
+  text-align: center;
+  background-color: #FAFBFB; /* Match page background or make distinct */
+}
+
+.tagline {
+  font-size: 1.1rem;
+  color: #555;
+  font-style: italic;
+  font-weight: 500;
+  max-width: 700px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+/* New Header Pill Styles */
+.mainHeaderPill {
   display: flex;
-  flex-direction: column; /* Stack logo and nav pills */
+  flex-direction: column;
   align-items: center;
-  padding: 1rem 5%;
-  background-color: #fff;
-  border-bottom: 1px solid #e0e0e0;
-  position: sticky;
-  top: 0;
+  margin: 1rem 5% 1.5rem; /* Margin around the header pill */
+  padding: 1.5rem 2rem; /* Padding inside the header pill */
+  background-color: #ffffff; /* White background for the pill */
+  border-radius: 50px; /* Very rounded corners for pill shape */
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08); /* Softer shadow for the pill */
+  border: 1px solid #e0e0e0;
+  gap: 1.5rem; /* Space between logo and tool pills */
+  position: sticky; /* Keep it sticky if desired */
+  top: 10px; /* Adjust top position for sticky header */
   z-index: 1000;
-  gap: 1rem; /* Space between logo and pills */
+  max-width: 1200px; /* Max width for the header pill */
+  width: auto; /* Allow it to shrink based on content up to max-width */
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .logoArea {
   display: flex;
   align-items: center;
-  gap: 0.75rem; /* Increased gap for better visual */
+  gap: 0.75rem;
 }
 
 .logoText {
-  font-family: 'VT323', monospace; /* AI/Computer-esque font */
-  font-size: 2.2rem; /* Larger logo text */
-  font-weight: normal; /* VT323 is often best at normal weight */
+  font-family: 'VT323', monospace;
+  font-size: 2.2rem;
+  font-weight: normal;
   color: #333;
   letter-spacing: 1px;
 }
 
-/* Pill Navigation Styles */
+/* Pill Navigation Styles (within the main header pill) */
 .toolPillNavigation {
   display: flex;
-  flex-wrap: wrap; /* Allow pills to wrap on smaller screens */
+  flex-wrap: wrap;
   gap: 0.75rem;
   justify-content: center;
-  width: 100%;
+  width: 100%; /* Takes full width of its container within the header pill */
 }
 
 .toolPill {
@@ -155,7 +179,7 @@
 
 /* Styles for the new main tool display area */
 .toolDisplaySection {
-  padding: 2rem 5%;
+  padding: 1rem 5% 2rem; /* Adjusted padding */
   background-color: #FAFBFB; /* Or keep transparent to blend with pageContainer */
   flex-grow: 1;
   display: flex; /* To center toolContainer if needed */
@@ -415,12 +439,21 @@
   .recipeOptions > div {
     width: 100%;
   }
+  .mainHeaderPill {
+    margin: 1rem 3% 1.5rem;
+    padding: 1.2rem 1.5rem;
+  }
+  .tagline {
+    font-size: 1rem;
+  }
 }
 
 @media (max-width: 768px) {
-  .mainHeader {
-    padding: 1rem;
-    /* flex-direction: column; already set */
+  .mainHeaderPill {
+    margin: 1rem 2% 1rem; /* Adjust margin for smaller screens */
+    padding: 1rem; /* Adjust padding for smaller screens */
+    border-radius: 30px; /* Slightly less rounding if it looks too much */
+    gap: 1rem;
   }
   .logoText {
     font-size: 1.8rem;
@@ -431,6 +464,12 @@
   .toolPill {
     padding: 0.5rem 1rem;
     font-size: 0.8rem;
+  }
+  .taglineSection {
+    padding: 1rem 3% 0.25rem;
+  }
+  .tagline {
+    font-size: 0.95rem;
   }
   
   .toolDisplaySection {
@@ -448,12 +487,20 @@
 }
 
 @media (max-width: 480px) {
+  .mainHeaderPill {
+    margin: 0.5rem 2% 1rem;
+    padding: 0.8rem;
+    border-radius: 25px;
+  }
   .logoText {
     font-size: 1.6rem;
   }
   .toolPill {
     padding: 0.4rem 0.8rem;
     font-size: 0.75rem;
+  }
+  .tagline {
+    font-size: 0.9rem;
   }
   .toolContainer {
     padding: 1rem;

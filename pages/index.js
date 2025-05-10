@@ -209,7 +209,11 @@ Be creative and make it sound delicious!`;
                 {/* Font links moved to _app.js */}
             </Head>
 
-            <header className={styles.mainHeader}>
+            <div className={styles.taglineSection}>
+                <p className={styles.tagline}>The future is now. AI will help you make the best nuggets you've ever made...and more!</p>
+            </div>
+
+            <header className={styles.mainHeaderPill}>
                 <div className={styles.logoArea}>
                     <Image src="/nuggets.png" alt="nuggs.ai Logo" width={40} height={40} />
                     <span className={styles.logoText}>nuggs.ai</span>
