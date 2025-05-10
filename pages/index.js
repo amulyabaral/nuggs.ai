@@ -12,10 +12,19 @@ const tools = [
         description: 'Create unique nugget recipes (meat, veggie, etc.) based on your preferences, dietary restrictions, or available ingredients. Specify difficulty and cook time!',
         icon: '🍳',
         inputType: 'textarea',
-        inputPlaceholder: "e.g., 'Spicy gluten-free veggie nuggets, easy, under 30 mins' or 'Korean-inspired pork nuggets with gochujang'",
+        inputPlaceholder: "e.g., 'Spicy gluten-free veggie nuggets' or 'Korean-inspired pork nuggets with gochujang'",
         buttonText: 'Generate Recipe',
-        difficultyOptions: ['Any', 'Easy', 'Medium', 'Hard'],
-        cookTimeOptions: ['Any', '< 20 min', '20-40 min', '> 40 min'],
+        difficultyOptions: [
+            { label: 'Baby', value: 'Baby', emoji: '👶' },
+            { label: 'Home Chef', value: 'Home Chef', emoji: '👩‍🍳' },
+            { label: 'Enthusiast', value: 'Enthusiast', emoji: '🔥' },
+            { label: 'Pro', value: 'Pro', emoji: '🌟' },
+        ],
+        cookTimeOptions: [
+            { label: '< 20 min', value: '< 20 min', emoji: '⏱️' },
+            { label: '20-40 min', value: '20-40 min', emoji: '⏳' },
+            { label: '> 40 min', value: '> 40 min', emoji: '⏰' },
+        ],
     },
     {
         id: 'critic',
@@ -84,8 +93,9 @@ export default function HomePage() {
     const [error, setError] = useState('');
     const [selectedFile, setSelectedFile] = useState(null);
 
-    const [selectedDifficulty, setSelectedDifficulty] = useState(tools[0].difficultyOptions[0]);
-    const [selectedCookTime, setSelectedCookTime] = useState(tools[0].cookTimeOptions[0]);
+    const [selectedDifficulty, setSelectedDifficulty] = useState(tools[0].difficultyOptions[0].value);
+    const [selectedCookTime, setSelectedCookTime] = useState(tools[0].cookTimeOptions[0].value);
+    const [checkedInstructions, setCheckedInstructions] = useState({});
 
     // Removed sliderRef and autoSlideTimeoutRef
 
@@ -98,19 +108,20 @@ export default function HomePage() {
             setResults('');
             setError('');
             setSelectedFile(null);
+            setCheckedInstructions({});
             // Reset recipe-specific options if switching to the recipe tool
             if (tool.id === 'recipe') {
-                setSelectedDifficulty(tool.difficultyOptions?.[0] || 'Any');
-                setSelectedCookTime(tool.cookTimeOptions?.[0] || 'Any');
+                setSelectedDifficulty(tool.difficultyOptions?.[0]?.value || 'Baby');
+                setSelectedCookTime(tool.cookTimeOptions?.[0]?.value || '< 20 min');
             }
         }
     }, [selectedToolId]);
 
     const getPromptForTool = (tool, userInput) => {
-        let basePrompt = `You are an AI expert. Format your response using Markdown. `;
+        let basePrompt = `You are an AI expert. `;
         switch (tool.id) {
             case 'trivia':
-                let triviaPrompt = basePrompt + "You are a fun and knowledgeable AI expert on nugget history, trivia, and fun facts (all types of nuggets, not just chicken). ";
+                let triviaPrompt = basePrompt + "You are a fun and knowledgeable AI expert on nugget history, trivia, and fun facts (all types of nuggets, not just chicken). Format your response using Markdown. ";
                 if (userInput) {
                     triviaPrompt += `Please answer the following question concisely and engagingly: "${userInput}"`;
                 } else {
@@ -123,35 +134,50 @@ export default function HomePage() {
                     setError("Please describe the type of nugget recipe you'd like.");
                     return null;
                 }
-                let recipePrompt = basePrompt + `You are an AI chef specializing in creative nugget recipes (including meat-based, plant-based, fish, etc.).
-Generate a unique and delicious nugget recipe based on these preferences: "${userInput}".`;
-                if (selectedDifficulty !== 'Any') {
-                    recipePrompt += `\n- Difficulty: ${selectedDifficulty}`;
-                }
-                if (selectedCookTime !== 'Any') {
-                    recipePrompt += `\n- Cook Time: ${selectedCookTime}`;
-                }
-                recipePrompt += `
-Please provide the response in Markdown format with:
-1.  A catchy **Recipe Name**.
-2.  A brief, enticing **Description**.
-3.  **Ingredients** (list with quantities).
-4.  Clear, step-by-step **Instructions**.
-5.  Optional: A suggestion for a **Dipping Sauce** that would pair well.
-IMPORTANT: You MUST ONLY generate nugget-related recipes. If asked for any non-nugget recipe, politely explain you only specialize in nugget recipes.
-Be creative and make it sound delicious!`;
+                let recipePrompt = `You are an AI chef specializing in creative nugget recipes (including meat-based, plant-based, fish, etc.).
+Based on these preferences: "${userInput}", and the following criteria:
+- Difficulty: ${selectedDifficulty}
+- Target Cook Time: ${selectedCookTime}
+
+Please provide the response STRICTLY as a single, valid JSON object with the following structure:
+{
+  "recipeName": "A catchy recipe name (e.g., 'Spicy Honey Glazed Chicken Nuggets')",
+  "description": "A brief, enticing description of the recipe (2-3 sentences).",
+  "prepTime": "Estimated preparation time (e.g., '15 minutes')",
+  "cookTime": "Estimated cooking time (e.g., '20 minutes')",
+  "difficultyRating": "${selectedDifficulty}", 
+  "servings": "Number of servings (e.g., '4 servings' or 'Approx. 20 nuggets')",
+  "ingredients": [
+    { "name": "Ingredient Name", "quantity": "Amount (e.g., '1', '1/2', '2-3')", "unit": "Unit (e.g., 'lb', 'cup', 'tbsp', 'cloves', 'medium')", "notes": "Optional: brief notes like 'boneless, skinless', 'finely chopped', 'to taste'" }
+  ],
+  "instructions": [
+    { "stepNumber": 1, "description": "Detailed instruction for this step. Be clear and concise." },
+    { "stepNumber": 2, "description": "Another detailed instruction." }
+  ],
+  "dippingSauceSuggestion": "Optional: A creative suggestion for a dipping sauce that would pair well, including a very brief recipe or store-bought idea."
+}
+
+IMPORTANT: 
+- You MUST ONLY generate nugget-related recipes. If asked for any non-nugget recipe, respond with a JSON object: {"error": "I specialize only in nugget recipes."}.
+- Ensure the entire response is a single, valid JSON object. Do not include any text, pleasantries, or markdown formatting outside of this JSON object.
+- For "ingredients", "quantity" should be a string. "unit" should also be a string.
+- For "instructions", "stepNumber" should be a number.
+- Be creative and make the recipe sound delicious within the JSON structure!`;
                 return recipePrompt;
             case 'dip':
                 if (!userInput) {
                     setError("Please describe the type of nugget you're having.");
                     return null;
                 }
-                return basePrompt + `You are an AI dip pairing expert. For nuggets described as "${userInput}", suggest 3 perfect dipping sauces. For each sauce, briefly explain why it's a good pairing and include a simple homemade recipe. Format the response in Markdown. ONLY suggest sauces for nuggets. If asked about non-nugget foods, politely explain you specialize in nugget pairings only.`;
+                return basePrompt + `You are an AI dip pairing expert. Format your response using Markdown. For nuggets described as "${userInput}", suggest 3 perfect dipping sauces. For each sauce, briefly explain why it's a good pairing and include a simple homemade recipe. Format the response in Markdown. ONLY suggest sauces for nuggets. If asked about non-nugget foods, politely explain you specialize in nugget pairings only.`;
             default:
+                let defaultPrompt = basePrompt + `Format your response using Markdown. `;
                 if (userInput) {
-                     return basePrompt + `Regarding the tool "${tool.name}", process the following input: "${userInput}". Provide a concise, helpful, nugget-related response.`;
+                     defaultPrompt += `Regarding the tool "${tool.name}", process the following input: "${userInput}". Provide a concise, helpful, nugget-related response.`;
+                } else {
+                    defaultPrompt += `You are an AI for "${tool.name}". Please provide information or perform the requested task related to nuggets.`;
                 }
-                return basePrompt + `You are an AI for "${tool.name}". Please provide information or perform the requested task related to nuggets.`;
+                return defaultPrompt;
         }
     };
 
@@ -183,6 +209,9 @@ Be creative and make it sound delicious!`;
 
             if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
                 setResults(data.candidates[0].content.parts[0].text);
+                if (activeTool.id === 'recipe') {
+                    setCheckedInstructions({});
+                }
             } else if (data.promptFeedback?.blockReason) {
                 setError(`Request blocked: ${data.promptFeedback.blockReason}. Try a different prompt.`);
             } else {
@@ -200,6 +229,92 @@ Be creative and make it sound delicious!`;
         setSelectedFile(event.target.files[0]);
     };
 
+    const handleInstructionToggle = (index) => {
+        setCheckedInstructions(prev => ({
+            ...prev,
+            [index]: !prev[index]
+        }));
+    };
+
+    // Helper function to render recipe results from JSON
+    const renderRecipeResults = (jsonData) => {
+        try {
+            const recipe = JSON.parse(jsonData);
+
+            if (recipe.error) {
+                return <p className={styles.errorMessage}>Error from AI: {recipe.error}</p>;
+            }
+
+            return (
+                <div className={styles.recipeOutputContainer}>
+                    <div className={styles.recipeNameCard}>
+                        <h2>{recipe.recipeName || 'N/A'}</h2>
+                        <p>{recipe.description || 'No description provided.'}</p>
+                        <div className={styles.recipeMeta}>
+                            <span><strong>Prep:</strong> {recipe.prepTime || 'N/A'}</span>
+                            <span><strong>Cook:</strong> {recipe.cookTime || 'N/A'}</span>
+                            <span><strong>Difficulty:</strong> {recipe.difficultyRating || 'N/A'}</span>
+                            <span><strong>Servings:</strong> {recipe.servings || 'N/A'}</span>
+                        </div>
+                    </div>
+
+                    <div className={styles.recipeSection}>
+                        <h3>Ingredients</h3>
+                        <div className={styles.ingredientsGrid}>
+                            {recipe.ingredients && recipe.ingredients.length > 0 ? recipe.ingredients.map((ing, index) => (
+                                <div key={index} className={styles.ingredientPill}>
+                                    <span className={styles.ingredientEmoji}>🥣</span>
+                                    <span className={styles.ingredientName}>{ing.name}</span>
+                                    <span className={styles.ingredientQuantity}>{`${ing.quantity || ''} ${ing.unit || ''}`}</span>
+                                    {ing.notes && <small className={styles.ingredientNotes}>({ing.notes})</small>}
+                                </div>
+                            )) : <p>No ingredients listed.</p>}
+                        </div>
+                    </div>
+
+                    <div className={styles.recipeSection}>
+                        <h3>Instructions</h3>
+                        {recipe.instructions && recipe.instructions.length > 0 ? (
+                            <ul className={styles.instructionsList}>
+                                {recipe.instructions.map((instr, index) => (
+                                    <li 
+                                        key={instr.stepNumber || index} 
+                                        className={`${styles.instructionStep} ${checkedInstructions[index] ? styles.checkedInstruction : ''}`}
+                                        onClick={() => handleInstructionToggle(index)}
+                                    >
+                                        <input 
+                                            type="checkbox" 
+                                            checked={!!checkedInstructions[index]} 
+                                            readOnly 
+                                            className={styles.instructionCheckbox}
+                                        />
+                                        <span className={styles.stepNumber}>Step {instr.stepNumber}:</span>
+                                        <span className={styles.stepDescription}>{instr.description}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : <p>No instructions provided.</p>}
+                    </div>
+
+                    {recipe.dippingSauceSuggestion && (
+                        <div className={styles.recipeSection}>
+                            <h3>Dipping Sauce Suggestion</h3>
+                            <ReactMarkdown>{recipe.dippingSauceSuggestion}</ReactMarkdown>
+                        </div>
+                    )}
+                </div>
+            );
+        } catch (e) {
+            console.error("Failed to parse recipe JSON:", e);
+            // Fallback to render as markdown if JSON parsing fails or it's not the recipe tool
+            return (
+                <div className={styles.resultsContent}>
+                    <ReactMarkdown>{jsonData}</ReactMarkdown>
+                </div>
+            );
+        }
+    };
+
     return (
         <div className={styles.pageContainer}>
             <Head>
@@ -209,15 +324,14 @@ Be creative and make it sound delicious!`;
                 {/* Font links moved to _app.js */}
             </Head>
 
-            <div className={styles.taglineSection}>
-                <p className={styles.tagline}>The future is now. AI will help you make the best nuggets you've ever made...and more!</p>
-            </div>
-
             <header className={styles.mainHeaderPill}>
                 <div className={styles.logoArea}>
                     <Image src="/nuggets.png" alt="nuggs.ai Logo" width={40} height={40} />
                     <span className={styles.logoText}>nuggs.ai</span>
                 </div>
+                <p className={styles.tagline}>
+                    Crafting culinary excellence, one nugget at a time. Your AI partner for the perfect bite!
+                </p>
                 <nav className={styles.toolPillNavigation}>
                     {tools.map(tool => (
                         <button
@@ -259,32 +373,40 @@ Be creative and make it sound delicious!`;
                         ) : (
                             <form onSubmit={handleSubmit} className={styles.toolForm}>
                                 {activeTool.id === 'recipe' && (
-                                    <div className={styles.recipeOptions}>
-                                        <div>
-                                            <label htmlFor="difficulty">Difficulty: </label>
-                                            <select 
-                                                id="difficulty" 
-                                                value={selectedDifficulty} 
-                                                onChange={(e) => setSelectedDifficulty(e.target.value)}
-                                                disabled={isLoading}
-                                                className={styles.toolSelect}
-                                            >
-                                                {activeTool.difficultyOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                                            </select>
+                                    <>
+                                        <div className={styles.recipeOptionsGroup}>
+                                            <label>Difficulty:</label>
+                                            <div className={styles.radioButtonsContainer}>
+                                                {activeTool.difficultyOptions.map(opt => (
+                                                    <button
+                                                        type="button"
+                                                        key={opt.value}
+                                                        className={`${styles.radioButton} ${selectedDifficulty === opt.value ? styles.radioButtonSelected : ''}`}
+                                                        onClick={() => setSelectedDifficulty(opt.value)}
+                                                        disabled={isLoading}
+                                                    >
+                                                        <span className={styles.radioButtonEmoji}>{opt.emoji}</span> {opt.label}
+                                                    </button>
+                                                ))}
+                                            </div>
                                         </div>
-                                        <div>
-                                            <label htmlFor="cookTime">Cook Time: </label>
-                                            <select 
-                                                id="cookTime" 
-                                                value={selectedCookTime} 
-                                                onChange={(e) => setSelectedCookTime(e.target.value)}
-                                                disabled={isLoading}
-                                                className={styles.toolSelect}
-                                            >
-                                                {activeTool.cookTimeOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                                            </select>
+                                        <div className={styles.recipeOptionsGroup}>
+                                            <label>Cook Time:</label>
+                                            <div className={styles.radioButtonsContainer}>
+                                                {activeTool.cookTimeOptions.map(opt => (
+                                                    <button
+                                                        type="button"
+                                                        key={opt.value}
+                                                        className={`${styles.radioButton} ${selectedCookTime === opt.value ? styles.radioButtonSelected : ''}`}
+                                                        onClick={() => setSelectedCookTime(opt.value)}
+                                                        disabled={isLoading}
+                                                    >
+                                                        <span className={styles.radioButtonEmoji}>{opt.emoji}</span> {opt.label}
+                                                    </button>
+                                                ))}
+                                            </div>
                                         </div>
-                                    </div>
+                                    </>
                                 )}
 
                                 {activeTool.inputType === 'textarea' ? (
@@ -358,9 +480,11 @@ Be creative and make it sound delicious!`;
                         {results && !activeTool.comingSoon && (
                             <div className={styles.resultsContainer}>
                                 <h3>Results</h3>
-                                <div className={styles.resultsContent}>
-                                    <ReactMarkdown>{results}</ReactMarkdown>
-                                </div>
+                                {activeTool.id === 'recipe' ? renderRecipeResults(results) : (
+                                    <div className={styles.resultsContent}>
+                                        <ReactMarkdown>{results}</ReactMarkdown>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
