@@ -9,6 +9,8 @@
   background-color: #FAFBFB;
 }
 
+/* Tagline styles are now directly under .mainHeaderPill > .tagline */
+
 .tagline {
   font-size: 1rem; /* Adjusted size */
   color: #555;

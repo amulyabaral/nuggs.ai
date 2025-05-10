@@ -162,6 +162,7 @@ IMPORTANT:
 - Ensure the entire response is a single, valid JSON object. Do not include any text, pleasantries, or markdown formatting outside of this JSON object.
 - For "ingredients", "quantity" should be a string. "unit" should also be a string.
 - For "instructions", "stepNumber" should be a number.
+- All string values within the JSON (especially in "description", "notes", "name") must be properly escaped if they contain special characters (e.g., double quotes within a string should be \\").
 - Be creative and make the recipe sound delicious within the JSON structure!`;
                 return recipePrompt;
             case 'dip':
@@ -238,8 +239,10 @@ IMPORTANT:
 
     // Helper function to render recipe results from JSON
     const renderRecipeResults = (jsonData) => {
+        console.log("Attempting to parse recipe JSON. Raw data received:", jsonData); // Log the raw data
         try {
             const recipe = JSON.parse(jsonData);
+            console.log("Successfully parsed recipe JSON:", recipe); // Log the parsed object
 
             if (recipe.error) {
                 return <p className={styles.errorMessage}>Error from AI: {recipe.error}</p>;
@@ -305,12 +308,20 @@ IMPORTANT:
                 </div>
             );
         } catch (e) {
-            console.error("Failed to parse recipe JSON:", e);
-            // Fallback to render as markdown if JSON parsing fails or it's not the recipe tool
+            console.error("Failed to parse recipe JSON. Error:", e);
+            console.error("Raw JSON data that failed to parse:", jsonData);
+            // Fallback to render as markdown if JSON parsing fails
             return (
-                <div className={styles.resultsContent}>
-                    <ReactMarkdown>{jsonData}</ReactMarkdown>
-                </div>
+                <>
+                    <p className={styles.errorMessage}>
+                        Oops! We had trouble displaying this recipe in the structured format. 
+                        This can sometimes happen if the AI's response isn't perfect JSON. 
+                        Here's the raw data from the AI:
+                    </p>
+                    <div className={styles.resultsContent}>
+                        <ReactMarkdown>{jsonData}</ReactMarkdown>
+                    </div>
+                </>
             );
         }
     };
