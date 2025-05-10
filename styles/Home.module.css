@@ -246,7 +246,10 @@
 }
 
 .toolForm textarea,
-.toolForm input[type="text"] {
+.toolForm input[type="text"],
+.toolForm input[type="email"], /* If you add email later */
+.toolForm input[type="search"], /* For amazon search tool */
+.toolForm input[type="tel"] { /* If you add tel later */
   padding: 1rem;
   border: 1px solid #ddd;
   border-radius: 8px;
@@ -256,7 +259,10 @@
 }
 
 .toolForm textarea:focus,
-.toolForm input[type="text"]:focus {
+.toolForm input[type="text"]:focus,
+.toolForm input[type="email"]:focus,
+.toolForm input[type="search"]:focus,
+.toolForm input[type="tel"]:focus {
   border-color: #ff9500;
   outline: none;
   box-shadow: 0 0 0 3px rgba(255, 149, 0, 0.2); /* Focus ring */
@@ -565,6 +571,7 @@
   transform: translateY(-2px);
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   border-color: #ff9500; /* Highlight on hover */
+  background-color: #fff8f0; /* Slight background change on hover */
 }
 .ingredientEmoji {
   font-size: 1rem;
@@ -758,6 +765,165 @@
 .critiqueCardContent strong {
   color: #333;
   font-weight: 600;
+}
+
+/* Input Hint Styles */
+.inputHint {
+  font-size: 0.85rem;
+  color: #666;
+  margin-top: -0.5rem;
+  margin-bottom: 0.5rem;
+  padding: 0.5rem;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+  border-left: 3px solid #ff9500;
+}
+
+/* Amazon Product Card Styles */
+.amazonProductsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* Responsive grid */
+  gap: 1rem;
+  margin-bottom: 1rem;
+  max-height: 400px; /* Limit height if too many items in modal */
+  overflow-y: auto; /* Scroll if content overflows */
+}
+
+.amazonProductCard {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 0.75rem;
+  text-decoration: none;
+  color: inherit;
+  background-color: #fff;
+  transition: box-shadow 0.2s ease-in-out, transform 0.2s ease-in-out;
+  overflow: hidden; /* Ensure content fits */
+}
+
+.amazonProductCard:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  transform: translateY(-2px);
+}
+
+.amazonProductImage {
+  width: 100%;
+  max-height: 120px; /* Fixed height for image container */
+  object-fit: contain; /* Or 'cover', depending on desired image display */
+  margin-bottom: 0.5rem;
+  border-radius: 4px;
+}
+
+.amazonProductInfo {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex-grow: 1; /* Allow info to take remaining space */
+}
+
+.amazonProductTitle {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #333;
+  line-height: 1.3;
+  margin-bottom: 0.25rem;
+  /* Clamp text to 2 lines */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;  
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-height: 2.6em; /* Approx 2 lines height */
+}
+
+.amazonProductPrice {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #c0392b; /* Price color */
+  margin-top: auto; /* Push price to bottom if title is short */
+}
+
+.amazonSeeMoreLink,
+.amazonSeeMoreLinkModal {
+  display: inline-block;
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: #ff9500;
+  color: white;
+  text-decoration: none;
+  border-radius: 5px;
+  font-size: 0.9rem;
+  text-align: center;
+}
+.amazonSeeMoreLink:hover,
+.amazonSeeMoreLinkModal:hover {
+  background-color: #e67e22;
+}
+.amazonSeeMoreLinkModal {
+  display: block; /* Make it full width in modal */
+}
+
+/* Dip Results Styles */
+.dipResultsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.dipCard {
+  background-color: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 10px;
+  padding: 1.5rem;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+}
+
+.dipCard h3 { /* Dip Name */
+  font-size: 1.5rem;
+  color: #ff7700;
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
+.dipDescription {
+  font-size: 0.95rem;
+  color: #555;
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+
+.dipRecipeDetails {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background-color: #f9f9f9;
+  border-radius: 6px;
+  border: 1px solid #f0f0f0;
+}
+.dipRecipeDetails h4 {
+  font-size: 1.1rem;
+  color: #333;
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+}
+.dipRecipeDetails ul, .dipRecipeDetails ol {
+  padding-left: 20px;
+  margin-bottom: 0.5rem;
+}
+.dipRecipeDetails li {
+  margin-bottom: 0.3rem;
+  font-size: 0.9rem;
+}
+
+.dipAmazonSection {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px dashed #ddd;
+}
+.dipAmazonSection h4 {
+  font-size: 1.1rem;
+  color: #444;
+  margin-bottom: 0.75rem;
 }
 
 /* Responsive Design */

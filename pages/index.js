@@ -9,10 +9,10 @@ const tools = [
     {
         id: 'recipe',
         name: 'Get custom nugget recipes',
-        description: 'Create unique nugget recipes (meat, veggie, etc.) based on your preferences, dietary restrictions, or available ingredients. Specify difficulty, cook time, and available equipment!',
+        description: 'Create unique nugget recipes (meat, veggie, etc.) based on your preferences. Specify difficulty, cook time, equipment, allergies, and general substitution ideas. Be specific in your request for best results!',
         icon: '🍳',
         inputType: 'textarea',
-        inputPlaceholder: "e.g., 'Spicy gluten-free veggie nuggets' or 'Korean-inspired pork nuggets with gochujang'",
+        inputPlaceholder: "e.g., 'Spicy gluten-free veggie nuggets, avoid nuts, use chicken if possible instead of tofu' or 'Kid-friendly baked chicken nuggets, simple ingredients'",
         buttonText: 'Generate Recipe',
         difficultyOptions: [
             { label: 'Baby', value: 'Baby', emoji: '👶' },
@@ -32,6 +32,8 @@ const tools = [
             { label: 'Pan/Stovetop', value: 'pan', emoji: '🍳' },
             { label: 'Microwave', value: 'microwave', emoji: '💡' }, // For reheating or specific steps
         ],
+        allergyPlaceholder: "e.g., 'peanuts, shellfish, dairy'",
+        substitutionsPlaceholder: "e.g., 'prefer plant-based milks', 'use honey instead of sugar'",
     },
     {
         id: 'critic',
@@ -45,10 +47,19 @@ const tools = [
     {
         id: 'dip',
         name: 'Find the perfect dip',
-        description: 'Discover the perfect sauce pairings for any nugget style. Get personalized recommendations and homemade sauce recipes.',
+        description: 'Discover sauce pairings for any nugget style. Get personalized recommendations, homemade sauce recipes, and find related products on Amazon.',
         icon: '🥫',
-        inputPlaceholder: "e.g., 'Spicy nuggets' or 'Plant-based nuggets with herbs'",
+        inputPlaceholder: "e.g., 'Spicy chicken nuggets' or 'Plant-based nuggets with herbs'",
         buttonText: 'Find Perfect Dip',
+    },
+    {
+        id: 'amazonNuggetFinder',
+        name: 'Nugget & Supplies Finder',
+        description: 'Search Amazon for specific types of nuggets, ingredients, dipping sauces, or cooking equipment.',
+        icon: '🛒',
+        inputType: 'text',
+        inputPlaceholder: "e.g., 'gluten-free chicken nuggets', 'gochujang paste', 'air fryer'",
+        buttonText: 'Search Amazon',
     },
     {
         id: 'brands',
@@ -89,6 +100,7 @@ const tools = [
 ];
 
 const PROXY_API_URL = '/api/generate';
+const AMAZON_SEARCH_API_URL = '/api/amazon-search';
 
 export default function HomePage() {
     const [selectedToolId, setSelectedToolId] = useState(tools[0].id); // Default to the first tool (recipe)
@@ -105,14 +117,21 @@ export default function HomePage() {
     const [checkedInstructions, setCheckedInstructions] = useState({});
     const [currentMimeType, setCurrentMimeType] = useState(''); // Added for image uploads
 
-    // State for ingredient substitutes modal
-    const [substituteInfo, setSubstituteInfo] = useState({
-        ingredientName: null,
-        substitutesText: '',
+    // New state for recipe tool inputs
+    const [allergiesInput, setAllergiesInput] = useState('');
+    const [substitutionsInput, setSubstitutionsInput] = useState('');
+
+    // State for Amazon search results modal (for ingredients) or inline (for dips/amazon tool)
+    const [amazonSearchResults, setAmazonSearchResults] = useState({
+        items: [],
         isLoading: false,
         error: '',
         showModal: false,
+        title: '',
+        searchUrl: '',
     });
+    // State for dip-specific Amazon results
+    const [dipAmazonResults, setDipAmazonResults] = useState({}); // Keyed by dip index or name
 
     // Removed sliderRef and autoSlideTimeoutRef
 
@@ -131,6 +150,14 @@ export default function HomePage() {
                 setSelectedDifficulty(tool.difficultyOptions?.[0]?.value || 'Baby');
                 setSelectedCookTime(tool.cookTimeOptions?.[0]?.value || '< 20 min');
                 setSelectedEquipment({}); // Reset equipment
+                setAllergiesInput(''); // Reset new recipe inputs
+                setSubstitutionsInput('');
+            }
+            if (tool.id === 'amazonNuggetFinder') {
+                setAmazonSearchResults({ items: [], isLoading: false, error: '', showModal: false, title: '', searchUrl: '' });
+            }
+            if (tool.id === 'dip') {
+                setDipAmazonResults({});
             }
         }
     }, [selectedToolId]);
@@ -162,15 +189,18 @@ export default function HomePage() {
                 }
 
                 let recipePrompt = `You are an AI chef specializing in creative nugget recipes (including meat-based, plant-based, fish, etc.).
-Based on these preferences: "${userInput}", and the following criteria:
+The user wants a recipe based on this core request: "${userInput}".
+Additionally, consider these user preferences:
 - Difficulty: ${selectedDifficulty}
 - Target Cook Time: ${selectedCookTime}
 - Available Equipment: ${equipmentInstructions}
+- Allergies to avoid if possible: "${allergiesInput || 'None specified'}"
+- General substitution preferences (e.g., types of ingredients to favor or avoid): "${substitutionsInput || 'None specified'}"
 
 Please provide the response STRICTLY as a single, valid JSON object with the following structure:
 {
   "recipeName": "A catchy recipe name (e.g., 'Spicy Honey Glazed Chicken Nuggets')",
-  "description": "A brief, enticing description of the recipe (2-3 sentences).",
+  "description": "A brief, enticing description of the recipe (2-3 sentences). Include a note if any allergy/substitution preferences were specifically addressed.",
   "prepTime": "Estimated preparation time (e.g., '15 minutes')",
   "cookTime": "Estimated cooking time (e.g., '20 minutes')",
   "difficultyRating": "${selectedDifficulty}", 
@@ -187,17 +217,33 @@ Please provide the response STRICTLY as a single, valid JSON object with the fol
 IMPORTANT: 
 - You MUST ONLY generate nugget-related recipes. If asked for any non-nugget recipe, respond with a JSON object: {"error": "I specialize only in nugget recipes."}.
 - Ensure the entire response is a single, valid JSON object. Do not include any text, pleasantries, or markdown formatting outside of this JSON object.
-- For "ingredients", "quantity" should be a string. "unit" should also be a string.
+- For "ingredients", "quantity" should be a string. "unit" should also be a string. Each ingredient object should be simple, e.g. {"name": "Chicken Breast", "quantity": "1", "unit": "lb", "notes": "boneless, skinless"}.
 - For "instructions", "stepNumber" should be a number. Ensure instructions are adapted for the 'Available Equipment' specified.
 - All string values within the JSON (especially in "description", "notes", "name") must be properly escaped if they contain special characters (e.g., double quotes within a string should be \\").
-- Be creative and make the recipe sound delicious within the JSON structure!`;
+- Be creative and make the recipe sound delicious within the JSON structure!
+- If allergies are mentioned, try to create a recipe that avoids them or clearly state if an ingredient is problematic and suggest a common alternative within the 'notes' of that ingredient if feasible.
+- If substitution preferences are mentioned, try to incorporate them naturally into the recipe.`;
                 return recipePrompt;
             case 'dip':
                 if (!userInput) {
                     setError("Please describe the type of nugget you're having.");
                     return null;
                 }
-                return basePrompt + `You are an AI dip pairing expert. Format your response using Markdown. For nuggets described as "${userInput}", suggest 3 perfect dipping sauces. For each sauce, briefly explain why it's a good pairing and include a simple homemade recipe. Format the response in Markdown. ONLY suggest sauces for nuggets. If asked about non-nugget foods, politely explain you specialize in nugget pairings only.`;
+                // The AI should now return a JSON array of dip objects
+                return basePrompt + `You are an AI dip pairing expert. For nuggets described as "${userInput}", suggest 2-3 perfect dipping sauces.
+Provide the response STRICTLY as a single, valid JSON array, where each object in the array has the following structure:
+{
+  "dipName": "string (e.g., 'Creamy Honey Mustard')",
+  "description": "string (Briefly explain why it's a good pairing, 1-2 sentences)",
+  "recipeDetails": "string (A simple homemade recipe for the dip. Use Markdown for formatting if needed, like lists for ingredients/steps. Keep it concise.)",
+  "amazonSearchKeywords": ["string", "string"] 
+}
+
+Example for "amazonSearchKeywords": For 'Creamy Honey Mustard', keywords could be ["honey mustard dip", "dijon mustard for dip"]. These should be terms to find pre-made versions or key ingredients on an e-commerce site.
+IMPORTANT:
+- Ensure the entire response is a single, valid JSON array of objects. Do not include any text, pleasantries, or markdown formatting outside of this JSON structure, except within the "recipeDetails" field.
+- All string values within the JSON must be properly escaped.
+- ONLY suggest sauces for nuggets. If asked about non-nugget foods, respond with a JSON array containing a single object: [{"error": "I specialize only in nugget pairings."}].`;
             case 'critic':
                 // For the critic tool, the userInput (text input) is not directly used in the prompt to Gemini,
                 // as the primary input is the image. However, the prompt itself is static.
@@ -261,6 +307,18 @@ IMPORTANT:
         event.preventDefault();
         if (!activeTool || activeTool.comingSoon) return;
 
+        // Handle Amazon Nugget Finder tool separately as it doesn't use Gemini
+        if (activeTool.id === 'amazonNuggetFinder') {
+            if (!inputValue.trim()) {
+                setError('Please enter a search term for Amazon.');
+                return;
+            }
+            setError('');
+            setResults(''); // Clear previous AI results
+            await fetchAmazonProducts(inputValue, `Products matching "${inputValue}" on Amazon`);
+            return;
+        }
+
         const promptText = getPromptForTool(activeTool, inputValue);
 
         if (activeTool.id === 'critic' && !selectedFile) {
@@ -303,7 +361,7 @@ IMPORTANT:
             if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
                 let aiResponseText = data.candidates[0].content.parts[0].text;
 
-                if (activeTool.id === 'recipe' || activeTool.id === 'critic') {
+                if (activeTool.id === 'recipe' || activeTool.id === 'critic' || activeTool.id === 'dip') {
                     // Attempt to extract JSON string if wrapped in markdown code blocks
                     // Handles ```json ... ``` or ``` ... ```
                     const markdownMatch = aiResponseText.match(/^```(?:json)?\s*([\s\S]+?)\s*```$/);
@@ -316,6 +374,23 @@ IMPORTANT:
                 setResults(aiResponseText);
                 if (activeTool.id === 'recipe') {
                     setCheckedInstructions({});
+                }
+                if (activeTool.id === 'dip') {
+                    // After getting dip suggestions, fetch Amazon products for each
+                    try {
+                        const dipSuggestions = JSON.parse(aiResponseText);
+                        if (Array.isArray(dipSuggestions) && !dipSuggestions[0]?.error) {
+                            setDipAmazonResults({}); // Clear previous results
+                            dipSuggestions.forEach((dip, index) => {
+                                if (dip.amazonSearchKeywords && dip.amazonSearchKeywords.length > 0) {
+                                    fetchAmazonProductsForDip(dip.amazonSearchKeywords.join(' '), index, `Related to "${dip.dipName}"`);
+                                }
+                            });
+                        }
+                    } catch (e) {
+                        console.warn("Could not parse dip suggestions for Amazon search trigger:", e);
+                        // Non-JSON response, or error in JSON, will be handled by renderDipResults
+                    }
                 }
             } else if (data.promptFeedback?.blockReason) {
                 setError(`Request blocked: ${data.promptFeedback.blockReason}. Try a different prompt.`);
@@ -356,51 +431,73 @@ IMPORTANT:
         }));
     };
 
-    const handleShowSubstitutes = async (ingredient) => {
-        if (!ingredient || !ingredient.name) return;
-
-        setSubstituteInfo({
-            ingredientName: ingredient.name,
-            substitutesText: '',
-            isLoading: true,
-            error: '',
-            showModal: true,
-        });
-
-        const substitutePrompt = `You are an AI culinary assistant. The user is looking for substitutes for the ingredient "${ingredient.name}" in a nugget recipe. 
-Please provide 3-5 common and practical substitutes. For each substitute:
-1. Clearly state the substitute.
-2. Briefly explain how it might change the taste or texture of the nuggets.
-3. Suggest any simple quantity adjustments if needed (e.g., "use 1:1" or "use half the amount").
-Format your response as a Markdown list. Keep it concise and helpful for a home cook. Only provide substitutes, no extra conversation.`;
-
+    // New function to fetch Amazon products
+    const fetchAmazonProducts = async (keywords, title, itemCount = 4) => {
+        setAmazonSearchResults(prev => ({ ...prev, isLoading: true, error: '', title: title, showModal: activeTool.id !== 'amazonNuggetFinder' }));
         try {
-            const response = await fetch(PROXY_API_URL, {
+            const response = await fetch(AMAZON_SEARCH_API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ promptText: substitutePrompt }),
+                body: JSON.stringify({ keywords, itemCount }),
             });
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.error || `API request failed for substitutes: ${response.statusText}`);
+                throw new Error(data.error || `Amazon search failed: ${response.statusText}`);
+            }
+            setAmazonSearchResults(prev => ({
+                ...prev,
+                items: data.Items || [],
+                searchUrl: data.SearchURL || '',
+                isLoading: false,
+                // showModal will be true if initiated by ingredient click, false for amazonNuggetFinder tool
+            }));
+             if (activeTool.id === 'amazonNuggetFinder') { // Display results directly for this tool
+                setResults(''); // Clear AI results area
             }
 
-            if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
-                setSubstituteInfo(prev => ({ ...prev, substitutesText: data.candidates[0].content.parts[0].text, isLoading: false }));
-            } else if (data.promptFeedback?.blockReason) {
-                setSubstituteInfo(prev => ({ ...prev, error: `Request blocked: ${data.promptFeedback.blockReason}.`, isLoading: false }));
-            } else {
-                setSubstituteInfo(prev => ({ ...prev, error: 'Received an unexpected response for substitutes.', isLoading: false }));
-            }
         } catch (err) {
-            console.error("Substitute API Call Error:", err);
-            setSubstituteInfo(prev => ({ ...prev, error: err.message || 'Failed to fetch substitutes.', isLoading: false }));
+            console.error("Amazon Search API Call Error:", err);
+            setAmazonSearchResults(prev => ({ ...prev, items: [], isLoading: false, error: err.message || 'Failed to fetch Amazon products.' }));
+        }
+    };
+    
+    // Function to fetch Amazon products for a specific dip
+    const fetchAmazonProductsForDip = async (keywords, dipIndex, title, itemCount = 3) => {
+        setDipAmazonResults(prev => ({
+            ...prev,
+            [dipIndex]: { items: [], isLoading: true, error: '', title, searchUrl: '' }
+        }));
+        try {
+            const response = await fetch(AMAZON_SEARCH_API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ keywords, itemCount }),
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || `Amazon search for dip failed: ${response.statusText}`);
+            }
+            setDipAmazonResults(prev => ({
+                ...prev,
+                [dipIndex]: { items: data.Items || [], isLoading: false, error: '', title, searchUrl: data.SearchURL || '' }
+            }));
+        } catch (err) {
+            console.error(`Amazon Search API Call Error for dip ${dipIndex}:`, err);
+            setDipAmazonResults(prev => ({
+                ...prev,
+                [dipIndex]: { items: [], isLoading: false, error: err.message || 'Failed to fetch products.', title, searchUrl: '' }
+            }));
         }
     };
 
-    const handleCloseSubstituteModal = () => {
-        setSubstituteInfo({ ingredientName: null, substitutesText: '', isLoading: false, error: '', showModal: false });
+    const handleIngredientClickForAmazonSearch = (ingredient) => {
+        if (!ingredient || !ingredient.name) return;
+        fetchAmazonProducts(ingredient.name, `"${ingredient.name}" on Amazon`);
+    };
+
+    const handleCloseAmazonModal = () => {
+        setAmazonSearchResults({ items: [], isLoading: false, error: '', showModal: false, title: '', searchUrl: '' });
     };
 
     // Helper function to render recipe results from JSON
@@ -434,8 +531,8 @@ Format your response as a Markdown list. Keep it concise and helpful for a home 
                                 <div 
                                     key={index} 
                                     className={styles.ingredientPill}
-                                    onClick={() => handleShowSubstitutes(ing)}
-                                    title={`Click to find substitutes for ${ing.name}`}
+                                    onClick={() => handleIngredientClickForAmazonSearch(ing)}
+                                    title={`Click to search for ${ing.name} on Amazon`}
                                 >
                                     <span className={styles.ingredientName}>{ing.name}</span>
                                     <span className={styles.ingredientQuantity}>{`${ing.quantity || ''} ${ing.unit || ''}`}</span>
@@ -577,6 +674,94 @@ Format your response as a Markdown list. Keep it concise and helpful for a home 
         }
     };
 
+    // Helper function to render Amazon product cards
+    const renderAmazonProductCard = (product, keyPrefix = "product") => {
+        const title = product.ItemInfo?.Title?.DisplayValue || 'N/A';
+        const imageUrl = product.Images?.Primary?.Medium?.URL;
+        const price = product.Offers?.Listings?.[0]?.Price?.DisplayAmount;
+        const productUrl = product.DetailPageURL;
+
+        return (
+            <a href={productUrl} target="_blank" rel="noopener noreferrer sponsored" className={styles.amazonProductCard} key={`${keyPrefix}-${product.ASIN}`}>
+                {imageUrl && <img src={imageUrl} alt={title} className={styles.amazonProductImage} />}
+                <div className={styles.amazonProductInfo}>
+                    <p className={styles.amazonProductTitle} title={title}>{title}</p>
+                    {price && <p className={styles.amazonProductPrice}>{price}</p>}
+                </div>
+            </a>
+        );
+    };
+
+    // Helper function to render dip results
+    const renderDipResults = (jsonData) => {
+        console.log("Attempting to parse dip JSON. Raw data received:", jsonData);
+        try {
+            const dips = JSON.parse(jsonData);
+            console.log("Successfully parsed dip JSON:", dips);
+
+            if (!Array.isArray(dips)) {
+                 throw new Error("Dip data is not an array.");
+            }
+            if (dips.length === 0) {
+                return <p>No dip suggestions found.</p>;
+            }
+            if (dips[0]?.error) {
+                return <p className={styles.errorMessage}>Error from AI: {dips[0].error}</p>;
+            }
+
+            return (
+                <div className={styles.dipResultsContainer}>
+                    {dips.map((dip, index) => (
+                        <div key={index} className={styles.dipCard}>
+                            <h3>{dip.dipName || 'Unnamed Dip'}</h3>
+                            <p className={styles.dipDescription}>{dip.description || 'No description.'}</p>
+                            <div className={styles.dipRecipeDetails}>
+                                <h4>Recipe:</h4>
+                                <ReactMarkdown>{dip.recipeDetails || 'No recipe details provided.'}</ReactMarkdown>
+                            </div>
+                            {dip.amazonSearchKeywords && dip.amazonSearchKeywords.length > 0 && (
+                                <div className={styles.dipAmazonSection}>
+                                    <h4>Find on Amazon (related to "{dip.dipName}"):</h4>
+                                    {dipAmazonResults[index]?.isLoading && <div className={styles.loadingSpinnerSmall}></div>}
+                                    {dipAmazonResults[index]?.error && <p className={styles.errorMessage}>{dipAmazonResults[index].error}</p>}
+                                    {dipAmazonResults[index]?.items?.length > 0 && (
+                                        <>
+                                            <div className={styles.amazonProductsGrid}>
+                                                {dipAmazonResults[index].items.map(product => renderAmazonProductCard(product, `dip-${index}-prod`))}
+                                            </div>
+                                            {dipAmazonResults[index].searchUrl && (
+                                                <a href={dipAmazonResults[index].searchUrl} target="_blank" rel="noopener noreferrer sponsored" className={styles.amazonSeeMoreLink}>
+                                                    See more on Amazon...
+                                                </a>
+                                            )}
+                                        </>
+                                    )}
+                                    {!dipAmazonResults[index]?.isLoading && !dipAmazonResults[index]?.error && dipAmazonResults[index]?.items?.length === 0 && (
+                                        <p>No specific products found for these keywords.</p>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            );
+        } catch (e) {
+            console.error("Failed to parse or render dip JSON. Error:", e);
+            console.error("Raw JSON data that failed to parse:", jsonData);
+            return (
+                <>
+                    <p className={styles.errorMessage}>
+                        Oops! We had trouble displaying these dip suggestions.
+                        Here's the raw data from the AI:
+                    </p>
+                    <div className={styles.resultsContent}>
+                        <ReactMarkdown>{jsonData}</ReactMarkdown>
+                    </div>
+                </>
+            );
+        }
+    };
+
     return (
         <div className={styles.pageContainer}>
             <Head>
@@ -684,6 +869,31 @@ Format your response as a Markdown list. Keep it concise and helpful for a home 
                                                 ))}
                                             </div>
                                         </div>
+                                        <div className={styles.recipeOptionsGroup}>
+                                            <label htmlFor="allergiesInput">Allergies (comma-separated, optional):</label>
+                                            <input
+                                                type="text"
+                                                id="allergiesInput"
+                                                value={allergiesInput}
+                                                onChange={(e) => setAllergiesInput(e.target.value)}
+                                                placeholder={activeTool.allergyPlaceholder}
+                                                disabled={isLoading}
+                                            />
+                                        </div>
+                                        <div className={styles.recipeOptionsGroup}>
+                                            <label htmlFor="substitutionsInput">General Substitution Preferences (optional):</label>
+                                            <input
+                                                type="text"
+                                                id="substitutionsInput"
+                                                value={substitutionsInput}
+                                                onChange={(e) => setSubstitutionsInput(e.target.value)}
+                                                placeholder={activeTool.substitutionsPlaceholder}
+                                                disabled={isLoading}
+                                            />
+                                        </div>
+                                        <p className={styles.inputHint}>
+                                            For the main request below, be specific! Mention ingredients you like, dislike, or have on hand.
+                                        </p>
                                     </>
                                 )}
 
@@ -745,7 +955,7 @@ Format your response as a Markdown list. Keep it concise and helpful for a home 
                                 
                                 <button 
                                     type="submit" 
-                                    disabled={isLoading || (activeTool.inputType === 'file' && !selectedFile && !activeTool.comingSoon) || activeTool.comingSoon}
+                                    disabled={isLoading || (activeTool.inputType === 'file' && !selectedFile && !activeTool.comingSoon) || (activeTool.id ==='amazonNuggetFinder' && !inputValue.trim() && !activeTool.comingSoon) || activeTool.comingSoon}
                                     className={styles.submitButton}
                                 >
                                     {isLoading ? 'Processing...' : activeTool.buttonText}
@@ -755,32 +965,69 @@ Format your response as a Markdown list. Keep it concise and helpful for a home 
                         
                         {isLoading && <div className={styles.loadingSpinner}></div>}
                         {error && <p className={styles.errorMessage}>Error: {error}</p>}
-                        {results && !activeTool.comingSoon && (
+                        
+                        {/* Display AI/Gemini results */}
+                        {results && !activeTool.comingSoon && activeTool.id !== 'amazonNuggetFinder' && (
                             <div className={styles.resultsContainer}>
-                                <h3>Results</h3>
+                                <h3>Results for {activeTool.name}</h3>
                                 {activeTool.id === 'recipe' ? renderRecipeResults(results) : 
-                                 activeTool.id === 'critic' ? renderCritiqueResults(results) : (
+                                 activeTool.id === 'critic' ? renderCritiqueResults(results) :
+                                 activeTool.id === 'dip' ? renderDipResults(results) : (
                                     <div className={styles.resultsContent}>
                                         <ReactMarkdown>{results}</ReactMarkdown>
                                     </div>
                                 )}
                             </div>
                         )}
+
+                        {/* Display Amazon Search Results for the 'amazonNuggetFinder' tool */}
+                        {activeTool.id === 'amazonNuggetFinder' && !amazonSearchResults.isLoading && (amazonSearchResults.items.length > 0 || amazonSearchResults.error) && (
+                            <div className={styles.resultsContainer}>
+                                <h3>{amazonSearchResults.title || 'Amazon Search Results'}</h3>
+                                {amazonSearchResults.error && <p className={styles.errorMessage}>{amazonSearchResults.error}</p>}
+                                {amazonSearchResults.items.length > 0 && (
+                                    <>
+                                        <div className={styles.amazonProductsGrid}>
+                                            {amazonSearchResults.items.map(product => renderAmazonProductCard(product))}
+                                        </div>
+                                        {amazonSearchResults.searchUrl && (
+                                            <a href={amazonSearchResults.searchUrl} target="_blank" rel="noopener noreferrer sponsored" className={styles.amazonSeeMoreLink}>
+                                                See more on Amazon...
+                                            </a>
+                                        )}
+                                    </>
+                                )}
+                                {!amazonSearchResults.error && amazonSearchResults.items.length === 0 && <p>No products found for your search.</p>}
+                            </div>
+                        )}
+                         {activeTool.id === 'amazonNuggetFinder' && amazonSearchResults.isLoading && <div className={styles.loadingSpinner}></div>}
+
                     </div>
                 </section>
             )}
 
-            {substituteInfo.showModal && (
-                <div className={styles.modalOverlay} onClick={handleCloseSubstituteModal}>
+            {/* Modal for Amazon Search Results (e.g., from ingredient click) */}
+            {amazonSearchResults.showModal && (
+                <div className={styles.modalOverlay} onClick={handleCloseAmazonModal}>
                     <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-                        <button className={styles.modalCloseButton} onClick={handleCloseSubstituteModal}>&times;</button>
-                        <h3>Substitutes for {substituteInfo.ingredientName}</h3>
-                        {substituteInfo.isLoading && <div className={styles.loadingSpinnerSmall}></div>}
-                        {substituteInfo.error && <p className={styles.errorMessage}>{substituteInfo.error}</p>}
-                        {substituteInfo.substitutesText && !substituteInfo.isLoading && (
-                            <div className={styles.substitutesResultsContent}>
-                                <ReactMarkdown>{substituteInfo.substitutesText}</ReactMarkdown>
-                            </div>
+                        <button className={styles.modalCloseButton} onClick={handleCloseAmazonModal}>&times;</button>
+                        <h3>{amazonSearchResults.title || 'Amazon Search Results'}</h3>
+                        {amazonSearchResults.isLoading && <div className={styles.loadingSpinnerSmall}></div>}
+                        {amazonSearchResults.error && <p className={styles.errorMessage}>{amazonSearchResults.error}</p>}
+                        {!amazonSearchResults.isLoading && !amazonSearchResults.error && amazonSearchResults.items.length > 0 && (
+                            <>
+                                <div className={styles.amazonProductsGrid}>
+                                    {amazonSearchResults.items.map(product => renderAmazonProductCard(product, "modal-prod"))}
+                                </div>
+                                {amazonSearchResults.searchUrl && (
+                                    <a href={amazonSearchResults.searchUrl} target="_blank" rel="noopener noreferrer sponsored" className={styles.amazonSeeMoreLinkModal}>
+                                        See more on Amazon...
+                                    </a>
+                                )}
+                            </>
+                        )}
+                        {!amazonSearchResults.isLoading && !amazonSearchResults.error && amazonSearchResults.items.length === 0 && (
+                            <p>No products found for this search.</p>
                         )}
                     </div>
                 </div>
