@@ -1,0 +1,220 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.header {
+  background-color: #ffc107; /* Nugget gold */
+  color: #333;
+  padding: 1.2rem 2rem;
+  text-align: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+
+.header p {
+  margin: 0.4rem 0 0;
+  font-size: 1rem;
+  color: #555;
+}
+
+.mainLayout {
+  display: flex;
+  flex-grow: 1;
+  max-width: 1300px;
+  width: 100%; /* Changed from 95% to 100% for edge-to-edge on smaller screens if desired */
+  margin: 0 auto; /* Keep centered for larger screens */
+  /* Removed background-color, box-shadow, border-radius, overflow from here to apply to children if needed */
+}
+
+.sidebar {
+  background-color: #e9ecef;
+  padding: 20px;
+  width: 260px;
+  flex-shrink: 0;
+  border-right: 1px solid #dee2e6;
+  height: calc(100vh - 78px); /* Adjust based on header height */
+  overflow-y: auto;
+  position: sticky;
+  top: 78px; /* Adjust based on header height */
+}
+
+.sidebar h2 {
+  margin-top: 0;
+  color: #e67e22;
+  font-size: 1.4rem;
+  margin-bottom: 15px;
+}
+
+.toolList {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.toolListItem {
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  background-color: #fff;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, transform 0.1s ease;
+  font-size: 0.9rem;
+}
+
+.toolListItem:hover {
+  background-color: #f1f3f5;
+  border-color: #adb5bd;
+  transform: translateX(2px);
+}
+
+.toolListItemActive {
+  background-color: #e67e22;
+  color: #ffffff;
+  border-color: #d35400;
+  font-weight: bold;
+}
+
+.mainContent {
+  flex-grow: 1;
+  padding: 25px 35px;
+  overflow-y: auto;
+  background-color: #ffffff;
+}
+
+.toolPlaceholder {
+  text-align: center;
+  color: #6c757d;
+  padding-top: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+.toolPlaceholder img {
+  max-width: 150px;
+  margin-bottom: 20px;
+  border-radius: 10px; /* Changed from 50% for a softer look */
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+.toolPlaceholder h2 {
+  font-size: 1.7rem;
+  margin-top: 0;
+}
+
+.toolInterface h3 {
+  margin-top: 0;
+  color: #2c3e50;
+  font-size: 1.7rem;
+  margin-bottom: 8px;
+  border-bottom: 2px solid #ffc107;
+  padding-bottom: 8px;
+}
+.toolInterface > p {
+  margin-bottom: 18px;
+  font-size: 1rem;
+  color: #495057;
+}
+
+.toolInterface textarea,
+.toolInterface input[type="text"] {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  box-sizing: border-box;
+}
+.toolInterface textarea {
+  min-height: 70px;
+  resize: vertical;
+}
+
+.toolInterface button {
+  background-color: #007bff;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: background-color 0.2s ease-in-out, transform 0.1s ease;
+}
+
+.toolInterface button:hover {
+  background-color: #0056b3;
+  transform: translateY(-1px);
+}
+.toolInterface button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.resultsArea {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #e9f5ff;
+  border: 1px solid #bde0fe;
+  border-radius: 6px;
+  min-height: 100px;
+  white-space: pre-wrap;
+  overflow-x: auto;
+  font-size: 0.9rem;
+  line-height: 1.7;
+  color: #0d3b66;
+}
+
+.loadingSpinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #007bff;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  animation: spin 1s linear infinite;
+  margin: 20px 0; /* Adjusted margin */
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.footer {
+  text-align: center;
+  padding: 1rem;
+  background-color: #343a40;
+  color: #f8f9fa;
+  font-size: 0.85rem;
+  margin-top: auto;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .mainLayout {
+    flex-direction: column;
+  }
+  .sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #dee2e6;
+    height: auto; /* Allow content to define height */
+    max-height: 300px; /* Limit height and enable scroll */
+    position: static; /* Remove sticky positioning on mobile */
+  }
+  .mainContent {
+    padding: 20px;
+  }
+  .header h1 {
+    font-size: 2rem;
+  }
+} 

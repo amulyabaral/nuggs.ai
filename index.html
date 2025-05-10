@@ -3,27 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome!</title>
-    <style>
-        body {
-            display: flex;
-            flex-direction: column; /* Stack items vertically */
-            justify-content: center;
-            align-items: center;
-            height: 100vh; /* Make the body take the full viewport height */
-            margin: 0; /* Remove default body margin */
-            font-family: sans-serif; /* Optional: a nice default font */
-            text-align: center; /* Center text within elements */
-        }
-        img {
-            max-width: 80%; /* Make image responsive, not exceeding 80% of screen width */
-            max-height: 70vh; /* Prevent image from being too tall */
-            margin-bottom: 20px; /* Add some space between image and text */
-        }
-    </style>
+    <title>nuggs.ai - Your Nugget AI Companion</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <img src="nugget.png" alt="A cute nugget">
-    <h1>Welcome</h1>
+    <header>
+        <h1>nuggs.ai</h1>
+        <p>Your AI companion for all things nuggets!</p>
+    </header>
+    <div class="container">
+        <aside class="sidebar">
+            <h2>AI Tools</h2>
+            <ul id="tool-list">
+                <li data-tool="trivia">AI Nugget History & Trivia Bot</li>
+                <li data-tool="recipe">AI Nugget Recipe Generator</li>
+                <li data-tool="dip">Dip Pairing AI</li>
+                <li data-tool="critic">Nugget Critic AI</li>
+                <li data-tool="comparator">Nugget Brand Comparator AI</li>
+                <li data-tool="deal">AI Fast Food Deal Finder</li>
+                <li data-tool="calorie">Calorie Counter for Nuggets AI</li>
+                <li data-tool="map">Global Nugget Taste Map AI</li>
+                <li data-tool="cooking">AI for Perfect Nugget Frying/Baking</li>
+                <li data-tool="planner">Kid-Friendly Meal Planner AI</li>
+            </ul>
+        </aside>
+        <main id="main-content">
+            <div class="tool-placeholder">
+                <img src="nugget.png" alt="A cute nugget" style="max-width: 180px; margin-bottom: 20px; border-radius: 10px;">
+                <h2>Welcome to nuggs.ai!</h2>
+                <p>Select a tool from the sidebar to get started.</p>
+            </div>
+            <!-- Tool-specific content will be loaded here by JavaScript -->
+        </main>
+    </div>
+    <footer>
+        <p>&copy; 2024 nuggs.ai - Powered by AI, fueled by nuggets.</p>
+    </footer>
+    <script src="script.js"></script>
 </body>
 </html>
