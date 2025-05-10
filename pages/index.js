@@ -4,12 +4,14 @@ import { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import styles from '../styles/Home.module.css';
 
+const AMAZON_AFFILIATE_TAG = 'nuggs00-20';
+
 // Updated Tools data
 const tools = [
     {
         id: 'recipe',
         name: 'Get custom nugget recipes',
-        description: 'Create unique nugget recipes (meat, veggie, etc.) based on your preferences. Specify difficulty, cook time, equipment, allergies, and general substitution ideas. Be specific in your request for best results!',
+        description: 'Create unique nugget recipes (meat, veggie, etc.) based on your preferences. Specify difficulty, cook time, equipment, allergies, and general substitution ideas. Click on ingredients to search for them on Amazon!',
         icon: '🍳',
         inputType: 'textarea',
         inputPlaceholder: "e.g., 'Spicy gluten-free veggie nuggets, avoid nuts, use chicken if possible instead of tofu' or 'Kid-friendly baked chicken nuggets, simple ingredients'",
@@ -47,19 +49,10 @@ const tools = [
     {
         id: 'dip',
         name: 'Find the perfect dip',
-        description: 'Discover sauce pairings for any nugget style. Get personalized recommendations, homemade sauce recipes, and find related products on Amazon.',
+        description: 'Discover sauce pairings for any nugget style. Get personalized recommendations, homemade sauce recipes, and links to search for related products on Amazon.',
         icon: '🥫',
         inputPlaceholder: "e.g., 'Spicy chicken nuggets' or 'Plant-based nuggets with herbs'",
         buttonText: 'Find Perfect Dip',
-    },
-    {
-        id: 'amazonNuggetFinder',
-        name: 'Nugget & Supplies Finder',
-        description: 'Search Amazon for specific types of nuggets, ingredients, dipping sauces, or cooking equipment.',
-        icon: '🛒',
-        inputType: 'text',
-        inputPlaceholder: "e.g., 'gluten-free chicken nuggets', 'gochujang paste', 'air fryer'",
-        buttonText: 'Search Amazon',
     },
     {
         id: 'brands',
@@ -100,7 +93,6 @@ const tools = [
 ];
 
 const PROXY_API_URL = '/api/generate';
-const AMAZON_SEARCH_API_URL = '/api/amazon-search';
 
 export default function HomePage() {
     const [selectedToolId, setSelectedToolId] = useState(tools[0].id); // Default to the first tool (recipe)
@@ -121,18 +113,6 @@ export default function HomePage() {
     const [allergiesInput, setAllergiesInput] = useState('');
     const [substitutionsInput, setSubstitutionsInput] = useState('');
 
-    // State for Amazon search results modal (for ingredients) or inline (for dips/amazon tool)
-    const [amazonSearchResults, setAmazonSearchResults] = useState({
-        items: [],
-        isLoading: false,
-        error: '',
-        showModal: false,
-        title: '',
-        searchUrl: '',
-    });
-    // State for dip-specific Amazon results
-    const [dipAmazonResults, setDipAmazonResults] = useState({}); // Keyed by dip index or name
-
     // Removed sliderRef and autoSlideTimeoutRef
 
     // Effect to update activeTool when selectedToolId changes
@@ -152,12 +132,6 @@ export default function HomePage() {
                 setSelectedEquipment({}); // Reset equipment
                 setAllergiesInput(''); // Reset new recipe inputs
                 setSubstitutionsInput('');
-            }
-            if (tool.id === 'amazonNuggetFinder') {
-                setAmazonSearchResults({ items: [], isLoading: false, error: '', showModal: false, title: '', searchUrl: '' });
-            }
-            if (tool.id === 'dip') {
-                setDipAmazonResults({});
             }
         }
     }, [selectedToolId]);
@@ -239,7 +213,7 @@ Provide the response STRICTLY as a single, valid JSON array, where each object i
   "amazonSearchKeywords": ["string", "string"] 
 }
 
-Example for "amazonSearchKeywords": For 'Creamy Honey Mustard', keywords could be ["honey mustard dip", "dijon mustard for dip"]. These should be terms to find pre-made versions or key ingredients on an e-commerce site.
+Example for "amazonSearchKeywords": For 'Creamy Honey Mustard', keywords could be ["honey mustard dip", "dijon mustard for dip"]. These should be terms to find pre-made versions or key ingredients on an e-commerce site. These keywords will be used to construct a search link.
 IMPORTANT:
 - Ensure the entire response is a single, valid JSON array of objects. Do not include any text, pleasantries, or markdown formatting outside of this JSON structure, except within the "recipeDetails" field.
 - All string values within the JSON must be properly escaped.
@@ -307,18 +281,6 @@ IMPORTANT:
         event.preventDefault();
         if (!activeTool || activeTool.comingSoon) return;
 
-        // Handle Amazon Nugget Finder tool separately as it doesn't use Gemini
-        if (activeTool.id === 'amazonNuggetFinder') {
-            if (!inputValue.trim()) {
-                setError('Please enter a search term for Amazon.');
-                return;
-            }
-            setError('');
-            setResults(''); // Clear previous AI results
-            await fetchAmazonProducts(inputValue, `Products matching "${inputValue}" on Amazon`);
-            return;
-        }
-
         const promptText = getPromptForTool(activeTool, inputValue);
 
         if (activeTool.id === 'critic' && !selectedFile) {
@@ -375,23 +337,6 @@ IMPORTANT:
                 if (activeTool.id === 'recipe') {
                     setCheckedInstructions({});
                 }
-                if (activeTool.id === 'dip') {
-                    // After getting dip suggestions, fetch Amazon products for each
-                    try {
-                        const dipSuggestions = JSON.parse(aiResponseText);
-                        if (Array.isArray(dipSuggestions) && !dipSuggestions[0]?.error) {
-                            setDipAmazonResults({}); // Clear previous results
-                            dipSuggestions.forEach((dip, index) => {
-                                if (dip.amazonSearchKeywords && dip.amazonSearchKeywords.length > 0) {
-                                    fetchAmazonProductsForDip(dip.amazonSearchKeywords.join(' '), index, `Related to "${dip.dipName}"`);
-                                }
-                            });
-                        }
-                    } catch (e) {
-                        console.warn("Could not parse dip suggestions for Amazon search trigger:", e);
-                        // Non-JSON response, or error in JSON, will be handled by renderDipResults
-                    }
-                }
             } else if (data.promptFeedback?.blockReason) {
                 setError(`Request blocked: ${data.promptFeedback.blockReason}. Try a different prompt.`);
             } else {
@@ -431,73 +376,11 @@ IMPORTANT:
         }));
     };
 
-    // New function to fetch Amazon products
-    const fetchAmazonProducts = async (keywords, title, itemCount = 4) => {
-        setAmazonSearchResults(prev => ({ ...prev, isLoading: true, error: '', title: title, showModal: activeTool.id !== 'amazonNuggetFinder' }));
-        try {
-            const response = await fetch(AMAZON_SEARCH_API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ keywords, itemCount }),
-            });
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.error || `Amazon search failed: ${response.statusText}`);
-            }
-            setAmazonSearchResults(prev => ({
-                ...prev,
-                items: data.Items || [],
-                searchUrl: data.SearchURL || '',
-                isLoading: false,
-                // showModal will be true if initiated by ingredient click, false for amazonNuggetFinder tool
-            }));
-             if (activeTool.id === 'amazonNuggetFinder') { // Display results directly for this tool
-                setResults(''); // Clear AI results area
-            }
-
-        } catch (err) {
-            console.error("Amazon Search API Call Error:", err);
-            setAmazonSearchResults(prev => ({ ...prev, items: [], isLoading: false, error: err.message || 'Failed to fetch Amazon products.' }));
-        }
-    };
-    
-    // Function to fetch Amazon products for a specific dip
-    const fetchAmazonProductsForDip = async (keywords, dipIndex, title, itemCount = 3) => {
-        setDipAmazonResults(prev => ({
-            ...prev,
-            [dipIndex]: { items: [], isLoading: true, error: '', title, searchUrl: '' }
-        }));
-        try {
-            const response = await fetch(AMAZON_SEARCH_API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ keywords, itemCount }),
-            });
-            const data = await response.json();
-            if (!response.ok) {
-                throw new Error(data.error || `Amazon search for dip failed: ${response.statusText}`);
-            }
-            setDipAmazonResults(prev => ({
-                ...prev,
-                [dipIndex]: { items: data.Items || [], isLoading: false, error: '', title, searchUrl: data.SearchURL || '' }
-            }));
-        } catch (err) {
-            console.error(`Amazon Search API Call Error for dip ${dipIndex}:`, err);
-            setDipAmazonResults(prev => ({
-                ...prev,
-                [dipIndex]: { items: [], isLoading: false, error: err.message || 'Failed to fetch products.', title, searchUrl: '' }
-            }));
-        }
-    };
-
     const handleIngredientClickForAmazonSearch = (ingredient) => {
         if (!ingredient || !ingredient.name) return;
-        fetchAmazonProducts(ingredient.name, `"${ingredient.name}" on Amazon`);
-    };
-
-    const handleCloseAmazonModal = () => {
-        setAmazonSearchResults({ items: [], isLoading: false, error: '', showModal: false, title: '', searchUrl: '' });
+        const searchTerm = encodeURIComponent(ingredient.name);
+        const amazonSearchUrl = `https://www.amazon.com/s?k=${searchTerm}&tag=${AMAZON_AFFILIATE_TAG}`;
+        window.open(amazonSearchUrl, '_blank', 'noopener,noreferrer');
     };
 
     // Helper function to render recipe results from JSON
@@ -593,105 +476,6 @@ IMPORTANT:
         }
     };
 
-    // Helper function to render critique results from JSON
-    const renderCritiqueResults = (jsonData) => {
-        console.log("Attempting to parse critique JSON. Raw data received:", jsonData);
-        try {
-            const critique = JSON.parse(jsonData);
-            console.log("Successfully parsed critique JSON:", critique);
-
-            if (critique.error && critique.error !== "N/A" && critique.error !== "") {
-                return <p className={styles.errorMessage}>Critique Error: {critique.error}</p>;
-            }
-
-            return (
-                <div className={styles.critiqueOutputContainer}>
-                    {critique.critiqueTitle && <h2 className={styles.critiqueOverallTitle}>{critique.critiqueTitle}</h2>}
-
-                    {critique.appearance && (
-                        <div className={styles.critiqueCard}>
-                            <h3 className={styles.critiqueCardTitle}>{critique.appearance.title || 'Appearance'}</h3>
-                            <div className={styles.critiqueCardContent}>
-                                {critique.appearance.color && <p><strong>Color:</strong> {critique.appearance.color}</p>}
-                                {critique.appearance.shapeAndUniformity && <p><strong>Shape & Uniformity:</strong> {critique.appearance.shapeAndUniformity}</p>}
-                                {critique.appearance.coatingTexture && <p><strong>Coating Texture:</strong> {critique.appearance.coatingTexture}</p>}
-                            </div>
-                        </div>
-                    )}
-
-                    {critique.probableTexture && (
-                        <div className={styles.critiqueCard}>
-                            <h3 className={styles.critiqueCardTitle}>{critique.probableTexture.title || 'Probable Texture'}</h3>
-                            <div className={styles.critiqueCardContent}>
-                                <p>{critique.probableTexture.description}</p>
-                            </div>
-                        </div>
-                    )}
-
-                    {critique.overallAppeal && (
-                        <div className={styles.critiqueCard}>
-                            <h3 className={styles.critiqueCardTitle}>{critique.overallAppeal.title || 'Overall Appeal'}</h3>
-                            <div className={styles.critiqueCardContent}>
-                                <p>{critique.overallAppeal.description}</p>
-                            </div>
-                        </div>
-                    )}
-
-                    {critique.suggestionsForImprovement && critique.suggestionsForImprovement.suggestion && critique.suggestionsForImprovement.suggestion !== "N/A" && critique.suggestionsForImprovement.suggestion !== "" && (
-                        <div className={styles.critiqueCard}>
-                            <h3 className={styles.critiqueCardTitle}>{critique.suggestionsForImprovement.title || 'Suggestions for Improvement'}</h3>
-                            <div className={styles.critiqueCardContent}>
-                                <p>{critique.suggestionsForImprovement.suggestion}</p>
-                            </div>
-                        </div>
-                    )}
-
-                    {critique.dippingSaucePairing && (
-                        <div className={styles.critiqueCard}>
-                            <h3 className={styles.critiqueCardTitle}>{critique.dippingSaucePairing.title || 'Dipping Sauce Pairing'}</h3>
-                            <div className={styles.critiqueCardContent}>
-                                {critique.dippingSaucePairing.sauceName && <p><strong>Sauce:</strong> {critique.dippingSaucePairing.sauceName}</p>}
-                                {critique.dippingSaucePairing.reason && <p><strong>Reason:</strong> {critique.dippingSaucePairing.reason}</p>}
-                            </div>
-                        </div>
-                    )}
-                </div>
-            );
-        } catch (e) {
-            console.error("Failed to parse critique JSON. Error:", e);
-            console.error("Raw JSON data that failed to parse:", jsonData);
-            return (
-                <>
-                    <p className={styles.errorMessage}>
-                        Oops! We had trouble displaying this critique in the structured format.
-                        Here's the raw data from the AI:
-                    </p>
-                    <div className={styles.resultsContent}>
-                        <ReactMarkdown>{jsonData}</ReactMarkdown>
-                    </div>
-                </>
-            );
-        }
-    };
-
-    // Helper function to render Amazon product cards
-    const renderAmazonProductCard = (product, keyPrefix = "product") => {
-        const title = product.ItemInfo?.Title?.DisplayValue || 'N/A';
-        const imageUrl = product.Images?.Primary?.Medium?.URL;
-        const price = product.Offers?.Listings?.[0]?.Price?.DisplayAmount;
-        const productUrl = product.DetailPageURL;
-
-        return (
-            <a href={productUrl} target="_blank" rel="noopener noreferrer sponsored" className={styles.amazonProductCard} key={`${keyPrefix}-${product.ASIN}`}>
-                {imageUrl && <img src={imageUrl} alt={title} className={styles.amazonProductImage} />}
-                <div className={styles.amazonProductInfo}>
-                    <p className={styles.amazonProductTitle} title={title}>{title}</p>
-                    {price && <p className={styles.amazonProductPrice}>{price}</p>}
-                </div>
-            </a>
-        );
-    };
-
     // Helper function to render dip results
     const renderDipResults = (jsonData) => {
         console.log("Attempting to parse dip JSON. Raw data received:", jsonData);
@@ -720,25 +504,15 @@ IMPORTANT:
                                 <ReactMarkdown>{dip.recipeDetails || 'No recipe details provided.'}</ReactMarkdown>
                             </div>
                             {dip.amazonSearchKeywords && dip.amazonSearchKeywords.length > 0 && (
-                                <div className={styles.dipAmazonSection}>
-                                    <h4>Find on Amazon (related to "{dip.dipName}"):</h4>
-                                    {dipAmazonResults[index]?.isLoading && <div className={styles.loadingSpinnerSmall}></div>}
-                                    {dipAmazonResults[index]?.error && <p className={styles.errorMessage}>{dipAmazonResults[index].error}</p>}
-                                    {dipAmazonResults[index]?.items?.length > 0 && (
-                                        <>
-                                            <div className={styles.amazonProductsGrid}>
-                                                {dipAmazonResults[index].items.map(product => renderAmazonProductCard(product, `dip-${index}-prod`))}
-                                            </div>
-                                            {dipAmazonResults[index].searchUrl && (
-                                                <a href={dipAmazonResults[index].searchUrl} target="_blank" rel="noopener noreferrer sponsored" className={styles.amazonSeeMoreLink}>
-                                                    See more on Amazon...
-                                                </a>
-                                            )}
-                                        </>
-                                    )}
-                                    {!dipAmazonResults[index]?.isLoading && !dipAmazonResults[index]?.error && dipAmazonResults[index]?.items?.length === 0 && (
-                                        <p>No specific products found for these keywords.</p>
-                                    )}
+                                <div className={styles.dipAmazonSearchLinkSection}>
+                                    <a
+                                        href={`https://www.amazon.com/s?k=${encodeURIComponent(dip.amazonSearchKeywords.join(' '))}&tag=${AMAZON_AFFILIATE_TAG}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer sponsored"
+                                        className={styles.amazonSearchButton}
+                                    >
+                                        🛒 Search for "{dip.dipName}" related items on Amazon
+                                    </a>
                                 </div>
                             )}
                         </div>
@@ -955,7 +729,7 @@ IMPORTANT:
                                 
                                 <button 
                                     type="submit" 
-                                    disabled={isLoading || (activeTool.inputType === 'file' && !selectedFile && !activeTool.comingSoon) || (activeTool.id ==='amazonNuggetFinder' && !inputValue.trim() && !activeTool.comingSoon) || activeTool.comingSoon}
+                                    disabled={isLoading || (activeTool.inputType === 'file' && !selectedFile && !activeTool.comingSoon) || activeTool.comingSoon}
                                     className={styles.submitButton}
                                 >
                                     {isLoading ? 'Processing...' : activeTool.buttonText}
@@ -967,7 +741,7 @@ IMPORTANT:
                         {error && <p className={styles.errorMessage}>Error: {error}</p>}
                         
                         {/* Display AI/Gemini results */}
-                        {results && !activeTool.comingSoon && activeTool.id !== 'amazonNuggetFinder' && (
+                        {results && !activeTool.comingSoon && (
                             <div className={styles.resultsContainer}>
                                 <h3>Results for {activeTool.name}</h3>
                                 {activeTool.id === 'recipe' ? renderRecipeResults(results) : 
@@ -980,58 +754,10 @@ IMPORTANT:
                             </div>
                         )}
 
-                        {/* Display Amazon Search Results for the 'amazonNuggetFinder' tool */}
-                        {activeTool.id === 'amazonNuggetFinder' && !amazonSearchResults.isLoading && (amazonSearchResults.items.length > 0 || amazonSearchResults.error) && (
-                            <div className={styles.resultsContainer}>
-                                <h3>{amazonSearchResults.title || 'Amazon Search Results'}</h3>
-                                {amazonSearchResults.error && <p className={styles.errorMessage}>{amazonSearchResults.error}</p>}
-                                {amazonSearchResults.items.length > 0 && (
-                                    <>
-                                        <div className={styles.amazonProductsGrid}>
-                                            {amazonSearchResults.items.map(product => renderAmazonProductCard(product))}
-                                        </div>
-                                        {amazonSearchResults.searchUrl && (
-                                            <a href={amazonSearchResults.searchUrl} target="_blank" rel="noopener noreferrer sponsored" className={styles.amazonSeeMoreLink}>
-                                                See more on Amazon...
-                                            </a>
-                                        )}
-                                    </>
-                                )}
-                                {!amazonSearchResults.error && amazonSearchResults.items.length === 0 && <p>No products found for your search.</p>}
-                            </div>
-                        )}
-                         {activeTool.id === 'amazonNuggetFinder' && amazonSearchResults.isLoading && <div className={styles.loadingSpinner}></div>}
-
                     </div>
                 </section>
             )}
 
-            {/* Modal for Amazon Search Results (e.g., from ingredient click) */}
-            {amazonSearchResults.showModal && (
-                <div className={styles.modalOverlay} onClick={handleCloseAmazonModal}>
-                    <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-                        <button className={styles.modalCloseButton} onClick={handleCloseAmazonModal}>&times;</button>
-                        <h3>{amazonSearchResults.title || 'Amazon Search Results'}</h3>
-                        {amazonSearchResults.isLoading && <div className={styles.loadingSpinnerSmall}></div>}
-                        {amazonSearchResults.error && <p className={styles.errorMessage}>{amazonSearchResults.error}</p>}
-                        {!amazonSearchResults.isLoading && !amazonSearchResults.error && amazonSearchResults.items.length > 0 && (
-                            <>
-                                <div className={styles.amazonProductsGrid}>
-                                    {amazonSearchResults.items.map(product => renderAmazonProductCard(product, "modal-prod"))}
-                                </div>
-                                {amazonSearchResults.searchUrl && (
-                                    <a href={amazonSearchResults.searchUrl} target="_blank" rel="noopener noreferrer sponsored" className={styles.amazonSeeMoreLinkModal}>
-                                        See more on Amazon...
-                                    </a>
-                                )}
-                            </>
-                        )}
-                        {!amazonSearchResults.isLoading && !amazonSearchResults.error && amazonSearchResults.items.length === 0 && (
-                            <p>No products found for this search.</p>
-                        )}
-                    </div>
-                </div>
-            )}
             {/* Footer or other sections can go here */}
         </div>
     );
