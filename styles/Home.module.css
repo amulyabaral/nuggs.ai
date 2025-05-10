@@ -446,6 +446,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  flex: 1; /* Allow groups in a row to share space */
 }
 .recipeOptionsGroup label {
   font-weight: 600;
@@ -493,6 +494,47 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+/* New style for side-by-side recipe option groups */
+.recipeOptionsRow {
+  display: flex;
+  gap: 1.5rem; /* Gap between Difficulty and Cook Time groups */
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap; /* Allow wrapping on smaller screens if needed */
+}
+
+/* Smaller radio buttons for difficulty and cook time */
+.smallRadioButton {
+  padding: 0.5rem 0.8rem; /* Reduced padding */
+  font-size: 0.85rem;    /* Reduced font size */
+}
+.smallRadioButton .radioButtonEmoji {
+  font-size: 1em;
+}
+
+
+/* Styles for Exclusion Buttons */
+.exclusionButton {
+  /* Inherits from .radioButton, add specific overrides if needed */
+  background-color: #f8f9fa; /* Slightly different base for distinction */
+  border: 1px solid #ced4da;
+}
+.exclusionButton:hover:not(:disabled) {
+  background-color: #e9ecef;
+  border-color: #adb5bd;
+}
+.exclusionButtonSelected {
+  background-color: #ffe0e0; /* Light red for selected/excluded */
+  border-color: #f5c6cb;
+  color: #721c24;
+  text-decoration: line-through;
+  opacity: 0.85;
+}
+.exclusionButtonSelected:hover:not(:disabled) {
+  background-color: #fdd7d7;
+  border-color: #f1b0b7;
+}
+
 
 /* Styles for Structured Recipe Output */
 .recipeOutputContainer {
@@ -867,11 +909,86 @@
   background-color: #e67e22;
 }
 
+/* Styles for Suggestion Cards (Dips & Drinks in Recipe Output) */
+.suggestionCardsContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Responsive grid */
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.suggestionCard {
+  background-color: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.suggestionCard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+.suggestionCard h4 {
+  font-size: 1.15rem;
+  color: #e67e22; /* Accent color for suggestion name */
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  display: flex; /* For emoji alignment */
+  align-items: center;
+}
+.suggestionEmoji {
+  font-size: 1.3em;
+  margin-right: 0.5rem;
+}
+
+.suggestionCard p {
+  font-size: 0.9rem;
+  color: #555;
+  line-height: 1.5;
+  margin-bottom: 0.75rem;
+}
+.suggestionCard p:last-child {
+  margin-bottom: 0;
+}
+
+.suggestionRecipeDetails {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed #eee;
+}
+.suggestionRecipeDetails h5 {
+  font-size: 0.95rem;
+  color: #333;
+  margin-bottom: 0.3rem;
+  font-weight: 600;
+}
+.suggestionRecipeDetails div { /* Targets the ReactMarkdown output */
+  font-size: 0.85rem;
+  color: #666;
+}
+.suggestionRecipeDetails ul, .suggestionRecipeDetails ol {
+  padding-left: 15px;
+  margin-top: 0.2rem;
+}
+.suggestionRecipeDetails li {
+  margin-bottom: 0.2rem;
+}
+
 /* Responsive Design */
 @media (max-width: 992px) {
   /* .mainContentArea might not be used, adjust .toolDisplaySection if needed */
   .toolContainer {
     padding: 2rem;
+  }
+  .recipeOptionsRow { /* Stack difficulty/cook time on smaller screens if they don't fit */
+    flex-direction: column;
+    gap: 0; /* Remove gap as groups will stack */
+  }
+  .recipeOptionsRow .recipeOptionsGroup {
+    margin-bottom: 1rem; /* Adjust spacing when stacked */
   }
   .recipeOptions {
     flex-direction: column;
@@ -939,11 +1056,12 @@
   .toolIconLarge {
     font-size: 2.5rem;
   }
-  .recipeOptionsGroup {
-    gap: 0.5rem;
+  .recipeOptionsRow .recipeOptionsGroup {
+    /* Ensure they stack if not already by parent flex-direction: column */
   }
-  .radioButtonsContainer {
-    gap: 0.5rem;
+  .smallRadioButton {
+    padding: 0.4rem 0.7rem;
+    font-size: 0.8rem;
   }
   .recipeNameCard {
     padding: 1.2rem 1.5rem;

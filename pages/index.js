@@ -6,15 +6,27 @@ import styles from '../styles/Home.module.css';
 
 const AMAZON_AFFILIATE_TAG = 'nuggs00-20';
 
+// Define common exclusions
+const commonExclusions = [
+    { id: 'gluten', label: 'Gluten', emoji: '🌾' },
+    { id: 'dairy', label: 'Dairy', emoji: '🥛' },
+    { id: 'nuts', label: 'Nuts', emoji: '🥜' },
+    { id: 'shellfish', label: 'Shellfish', emoji: '🦐' },
+    { id: 'beef', label: 'Beef', emoji: '🐄' },
+    { id: 'pork', label: 'Pork', emoji: '🐖' },
+    { id: 'soy', label: 'Soy', emoji: '🌱' },
+    { id: 'eggs', label: 'Eggs', emoji: '🥚' },
+];
+
 // Updated Tools data
 const tools = [
     {
         id: 'recipe',
         name: 'Get custom nugget recipes',
-        description: 'Create unique nugget recipes (meat, veggie, etc.) based on your preferences. Specify difficulty, cook time, equipment, allergies, and general substitution ideas. Click on ingredients to search for them on Amazon!',
+        description: 'Create unique nugget recipes (meat, veggie, etc.) based on your preferences. Specify difficulty, cook time, equipment, exclusions, and general ideas. Click on ingredients, dips, or drinks to search for them on Amazon!',
         icon: '🍳',
         inputType: 'textarea',
-        inputPlaceholder: "e.g., 'Spicy gluten-free veggie nuggets, avoid nuts, use chicken if possible instead of tofu' or 'Kid-friendly baked chicken nuggets, simple ingredients'",
+        inputPlaceholder: "e.g., 'Spicy veggie nuggets using chickpeas' or 'Kid-friendly baked chicken nuggets, simple ingredients'",
         buttonText: 'Generate Recipe',
         difficultyOptions: [
             { label: 'Baby', value: 'Baby', emoji: '👶' },
@@ -34,8 +46,6 @@ const tools = [
             { label: 'Pan/Stovetop', value: 'pan', emoji: '🍳' },
             { label: 'Microwave', value: 'microwave', emoji: '💡' }, // For reheating or specific steps
         ],
-        allergyPlaceholder: "e.g., 'peanuts, shellfish, dairy'",
-        substitutionsPlaceholder: "e.g., 'prefer plant-based milks', 'use honey instead of sugar'",
     },
     {
         id: 'critic',
@@ -110,8 +120,7 @@ export default function HomePage() {
     const [currentMimeType, setCurrentMimeType] = useState(''); // Added for image uploads
 
     // New state for recipe tool inputs
-    const [allergiesInput, setAllergiesInput] = useState('');
-    const [substitutionsInput, setSubstitutionsInput] = useState('');
+    const [selectedExclusions, setSelectedExclusions] = useState({}); // For selectable exclusion buttons
 
     // Removed sliderRef and autoSlideTimeoutRef
 
@@ -130,8 +139,7 @@ export default function HomePage() {
                 setSelectedDifficulty(tool.difficultyOptions?.[0]?.value || 'Baby');
                 setSelectedCookTime(tool.cookTimeOptions?.[0]?.value || '< 20 min');
                 setSelectedEquipment({}); // Reset equipment
-                setAllergiesInput(''); // Reset new recipe inputs
-                setSubstitutionsInput('');
+                setSelectedExclusions({}); // Reset exclusions
             }
         }
     }, [selectedToolId]);
@@ -162,22 +170,26 @@ export default function HomePage() {
                     equipmentInstructions = activeEquipment.join(', ');
                 }
 
+                const activeExclusionLabels = Object.entries(selectedExclusions)
+                    .filter(([_, value]) => value)
+                    .map(([key]) => commonExclusions.find(ex => ex.id === key)?.label || key)
+                    .join(', ');
+
                 let recipePrompt = `You are an AI chef specializing in creative nugget recipes (including meat-based, plant-based, fish, etc.).
 The user wants a recipe based on this core request: "${userInput}".
 Additionally, consider these user preferences:
 - Difficulty: ${selectedDifficulty}
 - Target Cook Time: ${selectedCookTime}
 - Available Equipment: ${equipmentInstructions}
-- Allergies to avoid if possible: "${allergiesInput || 'None specified'}"
-- General substitution preferences (e.g., types of ingredients to favor or avoid): "${substitutionsInput || 'None specified'}"
+- Items to AVOID if possible: "${activeExclusionLabels || 'None specified'}"
 
 Please provide the response STRICTLY as a single, valid JSON object with the following structure:
 {
   "recipeName": "A catchy recipe name (e.g., 'Spicy Honey Glazed Chicken Nuggets')",
-  "description": "A brief, enticing description of the recipe (2-3 sentences). Include a note if any allergy/substitution preferences were specifically addressed.",
+  "description": "A brief, enticing description of the recipe (2-3 sentences). Include a note if any exclusion preferences were specifically addressed.",
   "prepTime": "Estimated preparation time (e.g., '15 minutes')",
   "cookTime": "Estimated cooking time (e.g., '20 minutes')",
-  "difficultyRating": "${selectedDifficulty}", 
+  "difficultyRating": "${selectedDifficulty}",
   "servings": "Number of servings (e.g., 'Approx. 20 nuggets' or '4 servings')",
   "ingredients": [
     { "name": "Ingredient Name", "quantity": "Amount (e.g., '1', '1/2', '2-3')", "unit": "Unit (e.g., 'lb', 'cup', 'tbsp', 'cloves', 'medium')", "notes": "Optional: brief notes like 'boneless, skinless', 'finely chopped', 'to taste'" }
@@ -185,18 +197,24 @@ Please provide the response STRICTLY as a single, valid JSON object with the fol
   "instructions": [
     { "stepNumber": 1, "description": "Detailed instruction for this step. Be clear and concise. If specific equipment was mentioned (Available Equipment above), tailor instructions for it. If multiple suitable equipment options were listed, you can prioritize one or briefly mention alternatives." }
   ],
-  "dippingSauceSuggestion": "Optional: A creative suggestion for a dipping sauce that would pair well, including a very brief recipe or store-bought idea."
+  "dippingSauceSuggestions": [
+    { "name": "Sauce Name 1", "description": "Why it pairs well (1-2 sentences)", "recipeDetails": "Optional: Simple homemade recipe for the dip (Markdown for lists/steps, keep concise).", "amazonSearchKeywords": ["keyword1", "keyword2 for sauce 1"] }
+  ],
+  "drinkSuggestions": [
+    { "name": "Drink Name 1", "emoji": "🥤", "description": "Why it pairs well (1-2 sentences)", "amazonSearchKeywords": ["keyword for drink 1"] }
+  ]
 }
 
-IMPORTANT: 
+IMPORTANT:
 - You MUST ONLY generate nugget-related recipes. If asked for any non-nugget recipe, respond with a JSON object: {"error": "I specialize only in nugget recipes."}.
 - Ensure the entire response is a single, valid JSON object. Do not include any text, pleasantries, or markdown formatting outside of this JSON object.
-- For "ingredients", "quantity" should be a string. "unit" should also be a string. Each ingredient object should be simple, e.g. {"name": "Chicken Breast", "quantity": "1", "unit": "lb", "notes": "boneless, skinless"}.
+- For "ingredients", "quantity" should be a string. "unit" should also be a string. Each ingredient object should be simple.
 - For "instructions", "stepNumber" should be a number. Ensure instructions are adapted for the 'Available Equipment' specified.
-- All string values within the JSON (especially in "description", "notes", "name") must be properly escaped if they contain special characters (e.g., double quotes within a string should be \\").
+- All string values within the JSON must be properly escaped.
 - Be creative and make the recipe sound delicious within the JSON structure!
-- If allergies are mentioned, try to create a recipe that avoids them or clearly state if an ingredient is problematic and suggest a common alternative within the 'notes' of that ingredient if feasible.
-- If substitution preferences are mentioned, try to incorporate them naturally into the recipe.`;
+- If items to AVOID are mentioned, try to create a recipe that avoids them. If an unavoidable ingredient from this list is core to the request, clearly state this and suggest an alternative in the 'notes' of that ingredient or in the main recipe 'description'.
+- For "dippingSauceSuggestions" (1-3 suggestions): each object needs "name", "description", "amazonSearchKeywords" (array). "recipeDetails" is optional.
+- For "drinkSuggestions" (1-3 suggestions): each object needs "name", "description", "amazonSearchKeywords" (array). "emoji" is optional but encouraged (e.g., 🥤, 🍷, 🍺, 🍹, 🥛).`;
                 return recipePrompt;
             case 'dip':
                 if (!userInput) {
@@ -376,10 +394,25 @@ IMPORTANT:
         }));
     };
 
-    const handleIngredientClickForAmazonSearch = (ingredient) => {
-        if (!ingredient || !ingredient.name) return;
-        const searchTerm = encodeURIComponent(ingredient.name);
-        const amazonSearchUrl = `https://www.amazon.com/s?k=${searchTerm}&tag=${AMAZON_AFFILIATE_TAG}`;
+    const handleExclusionToggle = (exclusionId) => {
+        setSelectedExclusions(prev => ({
+            ...prev,
+            [exclusionId]: !prev[exclusionId]
+        }));
+    };
+
+    const handleAmazonSearch = (itemNameOrKeywords, itemType = 'item') => {
+        if (!itemNameOrKeywords) return;
+        let searchTerm;
+        if (Array.isArray(itemNameOrKeywords) && itemNameOrKeywords.length > 0) {
+            searchTerm = encodeURIComponent(itemNameOrKeywords.join(' '));
+        } else if (typeof itemNameOrKeywords === 'string') {
+            searchTerm = encodeURIComponent(itemNameOrKeywords);
+        } else {
+            console.warn("Invalid search term for Amazon:", itemNameOrKeywords);
+            return;
+        }
+        const amazonSearchUrl = `https://www.amazon.com/s?k=${searchTerm}&tag=${AMAZON_AFFILIATE_TAG}&ref=nuggsai_${itemType}`;
         window.open(amazonSearchUrl, '_blank', 'noopener,noreferrer');
     };
 
@@ -414,7 +447,7 @@ IMPORTANT:
                                 <div 
                                     key={index} 
                                     className={styles.ingredientPill}
-                                    onClick={() => handleIngredientClickForAmazonSearch(ing)}
+                                    onClick={() => handleAmazonSearch(ing.name, 'ingredient')}
                                     title={`Click to search for ${ing.name} on Amazon`}
                                 >
                                     <span className={styles.ingredientName}>{ing.name}</span>
@@ -449,10 +482,47 @@ IMPORTANT:
                         ) : <p>No instructions provided.</p>}
                     </div>
 
-                    {recipe.dippingSauceSuggestion && (
+                    {recipe.dippingSauceSuggestions && recipe.dippingSauceSuggestions.length > 0 && (
                         <div className={styles.recipeSection}>
-                            <h3>Dipping Sauce Suggestion</h3>
-                            <ReactMarkdown>{recipe.dippingSauceSuggestion}</ReactMarkdown>
+                            <h3>Dipping Sauce Suggestions</h3>
+                            <div className={styles.suggestionCardsContainer}>
+                                {recipe.dippingSauceSuggestions.map((sauce, index) => (
+                                    <div 
+                                        key={`sauce-${index}`} 
+                                        className={styles.suggestionCard}
+                                        onClick={() => handleAmazonSearch(sauce.amazonSearchKeywords || sauce.name, 'dip_suggestion')}
+                                        title={`Search for ${sauce.name} related items on Amazon`}
+                                    >
+                                        <h4>{sauce.name}</h4>
+                                        {sauce.description && <p>{sauce.description}</p>}
+                                        {sauce.recipeDetails && (
+                                            <div className={styles.suggestionRecipeDetails}>
+                                                <h5>Simple Recipe:</h5>
+                                                <ReactMarkdown>{sauce.recipeDetails}</ReactMarkdown>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {recipe.drinkSuggestions && recipe.drinkSuggestions.length > 0 && (
+                        <div className={styles.recipeSection}>
+                            <h3>Drink Pairing Suggestions</h3>
+                            <div className={styles.suggestionCardsContainer}>
+                                {recipe.drinkSuggestions.map((drink, index) => (
+                                    <div 
+                                        key={`drink-${index}`} 
+                                        className={styles.suggestionCard}
+                                        onClick={() => handleAmazonSearch(drink.amazonSearchKeywords || drink.name, 'drink_suggestion')}
+                                        title={`Search for ${drink.name} related items on Amazon`}
+                                    >
+                                        <h4>{drink.emoji && <span className={styles.suggestionEmoji}>{drink.emoji}</span>} {drink.name}</h4>
+                                        {drink.description && <p>{drink.description}</p>}
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     )}
                 </div>
@@ -539,8 +609,8 @@ IMPORTANT:
     return (
         <div className={styles.pageContainer}>
             <Head>
-                <title>nuggs.ai - The Ultimate Nugget AI Platform</title>
-                <meta name="description" content="AI-powered tools for all your chicken nugget needs - recipes, reviews, pairings and more!" />
+                <title>nuggs.ai - Nugget recipes and more</title>
+                <meta name="description" content="AI-powered tool for chicken nugget recipes, reviews, pairings and more!" />
                 <link rel="icon" href="/nuggets.png" />
                 {/* Font links moved to _app.js */}
             </Head>
@@ -595,36 +665,38 @@ IMPORTANT:
                             <form onSubmit={handleSubmit} className={styles.toolForm}>
                                 {activeTool.id === 'recipe' && (
                                     <>
-                                        <div className={styles.recipeOptionsGroup}>
-                                            <label>Difficulty:</label>
-                                            <div className={styles.radioButtonsContainer}>
-                                                {activeTool.difficultyOptions.map(opt => (
-                                                    <button
-                                                        type="button"
-                                                        key={opt.value}
-                                                        className={`${styles.radioButton} ${selectedDifficulty === opt.value ? styles.radioButtonSelected : ''}`}
-                                                        onClick={() => setSelectedDifficulty(opt.value)}
-                                                        disabled={isLoading}
-                                                    >
-                                                        <span className={styles.radioButtonEmoji}>{opt.emoji}</span> {opt.label}
-                                                    </button>
-                                                ))}
+                                        <div className={styles.recipeOptionsRow}>
+                                            <div className={styles.recipeOptionsGroup}>
+                                                <label>Difficulty:</label>
+                                                <div className={styles.radioButtonsContainer}>
+                                                    {activeTool.difficultyOptions.map(opt => (
+                                                        <button
+                                                            type="button"
+                                                            key={opt.value}
+                                                            className={`${styles.radioButton} ${styles.smallRadioButton} ${selectedDifficulty === opt.value ? styles.radioButtonSelected : ''}`}
+                                                            onClick={() => setSelectedDifficulty(opt.value)}
+                                                            disabled={isLoading}
+                                                        >
+                                                            <span className={styles.radioButtonEmoji}>{opt.emoji}</span> {opt.label}
+                                                        </button>
+                                                    ))}
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div className={styles.recipeOptionsGroup}>
-                                            <label>Cook Time:</label>
-                                            <div className={styles.radioButtonsContainer}>
-                                                {activeTool.cookTimeOptions.map(opt => (
-                                                    <button
-                                                        type="button"
-                                                        key={opt.value}
-                                                        className={`${styles.radioButton} ${selectedCookTime === opt.value ? styles.radioButtonSelected : ''}`}
-                                                        onClick={() => setSelectedCookTime(opt.value)}
-                                                        disabled={isLoading}
-                                                    >
-                                                        <span className={styles.radioButtonEmoji}>{opt.emoji}</span> {opt.label}
-                                                    </button>
-                                                ))}
+                                            <div className={styles.recipeOptionsGroup}>
+                                                <label>Cook Time:</label>
+                                                <div className={styles.radioButtonsContainer}>
+                                                    {activeTool.cookTimeOptions.map(opt => (
+                                                        <button
+                                                            type="button"
+                                                            key={opt.value}
+                                                            className={`${styles.radioButton} ${styles.smallRadioButton} ${selectedCookTime === opt.value ? styles.radioButtonSelected : ''}`}
+                                                            onClick={() => setSelectedCookTime(opt.value)}
+                                                            disabled={isLoading}
+                                                        >
+                                                            <span className={styles.radioButtonEmoji}>{opt.emoji}</span> {opt.label}
+                                                        </button>
+                                                    ))}
+                                                </div>
                                             </div>
                                         </div>
                                         <div className={styles.recipeOptionsGroup}>
@@ -634,7 +706,7 @@ IMPORTANT:
                                                     <button
                                                         type="button"
                                                         key={opt.value}
-                                                        className={`${styles.radioButton} ${selectedEquipment[opt.value] ? styles.radioButtonSelected : ''}`}
+                                                        className={`${styles.radioButton} ${styles.smallRadioButton} ${selectedEquipment[opt.value] ? styles.radioButtonSelected : ''}`}
                                                         onClick={() => handleEquipmentToggle(opt.value)}
                                                         disabled={isLoading}
                                                     >
@@ -644,26 +716,21 @@ IMPORTANT:
                                             </div>
                                         </div>
                                         <div className={styles.recipeOptionsGroup}>
-                                            <label htmlFor="allergiesInput">Allergies (comma-separated, optional):</label>
-                                            <input
-                                                type="text"
-                                                id="allergiesInput"
-                                                value={allergiesInput}
-                                                onChange={(e) => setAllergiesInput(e.target.value)}
-                                                placeholder={activeTool.allergyPlaceholder}
-                                                disabled={isLoading}
-                                            />
-                                        </div>
-                                        <div className={styles.recipeOptionsGroup}>
-                                            <label htmlFor="substitutionsInput">General Substitution Preferences (optional):</label>
-                                            <input
-                                                type="text"
-                                                id="substitutionsInput"
-                                                value={substitutionsInput}
-                                                onChange={(e) => setSubstitutionsInput(e.target.value)}
-                                                placeholder={activeTool.substitutionsPlaceholder}
-                                                disabled={isLoading}
-                                            />
+                                            <label htmlFor="exclusions">Items to Exclude/Avoid (optional):</label>
+                                            <div className={styles.radioButtonsContainer} id="exclusions">
+                                                {commonExclusions.map(ex => (
+                                                    <button
+                                                        type="button"
+                                                        key={ex.id}
+                                                        className={`${styles.radioButton} ${styles.exclusionButton} ${selectedExclusions[ex.id] ? styles.exclusionButtonSelected : ''}`}
+                                                        onClick={() => handleExclusionToggle(ex.id)}
+                                                        disabled={isLoading}
+                                                        title={`Click to ${selectedExclusions[ex.id] ? 'include' : 'exclude'} ${ex.label}`}
+                                                    >
+                                                        {ex.emoji && <span className={styles.radioButtonEmoji}>{ex.emoji}</span>} {ex.label}
+                                                    </button>
+                                                ))}
+                                            </div>
                                         </div>
                                         <p className={styles.inputHint}>
                                             For the main request below, be specific! Mention ingredients you like, dislike, or have on hand.
