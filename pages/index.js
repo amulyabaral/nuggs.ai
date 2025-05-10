@@ -1,6 +1,7 @@
 import Head from 'next/head';
 import Image from 'next/image'; // For optimized images
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import ReactMarkdown from 'react-markdown';
 import styles from '../styles/Home.module.css';
 
 // Tools data with added icons and more detailed descriptions
@@ -8,11 +9,13 @@ const tools = [
     {
         id: 'recipe',
         name: 'AI Nugget Recipe Generator',
-        description: 'Create unique recipes for chicken or veggie nuggets based on your preferences, dietary restrictions, or available ingredients.',
+        description: 'Create unique nugget recipes (meat, veggie, etc.) based on your preferences, dietary restrictions, or available ingredients. Specify difficulty and cook time if you like!',
         icon: '🍳',
         inputType: 'textarea',
-        inputPlaceholder: "e.g., 'Spicy gluten-free veggie nuggets' or 'Korean-inspired chicken nuggets with gochujang'",
+        inputPlaceholder: "e.g., 'Spicy gluten-free veggie nuggets, easy, under 30 mins' or 'Korean-inspired pork nuggets with gochujang'",
         buttonText: 'Generate Recipe',
+        difficultyOptions: ['Any', 'Easy', 'Medium', 'Hard'],
+        cookTimeOptions: ['Any', '< 20 min', '20-40 min', '> 40 min'],
     },
     {
         id: 'critic',
@@ -29,7 +32,7 @@ const tools = [
         name: 'Dip Pairing AI',
         description: 'Discover the perfect sauce pairings for any nugget style. Get personalized recommendations and homemade sauce recipes.',
         icon: '🥫',
-        inputPlaceholder: "e.g., 'Spicy chicken nuggets' or 'Plant-based nuggets with herbs'",
+        inputPlaceholder: "e.g., 'Spicy nuggets' or 'Plant-based nuggets with herbs'",
         buttonText: 'Find Perfect Dip',
     },
     {
@@ -37,16 +40,16 @@ const tools = [
         name: 'Nugget Brand Comparator',
         description: 'Compare nutritional values, ingredients, and taste profiles of popular nugget brands to find your perfect match.',
         icon: '⚖️',
-        inputPlaceholder: "e.g., 'Compare Tyson vs. Perdue nuggets' or 'Healthiest frozen nugget brands'",
+        inputPlaceholder: "e.g., 'Compare two specific nugget brands' or 'Healthiest frozen nugget brands'",
         buttonText: 'Compare Brands',
         comingSoon: true,
     },
     {
         id: 'deals',
-        name: 'Fast Food Deal Finder',
+        name: 'Nugget Deal Finder',
         description: 'Locate the best nugget promotions and deals at restaurants near you for maximum nugget value.',
         icon: '🔍',
-        inputPlaceholder: "e.g., 'Best nugget deals in Chicago' or 'Where to find BOGO nuggets'",
+        inputPlaceholder: "e.g., 'Best nugget deals in [Your City]' or 'Where to find BOGO nuggets'",
         buttonText: 'Find Deals',
         comingSoon: true,
     },
@@ -63,66 +66,14 @@ const tools = [
     {
         id: 'trivia',
         name: 'Nugget History & Trivia',
-        description: 'Explore fascinating facts and history about chicken nuggets, or ask specific nugget-related questions.',
+        description: 'Explore fascinating facts and history about nuggets, or ask specific nugget-related questions.',
         icon: '🧠',
-        inputPlaceholder: "e.g., 'When were chicken nuggets invented?' (or leave empty for random facts)",
+        inputPlaceholder: "e.g., 'When were nuggets invented?' (or leave empty for random facts)",
         buttonText: 'Get Nugget Knowledge',
     },
 ];
 
-// New: Placeholder data for famous nugget recipes
-const famousNuggetRecipes = [
-  {
-    id: 'classic_crispy',
-    source: 'From a Chef',
-    votes: 1045,
-    title: "Chef John's Ultimate Crispy Nuggets",
-    description: "The crispiest, juiciest homemade chicken nuggets you'll ever make. A true classic.",
-    icon: '🧑‍🍳' // Example icon
-  },
-  {
-    id: 'spicy_kick',
-    source: 'From an Enthusiast',
-    votes: 779,
-    title: 'Spicy Sriracha Kick Nuggets',
-    description: 'Quick & simple. Guaranteed happiness with this clean, balanced and fiery bite.',
-    icon: '🌶️'
-  },
-  {
-    id: 'veggie_delight',
-    source: 'From a Foodie',
-    votes: 523,
-    title: 'Vegan Cauliflower Power Nuggets',
-    description: 'A surprisingly meaty and delicious plant-based alternative that everyone will love.',
-    icon: '🥦'
-  },
-  {
-    id: 'honey_garlic',
-    source: 'Championship',
-    votes: 428,
-    title: 'Honey Garlic Glazed Nuggets',
-    description: 'Sweet, savory, and utterly addictive. Perfect for game day or any day.',
-    icon: '🏆'
-  },
-  {
-    id: 'parmesan_herb',
-    source: 'From a Chef',
-    votes: 357,
-    title: 'Parmesan Herb Baked Nuggets',
-    description: 'A simple recipe for a healthier, flavorful nugget, baked to perfection.',
-    icon: '🌿'
-  },
-  {
-    id: 'bbq_ranch',
-    source: 'From an Enthusiast',
-    votes: 264,
-    title: 'Smoky BBQ Ranch Nuggets',
-    description: 'Learn how to brew a sweet and smoky flavor combination for your nuggets.',
-    icon: '🤠'
-  }
-];
-
-const PROXY_API_URL = '/api/generate'; // Our backend API route
+const PROXY_API_URL = '/api/generate';
 
 export default function HomePage() {
     const [selectedToolId, setSelectedToolId] = useState(null);
@@ -133,12 +84,67 @@ export default function HomePage() {
     const [error, setError] = useState('');
     const [selectedFile, setSelectedFile] = useState(null);
 
-    // State for new UI elements if needed (e.g., sorting, filtering)
-    const [sortBy, setSortBy] = useState('Most Votes');
-    const [activeFilters, setActiveFilters] = useState({});
+    const [selectedDifficulty, setSelectedDifficulty] = useState('Any');
+    const [selectedCookTime, setSelectedCookTime] = useState('Any');
+
+    const sliderRef = useRef(null);
+    const autoSlideTimeoutRef = useRef(null);
 
     useEffect(() => {
-        // Reset states when tool changes
+        const startAutoSlide = () => {
+            if (sliderRef.current) {
+                autoSlideTimeoutRef.current = setTimeout(() => {
+                    const slider = sliderRef.current;
+                    const firstChild = slider.children[0];
+                    if (firstChild) {
+                        const scrollAmount = firstChild.offsetWidth + parseFloat(getComputedStyle(firstChild).marginRight || '0');
+                        let newScrollLeft = slider.scrollLeft + scrollAmount;
+                        if (newScrollLeft >= slider.scrollWidth - slider.clientWidth) {
+                            newScrollLeft = 0;
+                        }
+                        slider.scrollTo({ left: newScrollLeft, behavior: 'smooth' });
+                    }
+                    startAutoSlide();
+                }, 5000);
+            }
+        };
+
+        startAutoSlide();
+
+        return () => {
+            if (autoSlideTimeoutRef.current) {
+                clearTimeout(autoSlideTimeoutRef.current);
+            }
+        };
+    }, [tools]);
+
+    const handleSliderNav = (direction) => {
+        if (sliderRef.current) {
+            if (autoSlideTimeoutRef.current) clearTimeout(autoSlideTimeoutRef.current);
+
+            const slider = sliderRef.current;
+            const firstChild = slider.children[0];
+            if (!firstChild) return;
+
+            const scrollAmount = firstChild.offsetWidth + parseFloat(getComputedStyle(firstChild).marginRight || '0');
+            let newScrollLeft;
+
+            if (direction === 'next') {
+                newScrollLeft = slider.scrollLeft + scrollAmount;
+                if (newScrollLeft >= slider.scrollWidth - slider.clientWidth -1) {
+                    newScrollLeft = 0;
+                }
+            } else {
+                newScrollLeft = slider.scrollLeft - scrollAmount;
+                if (newScrollLeft < 0) {
+                    newScrollLeft = slider.scrollWidth - slider.clientWidth;
+                }
+            }
+            slider.scrollTo({ left: newScrollLeft, behavior: 'smooth' });
+        }
+    };
+
+    useEffect(() => {
         if (selectedToolId) {
             const tool = tools.find(t => t.id === selectedToolId);
             setActiveTool(tool);
@@ -146,17 +152,24 @@ export default function HomePage() {
             setResults('');
             setError('');
             setSelectedFile(null);
+            if (tool?.id === 'recipe') {
+                setSelectedDifficulty(tool.difficultyOptions?.[0] || 'Any');
+                setSelectedCookTime(tool.cookTimeOptions?.[0] || 'Any');
+            }
+        } else {
+            setActiveTool(null);
         }
     }, [selectedToolId]);
 
     const getPromptForTool = (tool, userInput) => {
+        let basePrompt = `You are an AI expert. Format your response using Markdown. `;
         switch (tool.id) {
             case 'trivia':
-                let triviaPrompt = "You are a fun and knowledgeable AI expert on chicken nugget history, trivia, and fun facts. ";
+                let triviaPrompt = basePrompt + "You are a fun and knowledgeable AI expert on nugget history, trivia, and fun facts (all types of nuggets, not just chicken). ";
                 if (userInput) {
                     triviaPrompt += `Please answer the following question concisely and engagingly: "${userInput}"`;
                 } else {
-                    triviaPrompt += "Tell me an interesting and surprising fun fact or piece of trivia about chicken nuggets.";
+                    triviaPrompt += "Tell me an interesting and surprising fun fact or piece of trivia about nuggets.";
                 }
                 triviaPrompt += " Keep your response friendly and suitable for a general audience. ONLY answer nugget-related questions. If asked about non-nugget topics, politely explain you're a nugget specialist.";
                 return triviaPrompt;
@@ -165,24 +178,35 @@ export default function HomePage() {
                     setError("Please describe the type of nugget recipe you'd like.");
                     return null;
                 }
-                return `You are an AI chef specializing in creative chicken (and vegetarian/vegan) nugget recipes.
-Generate a unique and delicious nugget recipe based on these preferences: "${userInput}".
-Please provide:
-1. A catchy name for the recipe.
-2. A brief, enticing description.
-3. A list of ingredients with quantities.
-4. Clear, step-by-step instructions.
-5. Optional: A suggestion for a dipping sauce that would pair well.
+                let recipePrompt = basePrompt + `You are an AI chef specializing in creative nugget recipes (including meat-based, plant-based, fish, etc.).
+Generate a unique and delicious nugget recipe based on these preferences: "${userInput}".`;
+                if (selectedDifficulty !== 'Any') {
+                    recipePrompt += `\n- Difficulty: ${selectedDifficulty}`;
+                }
+                if (selectedCookTime !== 'Any') {
+                    recipePrompt += `\n- Cook Time: ${selectedCookTime}`;
+                }
+                recipePrompt += `
+Please provide the response in Markdown format with:
+1.  A catchy **Recipe Name**.
+2.  A brief, enticing **Description**.
+3.  **Ingredients** (list with quantities).
+4.  Clear, step-by-step **Instructions**.
+5.  Optional: A suggestion for a **Dipping Sauce** that would pair well.
 IMPORTANT: You MUST ONLY generate nugget-related recipes. If asked for any non-nugget recipe, politely explain you only specialize in nugget recipes.
 Be creative and make it sound delicious!`;
+                return recipePrompt;
             case 'dip':
                 if (!userInput) {
                     setError("Please describe the type of nugget you're having.");
                     return null;
                 }
-                return `You are an AI dip pairing expert. For nuggets described as "${userInput}", suggest 3 perfect dipping sauces. For each sauce, briefly explain why it's a good pairing and include a simple homemade recipe. ONLY suggest sauces for nuggets. If asked about non-nugget foods, politely explain you specialize in nugget pairings only.`;
+                return basePrompt + `You are an AI dip pairing expert. For nuggets described as "${userInput}", suggest 3 perfect dipping sauces. For each sauce, briefly explain why it's a good pairing and include a simple homemade recipe. Format the response in Markdown. ONLY suggest sauces for nuggets. If asked about non-nugget foods, politely explain you specialize in nugget pairings only.`;
             default:
-                return null;
+                if (userInput) {
+                     return basePrompt + `Regarding the tool "${tool.name}", process the following input: "${userInput}". Provide a concise, helpful, nugget-related response.`;
+                }
+                return basePrompt + `You are an AI for "${tool.name}". Please provide information or perform the requested task related to nuggets.`;
         }
     };
 
@@ -192,7 +216,7 @@ Be creative and make it sound delicious!`;
 
         const promptText = getPromptForTool(activeTool, inputValue);
         if (!promptText && activeTool.id !== 'trivia') {
-            return; // Error already set by getPromptForTool
+            return;
         }
 
         setIsLoading(true);
@@ -231,13 +255,6 @@ Be creative and make it sound delicious!`;
         setSelectedFile(event.target.files[0]);
     };
 
-    // Placeholder function for filter changes
-    const handleFilterChange = (filterType, value) => {
-        setActiveFilters(prev => ({ ...prev, [filterType]: value }));
-        // Add logic to filter recipes if this were a dynamic list
-        console.log("Filters updated:", { ...activeFilters, [filterType]: value });
-    };
-
     return (
         <div className={styles.pageContainer}>
             <Head>
@@ -263,14 +280,19 @@ Be creative and make it sound delicious!`;
                 </div>
             </header>
             
-            {/* New Tool Slider Section */}
             <section className={styles.toolSliderSection}>
-                <div className={styles.toolSlider}>
+                <button onClick={() => handleSliderNav('prev')} className={`${styles.sliderArrow} ${styles.sliderArrowPrev}`}>&lt;</button>
+                <div className={styles.toolSlider} ref={sliderRef}>
                     {tools.map((tool) => (
                         <div
                             key={tool.id}
-                            className={`${styles.toolCard} ${styles.sliderToolCard} ${tool.comingSoon ? styles.comingSoon : ''}`}
-                            onClick={() => !tool.comingSoon && setSelectedToolId(tool.id)}
+                            className={`${styles.toolCard} ${styles.sliderToolCard} ${tool.comingSoon ? styles.comingSoon : ''} ${selectedToolId === tool.id ? styles.selectedToolCard : ''}`}
+                            onClick={() => {
+                                if (!tool.comingSoon) {
+                                    setSelectedToolId(tool.id === selectedToolId ? null : tool.id);
+                                    if (autoSlideTimeoutRef.current) clearTimeout(autoSlideTimeoutRef.current);
+                                }
+                            }}
                         >
                             <div className={styles.toolIcon}>{tool.icon}</div>
                             <h3>{tool.name}</h3>
@@ -279,76 +301,14 @@ Be creative and make it sound delicious!`;
                         </div>
                     ))}
                 </div>
+                <button onClick={() => handleSliderNav('next')} className={`${styles.sliderArrow} ${styles.sliderArrowNext}`}>&gt;</button>
             </section>
 
-            <div className={styles.mainContentArea}>
-                <section className={styles.recipeListingSection}>
-                    <div className={styles.listingControls}>
-                        <p className={styles.listingInfo}>Nuggs.ai® recipes! Viewing: all recipes ({famousNuggetRecipes.length}+)</p>
-                        <div className={styles.sortByContainer}>
-                            <label htmlFor="sort-by">Sort by: </label>
-                            <select id="sort-by" value={sortBy} onChange={(e) => setSortBy(e.target.value)} className={styles.sortBySelect}>
-                                <option value="Most Votes">Most Votes</option>
-                                <option value="Newest">Newest</option>
-                                <option value="Difficulty">Difficulty</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div className={styles.recipeGrid}>
-                        {famousNuggetRecipes.map(recipe => (
-                            <div key={recipe.id} className={styles.recipeCard}>
-                                <div className={styles.recipeCardHeader}>
-                                    <span className={styles.recipeSourceIcon}>{recipe.icon || '🍴'}</span>
-                                    <span className={styles.recipeSource}>{recipe.source}</span>
-                                    <div className={styles.recipeVotes}>
-                                        <span role="img" aria-label="thumbs up">👍</span> {recipe.votes}
-                                    </div>
-                                </div>
-                                <h4 className={styles.recipeTitle}>{recipe.title}</h4>
-                                <p className={styles.recipeDescription}>{recipe.description}</p>
-                            </div>
-                        ))}
-                    </div>
-                </section>
-
-                <aside className={styles.sidebarSection}>
-                    <h3 className={styles.sidebarTitle}>Refine your recipe</h3>
-                    <div className={styles.filterGroup}>
-                        <h4>Category</h4>
-                        {['All', 'Chicken', 'Veggie', 'Spicy', 'Kid-Friendly'].map(cat => (
-                            <label key={cat} className={styles.filterOption}>
-                                <input type="radio" name="category" value={cat} onChange={() => handleFilterChange('category', cat)} defaultChecked={cat === 'All'} />
-                                {cat === 'Chicken' ? '👑 Championship' : cat === 'Veggie' ? '🌱 Experimental' : cat === 'Spicy' ? '🌶️ From a Barista' : cat === 'Kid-Friendly' ? '😊 From an Enthusiast' : cat}
-                            </label>
-                        ))}
-                    </div>
-                    <div className={styles.filterGroup}>
-                        <h4>Difficulty</h4>
-                        {['Any', 'Easy', 'Medium', 'Hard'].map(diff => (
-                            <label key={diff} className={styles.filterOption}>
-                                <input type="radio" name="difficulty" value={diff} onChange={() => handleFilterChange('difficulty', diff)} defaultChecked={diff === 'Any'} />
-                                {diff}
-                            </label>
-                        ))}
-                    </div>
-                     <div className={styles.filterGroup}>
-                        <h4>Cook Time</h4>
-                        {['Any', '< 20 min', '20-40 min', '> 40 min'].map(time => (
-                            <label key={time} className={styles.filterOption}>
-                                <input type="radio" name="cookTime" value={time} onChange={() => handleFilterChange('cookTime', time)} defaultChecked={time === 'Any'} />
-                                {time}
-                            </label>
-                        ))}
-                    </div>
-                </aside>
-            </div>
-
-            {selectedToolId && (
+            {selectedToolId && activeTool && (
                 <section className={styles.toolSection}>
                     <div className={styles.toolContainer}>
                         <button className={styles.backButton} onClick={() => setSelectedToolId(null)}>
-                            &larr; Back to Tools
+                            &larr; Back to Tool Overview
                         </button>
                         
                         <div className={styles.toolHeader}>
@@ -365,6 +325,35 @@ Be creative and make it sound delicious!`;
                             </div>
                         ) : (
                             <form onSubmit={handleSubmit} className={styles.toolForm}>
+                                {activeTool?.id === 'recipe' && (
+                                    <div className={styles.recipeOptions}>
+                                        <div>
+                                            <label htmlFor="difficulty">Difficulty: </label>
+                                            <select 
+                                                id="difficulty" 
+                                                value={selectedDifficulty} 
+                                                onChange={(e) => setSelectedDifficulty(e.target.value)}
+                                                disabled={isLoading}
+                                                className={styles.toolSelect}
+                                            >
+                                                {activeTool.difficultyOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label htmlFor="cookTime">Cook Time: </label>
+                                            <select 
+                                                id="cookTime" 
+                                                value={selectedCookTime} 
+                                                onChange={(e) => setSelectedCookTime(e.target.value)}
+                                                disabled={isLoading}
+                                                className={styles.toolSelect}
+                                            >
+                                                {activeTool.cookTimeOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                            </select>
+                                        </div>
+                                    </div>
+                                )}
+
                                 {activeTool?.inputType === 'textarea' ? (
                                     <textarea
                                         value={inputValue}
@@ -428,7 +417,7 @@ Be creative and make it sound delicious!`;
                             <div className={styles.resultsContainer}>
                                 <h3>Results</h3>
                                 <div className={styles.resultsContent}>
-                                    {results}
+                                    <ReactMarkdown>{results}</ReactMarkdown>
                                 </div>
                             </div>
                         )}

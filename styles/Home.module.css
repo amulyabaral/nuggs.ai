@@ -87,24 +87,26 @@
   padding: 2rem 0;
   background-color: #f7f7f7;
   border-bottom: 1px solid #e0e0e0;
-  overflow-x: hidden; 
+  overflow-x: hidden;
+  position: relative; /* For arrow positioning */
 }
 
 .toolSlider {
   display: flex;
-  overflow-x: auto;
+  overflow-x: auto; /* Will be controlled by JS mostly, but good fallback */
   gap: 1.5rem;
-  padding: 0 5% 1.5rem 5%; /* Padding for sides and bottom for scrollbar */
+  padding: 0 60px 1.5rem 60px; /* Increased padding for arrows */
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin; 
-  scrollbar-color: #ccc #f1f1f1; 
+  scroll-behavior: smooth; /* For JS scrolling */
+  /* Optional: scroll snapping for manual drag */
+  /* scroll-snap-type: x mandatory; */ 
 }
 
 .toolSlider::-webkit-scrollbar {
   height: 8px;
 }
 .toolSlider::-webkit-scrollbar-track {
-  background: transparent; /* Or #f1f1f1 if you want a visible track */
+  background: transparent;
 }
 .toolSlider::-webkit-scrollbar-thumb {
   background: #ccc;
@@ -114,14 +116,49 @@
   background: #aaa;
 }
 
+/* Slider Arrows */
+.sliderArrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: rgba(255, 255, 255, 0.8);
+  border: 1px solid #ddd;
+  color: #333;
+  font-size: 1.5rem;
+  padding: 0.5rem 0.8rem;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 10;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  transition: background-color 0.2s ease;
+  line-height: 1; /* Ensure icon is centered */
+}
+.sliderArrow:hover {
+  background-color: white;
+}
+.sliderArrowPrev {
+  left: 15px;
+}
+.sliderArrowNext {
+  right: 15px;
+}
+
 /* Adjustments for toolCard within the slider */
 .sliderToolCard {
   flex: 0 0 auto; /* Prevent cards from shrinking */
-  min-width: 280px; 
-  max-width: 320px; 
-  margin-bottom: 0; /* Override any bottom margin from general .toolCard if needed */
-  height: auto; /* Allow card height to adjust to content, or set a fixed height if preferred */
+  width: 300px; /* Fixed width for consistent scrolling */
+  /* min-width: 280px; */
+  /* max-width: 320px; */
+  margin-bottom: 0; 
+  height: auto; 
+  /* Optional: scroll-snap-align: start; */
 }
+
+.selectedToolCard {
+  border-color: #ff9500;
+  box-shadow: 0 0 0 2px #ff9500, 0 8px 20px rgba(0, 0, 0, 0.08); /* Highlight selected tool */
+}
+
 /* Ensure .toolCard styles are applied correctly */
 .toolCard {
   background-color: white;
@@ -518,6 +555,31 @@
   overflow-y: auto;
 }
 
+/* New styles for recipe options dropdowns */
+.recipeOptions {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap; /* Allow wrapping on smaller screens */
+}
+.recipeOptions > div {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.toolSelect {
+  padding: 0.6rem 0.8rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  font-size: 0.9rem;
+  font-family: inherit;
+}
+.toolSelect:disabled {
+  background-color: #f0f0f0;
+  cursor: not-allowed;
+}
+
 /* Responsive Design */
 @media (max-width: 992px) {
   .mainContentArea {
@@ -552,10 +614,26 @@
     flex-direction: column;
     gap: 1rem;
   }
+
+  .toolSlider {
+    padding: 0 45px 1.5rem 45px; /* Adjust padding for smaller screens */
+  }
+  .sliderArrow {
+    font-size: 1.2rem;
+    padding: 0.4rem 0.6rem;
+  }
+  .sliderArrowPrev {
+    left: 10px;
+  }
+  .sliderArrowNext {
+    right: 10px;
+  }
+  .sliderToolCard {
+    width: 260px; /* Slightly smaller cards on mobile */
+  }
 }
 
 @media (max-width: 480px) {
-
   .recipeCard {
     padding: 1rem;
   }
