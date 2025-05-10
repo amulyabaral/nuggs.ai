@@ -1,177 +1,344 @@
 /* Base Styles */
-.container {
+.pageContainer {
   width: 100%;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   color: #333;
   display: flex;
   flex-direction: column;
   overflow-x: hidden;
+  background-color: #FAFBFB;
 }
 
-/* Header & Navigation */
-.header {
+/* New Header Styles */
+.mainHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.2rem 5%;
+  padding: 1rem 5%;
+  background-color: #fff;
+  border-bottom: 1px solid #e0e0e0;
   position: sticky;
   top: 0;
-  background-color: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(8px);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   z-index: 1000;
 }
 
-.logoContainer h1 {
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: #ff9500;
-  margin: 0;
-}
-
-.nav {
+.logoArea {
   display: flex;
-  gap: 2rem;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.nav a {
+.logoText {
+  font-size: 1.5rem;
+  font-weight: 700;
   color: #333;
+}
+
+.mainNav {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.mainNav a {
+  color: #555;
   text-decoration: none;
   font-weight: 500;
+  font-size: 0.9rem;
   transition: color 0.2s ease;
 }
 
-.nav a:hover {
+.mainNav a:hover {
   color: #ff9500;
 }
 
-/* Hero Section with Video */
-.heroSection {
-  position: relative;
-  height: 80vh;
-  min-height: 500px;
-  width: 100%;
-  overflow: hidden;
+.userActions {
   display: flex;
   align-items: center;
+  gap: 1rem;
+}
+
+.userActions a {
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.signInButton {
+  color: #555;
+}
+.signInButton:hover {
+  color: #000;
+}
+
+.signUpButton {
+  background-color: #333;
+  color: white;
+}
+
+.signUpButton:hover {
+  background-color: #555;
+}
+
+/* Top Featured Section Styles */
+.topFeaturedSection {
+  padding: 2rem 5%;
+  background-color: #f7f7f7;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.featuredCardContainer {
+  display: flex;
+  gap: 1.5rem;
   justify-content: center;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-.bannerVideo {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  z-index: 1;
-}
-
-.videoOverlay {
-  position: relative;
-  z-index: 2;
-  text-align: center;
-  color: white;
-  background-color: rgba(0, 0, 0, 0.5);
-  padding: 3rem;
-  border-radius: 12px;
-  backdrop-filter: blur(4px);
-  max-width: 90%;
-  width: 600px;
-}
-
-.videoOverlay h1 {
-  font-size: 3.5rem;
-  margin-bottom: 1rem;
-}
-
-.videoOverlay p {
-  font-size: 1.2rem;
-  margin-bottom: 2rem;
-}
-
-.videoOverlay button {
-  background-color: #ff9500;
-  color: white;
-  border: none;
-  padding: 0.8rem 1.5rem;
-  font-size: 1rem;
-  font-weight: 600;
+.featuredCard {
+  background-color: #fff;
   border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  flex: 1;
+  min-width: 280px;
+  max-width: 350px;
+  text-align: left;
+  border: 1px solid #eee;
+}
+
+.featuredCardImagePlaceholder {
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 1rem;
+  color: #555;
+}
+
+.featuredCard h3 {
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.featuredCard p {
+  font-size: 0.9rem;
+  color: #666;
+  line-height: 1.5;
+}
+
+/* Main Content Area (Recipes & Sidebar) */
+.mainContentArea {
+  display: flex;
+  padding: 2rem 5%;
+  gap: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.recipeListingSection {
+  flex: 3;
+}
+
+.listingControls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.listingInfo {
+  font-size: 0.95rem;
+  color: #555;
+}
+
+.sortByContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.sortBySelect {
+  padding: 0.4rem 0.6rem;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  font-size: 0.9rem;
+}
+
+.recipeGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.recipeCard {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 1.25rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  border: 1px solid #e9e9e9;
+  display: flex;
+  flex-direction: column;
+}
+
+.recipeCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+  font-size: 0.8rem;
+  color: #777;
+}
+.recipeSourceIcon {
+  margin-right: 0.3rem;
+}
+.recipeSource {
+  flex-grow: 1;
+}
+.recipeVotes {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.recipeVotes span[role="img"] {
+  font-size: 0.9rem;
+}
+
+.recipeTitle {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.recipeDescription {
+  font-size: 0.85rem;
+  color: #666;
+  line-height: 1.5;
+  flex-grow: 1;
+}
+
+/* Sidebar Section Styles */
+.sidebarSection {
+  flex: 1;
+  background-color: #f7f7f7;
+  padding: 1.5rem;
+  border-radius: 8px;
+  height: fit-content;
+  border: 1px solid #e0e0e0;
+}
+
+.sidebarTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #ddd;
+  color: #333;
+}
+
+.filterGroup {
+  margin-bottom: 1.5rem;
+}
+
+.filterGroup h4 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: #444;
+}
+
+.filterOption {
+  display: block;
+  margin-bottom: 0.6rem;
+  font-size: 0.9rem;
+  color: #555;
   cursor: pointer;
-  transition: transform 0.2s, background-color 0.2s;
 }
 
-.videoOverlay button:hover {
-  background-color: #e67e22;
-  transform: translateY(-2px);
+.filterOption input[type="radio"] {
+  margin-right: 0.5rem;
+  accent-color: #ff9500;
 }
 
-/* Features Section */
+/* Existing Features Section (AI Tools) - Minor adjustments if needed */
 .featuresSection {
-  padding: 5rem 5%;
+  padding: 3rem 5%;
   text-align: center;
+  background-color: #fff;
 }
 
 .featuresSection h2 {
-  font-size: 2.5rem;
+  font-size: 2.2rem;
   margin-bottom: 0.5rem;
   color: #333;
 }
 
 .featuresSection > p {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   color: #666;
-  margin-bottom: 3rem;
+  margin-bottom: 2.5rem;
 }
 
 .toolsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 1.5rem;
   width: 100%;
-  max-width: 1300px;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
 .toolCard {
   background-color: white;
-  border-radius: 12px;
-  padding: 2rem;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border-radius: 10px;
+  padding: 1.5rem;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
   cursor: pointer;
   position: relative;
   text-align: left;
-  border: 1px solid #f0f0f0;
+  border: 1px solid #e9e9e9;
   height: 100%;
   display: flex;
   flex-direction: column;
 }
 
 .toolCard:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
 }
 
 .toolIcon {
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
+  font-size: 2rem;
+  margin-bottom: 0.75rem;
 }
 
 .toolCard h3 {
-  font-size: 1.3rem;
-  margin-bottom: 0.8rem;
+  font-size: 1.15rem;
+  margin-bottom: 0.6rem;
   color: #333;
 }
 
 .toolCard p {
   color: #666;
-  font-size: 0.95rem;
-  line-height: 1.6;
+  font-size: 0.9rem;
+  line-height: 1.5;
   flex-grow: 1;
 }
 
+/* Styles for .comingSoon, .comingSoonTag, .toolSection, .toolContainer, etc. remain largely the same but will inherit the new base styles and font. */
+/* ... (Keep existing styles for .comingSoon, .toolForm, .resultsContainer, etc.) ... */
+
+/* Ensure these specific styles are present or adjusted if they were removed */
 .comingSoon {
   opacity: 0.7;
   pointer-events: none;
@@ -189,7 +356,6 @@
   border-radius: 4px;
 }
 
-/* Tool Section - When a tool is selected */
 .toolSection {
   padding: 3rem 5%;
   background-color: #f8f9fa;
@@ -260,7 +426,6 @@
   color: #666;
 }
 
-/* Tool Form */
 .toolForm {
   display: flex;
   flex-direction: column;
@@ -346,7 +511,6 @@
   cursor: not-allowed;
 }
 
-/* Results Area */
 .loadingSpinner {
   display: block;
   width: 30px;
@@ -392,23 +556,23 @@
   overflow-y: auto;
 }
 
-/* About Section */
+/* About Section - Minor adjustments for consistency */
 .aboutSection {
-  padding: 5rem 5%;
-  background-color: white;
+  padding: 4rem 5%;
+  background-color: #FAFBFB;
   text-align: center;
 }
 
 .aboutSection h2 {
-  font-size: 2.5rem;
+  font-size: 2.2rem;
   margin-bottom: 1rem;
   color: #333;
 }
 
 .aboutSection > p {
-  max-width: 800px;
-  margin: 0 auto 3rem;
-  font-size: 1.1rem;
+  max-width: 750px;
+  margin: 0 auto 2.5rem;
+  font-size: 1.05rem;
   color: #666;
   line-height: 1.6;
 }
@@ -416,7 +580,7 @@
 .statsContainer {
   display: flex;
   justify-content: center;
-  gap: 4rem;
+  gap: 3rem;
   flex-wrap: wrap;
 }
 
@@ -427,22 +591,22 @@
 }
 
 .statNumber {
-  font-size: 3rem;
+  font-size: 2.5rem;
   font-weight: 700;
   color: #ff9500;
 }
 
 .statLabel {
-  font-size: 1rem;
+  font-size: 0.95rem;
   color: #666;
-  margin-top: 0.5rem;
+  margin-top: 0.4rem;
 }
 
-/* Footer */
+/* Footer - Minor adjustments for consistency */
 .footer {
   background-color: #333;
   color: white;
-  padding: 4rem 5% 2rem;
+  padding: 3rem 5% 1.5rem;
 }
 
 .footerContent {
@@ -455,33 +619,33 @@
 }
 
 .footerLogo h2 {
-  font-size: 1.8rem;
+  font-size: 1.5rem;
   margin: 0 0 0.5rem;
   color: #ff9500;
 }
 
 .footerLogo p {
-  color: #aaa;
-  font-size: 0.9rem;
+  color: #bbb;
+  font-size: 0.85rem;
 }
 
 .footerLinks {
   display: flex;
-  gap: 4rem;
+  gap: 3rem;
 }
 
 .linkColumn h3 {
-  font-size: 1.1rem;
-  margin-bottom: 1rem;
+  font-size: 1.05rem;
+  margin-bottom: 0.8rem;
   color: white;
 }
 
 .linkColumn a {
   display: block;
-  color: #aaa;
+  color: #bbb;
   text-decoration: none;
-  margin-bottom: 0.8rem;
-  font-size: 0.9rem;
+  margin-bottom: 0.7rem;
+  font-size: 0.85rem;
   transition: color 0.2s;
 }
 
@@ -491,27 +655,48 @@
 
 .copyright {
   text-align: center;
-  margin-top: 3rem;
+  margin-top: 2.5rem;
   padding-top: 1.5rem;
   border-top: 1px solid #444;
   color: #aaa;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
 }
 
 /* Responsive Design */
+@media (max-width: 992px) {
+  .mainContentArea {
+    flex-direction: column;
+  }
+  .sidebarSection {
+    width: 100%;
+    margin-top: 2rem;
+  }
+  .featuredCardContainer {
+    flex-direction: column;
+    align-items: center;
+  }
+  .featuredCard {
+    width: 100%;
+    max-width: 500px;
+  }
+}
+
 @media (max-width: 768px) {
-  .header {
+  .mainHeader {
     flex-direction: column;
     padding: 1rem;
+    gap: 0.5rem;
   }
-  
-  .nav {
-    margin-top: 1rem;
+  .mainNav {
+    margin-top: 0.5rem;
     gap: 1rem;
+    justify-content: center;
+    width: 100%;
   }
-  
-  .videoOverlay h1 {
-    font-size: 2.5rem;
+  .userActions {
+    margin-top: 0.5rem;
+    width: 100%;
+    justify-content: center;
   }
   
   .toolsGrid {
@@ -520,24 +705,51 @@
   
   .footerContent {
     flex-direction: column;
+    align-items: center;
+    text-align: center;
   }
   
   .footerLinks {
     width: 100%;
-    gap: 2rem;
+    gap: 1.5rem;
+    flex-direction: column;
+    align-items: center;
+  }
+  .linkColumn {
+    align-items: center;
+  }
+  .listingControls {
+    flex-direction: column;
+    gap: 1rem;
   }
 }
 
 @media (max-width: 480px) {
-  .videoOverlay {
-    padding: 2rem 1rem;
-  }
-  
-  .heroSection {
-    height: 60vh;
-  }
-  
   .statsContainer {
-    gap: 2rem;
+    gap: 1.5rem;
+  }
+  .topFeaturedSection {
+    padding: 1.5rem 5%;
+  }
+  .featuredCard {
+    padding: 1rem;
+  }
+  .featuredCard h3 {
+    font-size: 1.1rem;
+  }
+  .recipeCard {
+    padding: 1rem;
+  }
+  .recipeTitle {
+    font-size: 1.05rem;
+  }
+  .sidebarSection {
+    padding: 1rem;
+  }
+  .mainHeader .logoText {
+    font-size: 1.3rem;
+  }
+  .mainNav a, .userActions a {
+    font-size: 0.85rem;
   }
 } 

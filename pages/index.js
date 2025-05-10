@@ -70,6 +70,58 @@ const tools = [
     },
 ];
 
+// New: Placeholder data for famous nugget recipes
+const famousNuggetRecipes = [
+  {
+    id: 'classic_crispy',
+    source: 'From a Chef',
+    votes: 1045,
+    title: "Chef John's Ultimate Crispy Nuggets",
+    description: "The crispiest, juiciest homemade chicken nuggets you'll ever make. A true classic.",
+    icon: '🧑‍🍳' // Example icon
+  },
+  {
+    id: 'spicy_kick',
+    source: 'From an Enthusiast',
+    votes: 779,
+    title: 'Spicy Sriracha Kick Nuggets',
+    description: 'Quick & simple. Guaranteed happiness with this clean, balanced and fiery bite.',
+    icon: '🌶️'
+  },
+  {
+    id: 'veggie_delight',
+    source: 'From a Foodie',
+    votes: 523,
+    title: 'Vegan Cauliflower Power Nuggets',
+    description: 'A surprisingly meaty and delicious plant-based alternative that everyone will love.',
+    icon: '🥦'
+  },
+  {
+    id: 'honey_garlic',
+    source: 'Championship',
+    votes: 428,
+    title: 'Honey Garlic Glazed Nuggets',
+    description: 'Sweet, savory, and utterly addictive. Perfect for game day or any day.',
+    icon: '🏆'
+  },
+  {
+    id: 'parmesan_herb',
+    source: 'From a Chef',
+    votes: 357,
+    title: 'Parmesan Herb Baked Nuggets',
+    description: 'A simple recipe for a healthier, flavorful nugget, baked to perfection.',
+    icon: '🌿'
+  },
+  {
+    id: 'bbq_ranch',
+    source: 'From an Enthusiast',
+    votes: 264,
+    title: 'Smoky BBQ Ranch Nuggets',
+    description: 'Learn how to brew a sweet and smoky flavor combination for your nuggets.',
+    icon: '🤠'
+  }
+];
+
 const PROXY_API_URL = '/api/generate'; // Our backend API route
 
 export default function HomePage() {
@@ -80,6 +132,10 @@ export default function HomePage() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [selectedFile, setSelectedFile] = useState(null);
+
+    // State for new UI elements if needed (e.g., sorting, filtering)
+    const [sortBy, setSortBy] = useState('Most Votes');
+    const [activeFilters, setActiveFilters] = useState({});
 
     useEffect(() => {
         // Reset states when tool changes
@@ -175,38 +231,119 @@ Be creative and make it sound delicious!`;
         setSelectedFile(event.target.files[0]);
     };
 
+    // Placeholder function for filter changes
+    const handleFilterChange = (filterType, value) => {
+        setActiveFilters(prev => ({ ...prev, [filterType]: value }));
+        // Add logic to filter recipes if this were a dynamic list
+        console.log("Filters updated:", { ...activeFilters, [filterType]: value });
+    };
+
     return (
-        <div className={styles.container}>
+        <div className={styles.pageContainer}>
             <Head>
                 <title>nuggs.ai - The Ultimate Nugget AI Platform</title>
                 <meta name="description" content="AI-powered tools for all your chicken nugget needs - recipes, reviews, pairings and more!" />
-                <link rel="icon" href="/favicon.ico" />
+                <link rel="icon" href="/nuggets.png" />
                 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
             </Head>
 
-            <header className={styles.header}>
-                <div className={styles.logoContainer}>
-                    <h1>nuggs.ai</h1>
+            <header className={styles.mainHeader}>
+                <div className={styles.logoArea}>
+                    <Image src="/nuggets.png" alt="nuggs.ai Logo" width={40} height={40} />
+                    <span className={styles.logoText}>nuggs.ai</span>
                 </div>
-                <nav className={styles.nav}>
-                    <a href="#features">Features</a>
-                    <a href="#about">About</a>
-                    <a href="#contact">Contact</a>
+                <nav className={styles.mainNav}>
+                    <a href="#feeling-lucky">Feeling Lucky?</a>
+                    <a href="#activity">Activity</a>
+                    <a href="#share-recipe">Share Your Recipe</a>
                 </nav>
+                <div className={styles.userActions}>
+                    <a href="#signin" className={styles.signInButton}>Sign in</a>
+                    <a href="#signup" className={styles.signUpButton}>Sign up</a>
+                </div>
             </header>
             
-            <div className={styles.heroSection}>
-                <div className={styles.videoOverlay}>
-                    <h1>Nuggets, Revolutionized</h1>
-                    <p>AI-powered tools for the ultimate nugget experience</p>
-                    <button onClick={() => document.getElementById('features').scrollIntoView({ behavior: 'smooth' })}>
-                        Explore Features
-                    </button>
+            <section className={styles.topFeaturedSection}>
+                <div className={styles.featuredCardContainer}>
+                    <div className={styles.featuredCard}>
+                        <div className={styles.featuredCardImagePlaceholder} style={{fontSize: '3rem'}}>🍗</div>
+                        <h3>Nugget Perfection</h3>
+                        <p>Two for to get NuggsPressed. Your daily dose of nugget joy.</p>
+                    </div>
+                    <div className={styles.featuredCard}>
+                        <div className={styles.featuredCardImagePlaceholder} style={{fontSize: '3rem'}}>💡</div>
+                        <h3>Low on Ideas?</h3>
+                        <p>Running low on inspiration? This collection showcases recipes big on flavour & low on effort.</p>
+                    </div>
+                    <div className={styles.featuredCard}>
+                        <div className={styles.featuredCardImagePlaceholder} style={{fontSize: '3rem'}}>⏱️</div>
+                        <h3>Fast and Furious</h3>
+                        <p>In a rush? These recipes under 20 mins will help you get to where you're going, quicker.</p>
+                    </div>
                 </div>
-                <video autoPlay muted loop className={styles.bannerVideo}>
-                    <source src="/scan.mp4" type="video/mp4" />
-                    Your browser does not support the video tag.
-                </video>
+            </section>
+
+            <div className={styles.mainContentArea}>
+                <section className={styles.recipeListingSection}>
+                    <div className={styles.listingControls}>
+                        <p className={styles.listingInfo}>Nuggs.ai® recipes! Viewing: all recipes ({famousNuggetRecipes.length}+)</p>
+                        <div className={styles.sortByContainer}>
+                            <label htmlFor="sort-by">Sort by: </label>
+                            <select id="sort-by" value={sortBy} onChange={(e) => setSortBy(e.target.value)} className={styles.sortBySelect}>
+                                <option value="Most Votes">Most Votes</option>
+                                <option value="Newest">Newest</option>
+                                <option value="Difficulty">Difficulty</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className={styles.recipeGrid}>
+                        {famousNuggetRecipes.map(recipe => (
+                            <div key={recipe.id} className={styles.recipeCard}>
+                                <div className={styles.recipeCardHeader}>
+                                    <span className={styles.recipeSourceIcon}>{recipe.icon || '🍴'}</span>
+                                    <span className={styles.recipeSource}>{recipe.source}</span>
+                                    <div className={styles.recipeVotes}>
+                                        <span role="img" aria-label="thumbs up">👍</span> {recipe.votes}
+                                    </div>
+                                </div>
+                                <h4 className={styles.recipeTitle}>{recipe.title}</h4>
+                                <p className={styles.recipeDescription}>{recipe.description}</p>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+
+                <aside className={styles.sidebarSection}>
+                    <h3 className={styles.sidebarTitle}>Refine your recipe</h3>
+                    <div className={styles.filterGroup}>
+                        <h4>Category</h4>
+                        {['All', 'Chicken', 'Veggie', 'Spicy', 'Kid-Friendly'].map(cat => (
+                            <label key={cat} className={styles.filterOption}>
+                                <input type="radio" name="category" value={cat} onChange={() => handleFilterChange('category', cat)} defaultChecked={cat === 'All'} />
+                                {cat === 'Chicken' ? '👑 Championship' : cat === 'Veggie' ? '🌱 Experimental' : cat === 'Spicy' ? '🌶️ From a Barista' : cat === 'Kid-Friendly' ? '😊 From an Enthusiast' : cat}
+                            </label>
+                        ))}
+                    </div>
+                    <div className={styles.filterGroup}>
+                        <h4>Difficulty</h4>
+                        {['Any', 'Easy', 'Medium', 'Hard'].map(diff => (
+                            <label key={diff} className={styles.filterOption}>
+                                <input type="radio" name="difficulty" value={diff} onChange={() => handleFilterChange('difficulty', diff)} defaultChecked={diff === 'Any'} />
+                                {diff}
+                            </label>
+                        ))}
+                    </div>
+                     <div className={styles.filterGroup}>
+                        <h4>Cook Time</h4>
+                        {['Any', '< 20 min', '20-40 min', '> 40 min'].map(time => (
+                            <label key={time} className={styles.filterOption}>
+                                <input type="radio" name="cookTime" value={time} onChange={() => handleFilterChange('cookTime', time)} defaultChecked={time === 'Any'} />
+                                {time}
+                            </label>
+                        ))}
+                    </div>
+                </aside>
             </div>
 
             <section id="features" className={styles.featuresSection}>
