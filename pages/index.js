@@ -442,36 +442,44 @@ Based on the provided image, provide a concise and constructive critique.
 Please provide the response STRICTLY as a single, valid JSON object with the following structure:
 {
   "critiqueTitle": "string (e.g., 'NuggetVision AI Critique')",
-  "appearance": {
-    "title": "Appearance",
-    "color": "string (e.g., 'Golden brown with some darker spots')",
-    "shapeAndUniformity": "string (e.g., 'Mostly uniform, classic nugget shapes')",
-    "coatingTexture": "string (e.g., 'Appears crispy and well-adhered')"
-  },
-  "probableTexture": {
-    "title": "Probable Texture",
-    "description": "string (e.g., 'Likely crispy on the outside, tender inside')"
-  },
-  "overallAppeal": {
-    "title": "Overall Appeal",
-    "description": "string (e.g., 'Looks appetizing and well-cooked')"
-  },
+  "appearanceAndTextureAppeal": "string (A descriptive paragraph combining appearance details like color, shape, uniformity, coating texture, with probable texture, and overall appeal. Make it engaging, 2-4 sentences.)",
+  "starRating": "number (A rating out of 5 stars, e.g., 4.5. Be critical but fair.)",
   "suggestionsForImprovement": {
     "title": "Suggestions for Improvement",
     "suggestion": "string (Optional: 1-2 brief, actionable tips. If none, provide 'N/A' or an empty string)"
   },
-  "dippingSaucePairing": {
-    "title": "Dipping Sauce Pairing",
-    "sauceName": "string (e.g., 'Classic Honey Mustard')",
-    "reason": "string (e.g., 'The sweetness would complement the savory nugget well.')"
+  "dippingSauceSuggestions": [
+    {
+      "name": "Sauce Name 1",
+      "description": "Why it pairs well (1-2 sentences)",
+      "recipeDetails": "Optional: Simple homemade recipe for the dip (Markdown for lists/steps, keep concise).",
+      "amazonSearchKeywords": ["keyword1", "keyword2 for sauce 1"]
+    }
+  ],
+  "drinkSuggestions": [
+    {
+      "name": "Drink Name 1",
+      "emoji": "🥤",
+      "description": "Why it pairs well (1-2 sentences)",
+      "amazonSearchKeywords": ["keyword for drink 1"]
+    }
+  ],
+  "ebayPotential": {
+    "title": "Can you sell this nugget on eBay?",
+    "isSellable": "boolean (true if it has a very unique/iconic shape resembling something specific, false otherwise)",
+    "reason": "string (Explain why it might be sellable e.g., 'Resembles a tiny map of Texas!' or why it's better to eat e.g., 'A perfectly normal, delicious-looking nugget.')",
+    "estimatedValue": "string (If sellable, suggest a humorous or broad price range e.g., '$5 - $500 depending on the collector!' or 'Priceless culinary experience'. If not sellable, 'N/A' or 'Best enjoyed by eating.')",
+    "suggestion": "string (e.g., 'List it under 'Unique Food Art'!' or 'Probably best to just eat this masterpiece.')"
   },
   "error": "string (Optional: Use this field if the image is unclear, not of nuggets, or if no image is provided, e.g., 'Cannot provide critique: Image is unclear or not of nuggets.')"
 }
 
 IMPORTANT:
-- Ensure the entire response is a single, valid JSON object. Do not include any text, pleasantries, or markdown formatting outside of this JSON object.
-- All string values within the JSON must be properly escaped if they contain special characters (e.g., double quotes within a string should be \\").
-- If a specific aspect (like 'suggestion' in 'suggestionsForImprovement') is not applicable, provide a neutral placeholder like "N/A" or an empty string for that field, but ensure the parent object (e.g., 'suggestionsForImprovement') and its 'title' field are present.
+- Ensure the entire response is a single, valid JSON object. Do not include any text, pleasantries, or markdown formatting outside of this JSON object, except within 'recipeDetails' for sauces.
+- All string values within the JSON must be properly escaped.
+- For "dippingSauceSuggestions" (1-2 suggestions): each object needs "name", "description", "amazonSearchKeywords". "recipeDetails" is optional.
+- For "drinkSuggestions" (1-2 suggestions): each object needs "name", "description", "amazonSearchKeywords". "emoji" is optional.
+- For "ebayPotential": "isSellable" must be a boolean. If not sellable, "reason" should reflect that, and "estimatedValue" and "suggestion" should be appropriate (e.g., "N/A", "Better to eat"). Only suggest it's sellable if the shape is TRULY remarkable or resembles something specific and recognizable. Otherwise, default to it not being sellable.
 - If the image is unsuitable for critique, populate the main "error" field in the JSON and provide minimal or placeholder content for other fields.`;
             default:
                 let defaultPrompt = basePrompt + `Format your response using Markdown. `;
@@ -859,48 +867,38 @@ IMPORTANT:
             const critique = JSON.parse(jsonData);
             console.log("Successfully parsed critique JSON:", critique);
 
-            if (critique.error && critique.error !== "string") { // Check if error field has a value
+            if (critique.error && critique.error !== "string" && critique.error.toLowerCase() !== "n/a" && critique.error.trim() !== "") {
                 return <p className={styles.errorMessage}>Error from AI: {critique.error}</p>;
             }
-            
-            // Ensure all expected top-level objects exist, even if their content is placeholder
-            const appearance = critique.appearance || { title: "Appearance", color: "N/A", shapeAndUniformity: "N/A", coatingTexture: "N/A" };
-            const probableTexture = critique.probableTexture || { title: "Probable Texture", description: "N/A" };
-            const overallAppeal = critique.overallAppeal || { title: "Overall Appeal", description: "N/A" };
-            const suggestionsForImprovement = critique.suggestionsForImprovement || { title: "Suggestions for Improvement", suggestion: "N/A" };
-            const dippingSaucePairing = critique.dippingSaucePairing || { title: "Dipping Sauce Pairing", sauceName: "N/A", reason: "N/A" };
 
+            // Destructure with defaults for robustness
+            const {
+                critiqueTitle = "NuggetVision AI Critique",
+                appearanceAndTextureAppeal = "No specific details on appearance, texture, or appeal were provided.",
+                starRating, // Can be undefined
+                suggestionsForImprovement = { title: "Suggestions for Improvement", suggestion: "N/A" },
+                dippingSauceSuggestions = [],
+                drinkSuggestions = [],
+                ebayPotential = { title: "Can you sell this nugget on eBay?", isSellable: false, reason: "N/A", estimatedValue: "N/A", suggestion: "Probably best to just eat it." }
+            } = critique;
 
             return (
                 <div className={styles.critiqueOutputContainer}>
-                    {critique.critiqueTitle && critique.critiqueTitle !== "string" && (
-                        <h3 className={styles.critiqueOverallTitle}>{critique.critiqueTitle}</h3>
+                    {critiqueTitle && critiqueTitle.toLowerCase() !== "string" && (
+                        <h3 className={styles.critiqueOverallTitle}>{critiqueTitle}</h3>
                     )}
 
                     <div className={styles.critiqueCard}>
-                        <h4 className={styles.critiqueCardTitle}>{appearance.title || "Appearance"}</h4>
+                        <h4 className={styles.critiqueCardTitle}>Overall Assessment</h4>
                         <div className={styles.critiqueCardContent}>
-                            <p><strong>Color:</strong> {appearance.color !== "string" ? appearance.color : "N/A"}</p>
-                            <p><strong>Shape & Uniformity:</strong> {appearance.shapeAndUniformity !== "string" ? appearance.shapeAndUniformity : "N/A"}</p>
-                            <p><strong>Coating Texture:</strong> {appearance.coatingTexture !== "string" ? appearance.coatingTexture : "N/A"}</p>
+                            <p>{appearanceAndTextureAppeal}</p>
+                            {starRating !== undefined && starRating !== null && (
+                                <p><strong>Rating:</strong> {Number(starRating).toFixed(1)} / 5 stars</p>
+                            )}
                         </div>
                     </div>
 
-                    <div className={styles.critiqueCard}>
-                        <h4 className={styles.critiqueCardTitle}>{probableTexture.title || "Probable Texture"}</h4>
-                        <div className={styles.critiqueCardContent}>
-                            <p>{probableTexture.description !== "string" ? probableTexture.description : "N/A"}</p>
-                        </div>
-                    </div>
-
-                    <div className={styles.critiqueCard}>
-                        <h4 className={styles.critiqueCardTitle}>{overallAppeal.title || "Overall Appeal"}</h4>
-                        <div className={styles.critiqueCardContent}>
-                            <p>{overallAppeal.description !== "string" ? overallAppeal.description : "N/A"}</p>
-                        </div>
-                    </div>
-                    
-                    {(suggestionsForImprovement.suggestion && suggestionsForImprovement.suggestion !== "string" && suggestionsForImprovement.suggestion !== "N/A") && (
+                    {(suggestionsForImprovement.suggestion && suggestionsForImprovement.suggestion.toLowerCase() !== "string" && suggestionsForImprovement.suggestion.toLowerCase() !== "n/a" && suggestionsForImprovement.suggestion.trim() !== "") && (
                         <div className={styles.critiqueCard}>
                             <h4 className={styles.critiqueCardTitle}>{suggestionsForImprovement.title || "Suggestions for Improvement"}</h4>
                             <div className={styles.critiqueCardContent}>
@@ -909,15 +907,60 @@ IMPORTANT:
                         </div>
                     )}
 
-                    {(dippingSaucePairing.sauceName && dippingSaucePairing.sauceName !== "string" && dippingSaucePairing.sauceName !== "N/A") && (
-                         <div className={styles.critiqueCard}>
-                            <h4 className={styles.critiqueCardTitle}>{dippingSaucePairing.title || "Dipping Sauce Pairing"}</h4>
-                            <div className={styles.critiqueCardContent}>
-                                <p><strong>Suggested Sauce:</strong> {dippingSaucePairing.sauceName}</p>
-                                <p><strong>Reason:</strong> {dippingSaucePairing.reason !== "string" ? dippingSaucePairing.reason : "N/A"}</p>
+                    {dippingSauceSuggestions && dippingSauceSuggestions.length > 0 && (
+                        <div className={styles.recipeSection}> {/* Reusing recipeSection style for consistency */}
+                            <h3>Dipping Sauce Suggestions</h3>
+                            <div className={styles.suggestionCardsContainer}>
+                                {dippingSauceSuggestions.map((sauce, index) => (
+                                    <div
+                                        key={`critique-sauce-${index}`}
+                                        className={styles.suggestionCard}
+                                        onClick={() => handleAmazonSearch(sauce.amazonSearchKeywords || sauce.name, 'dip_suggestion')}
+                                        title={`Search for ${sauce.name} related items on Amazon`}
+                                    >
+                                        <h4>{sauce.name}</h4>
+                                        {sauce.description && <p>{sauce.description}</p>}
+                                        {sauce.recipeDetails && (
+                                            <div className={styles.suggestionRecipeDetails}>
+                                                <h5>Simple Recipe:</h5>
+                                                <ReactMarkdown>{sauce.recipeDetails}</ReactMarkdown>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     )}
+
+                    {drinkSuggestions && drinkSuggestions.length > 0 && (
+                        <div className={styles.recipeSection}> {/* Reusing recipeSection style */}
+                            <h3>Drink Pairing Suggestions</h3>
+                            <div className={styles.suggestionCardsContainer}>
+                                {drinkSuggestions.map((drink, index) => (
+                                    <div
+                                        key={`critique-drink-${index}`}
+                                        className={styles.suggestionCard}
+                                        onClick={() => handleAmazonSearch(drink.amazonSearchKeywords || drink.name, 'drink_suggestion')}
+                                        title={`Search for ${drink.name} related items on Amazon`}
+                                    >
+                                        <h4>{drink.emoji && <span className={styles.suggestionEmoji}>{drink.emoji}</span>} {drink.name}</h4>
+                                        {drink.description && <p>{drink.description}</p>}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    <div className={styles.critiqueCard}>
+                        <h4 className={styles.critiqueCardTitle}>{ebayPotential.title || "Can you sell this nugget on eBay?"}</h4>
+                        <div className={styles.critiqueCardContent}>
+                            <p>{ebayPotential.reason}</p>
+                            {ebayPotential.isSellable && ebayPotential.estimatedValue && ebayPotential.estimatedValue.toLowerCase() !== "n/a" && (
+                                <p><strong>Estimated eBay Value:</strong> {ebayPotential.estimatedValue}</p>
+                            )}
+                            <p><em>{ebayPotential.suggestion}</em></p>
+                        </div>
+                    </div>
                 </div>
             );
         } catch (e) {
@@ -1142,7 +1185,6 @@ IMPORTANT:
                         {/* Display AI/Gemini results */}
                         {results && !activeTool.comingSoon && (
                             <div className={styles.resultsContainer}>
-                                <h3>Results for {activeTool.name}</h3>
                                 {activeTool.id === 'recipe' ? renderRecipeResults(results) : 
                                  activeTool.id === 'critic' ? renderCritiqueResults(results) :
                                  activeTool.id === 'dip' ? renderDipResults(results) : (
