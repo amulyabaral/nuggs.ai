@@ -34,16 +34,17 @@ export default async function handler(req, res) {
     It should be concise and to the point.`;
 
     const requestBody = {
+        system_instruction: {
+            parts: [{ text: systemInstruction }]
+        },
         contents: [
             {
-                parts: [{ text: systemInstruction }]
-            },
-            {
+                role: "user",
                 parts: [{ text: promptText }]
             }
         ],
-        generationConfig: { 
-            temperature: 0.7, 
+        generationConfig: {
+            temperature: 0.7,
             maxOutputTokens: 1024,
             topP: 0.95,
             topK: 40

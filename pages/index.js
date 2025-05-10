@@ -263,23 +263,21 @@ Be creative and make it sound delicious!`;
                 </div>
             </header>
             
-            <section className={styles.topFeaturedSection}>
-                <div className={styles.featuredCardContainer}>
-                    <div className={styles.featuredCard}>
-                        <div className={styles.featuredCardImagePlaceholder} style={{fontSize: '3rem'}}>🍗</div>
-                        <h3>Nugget Perfection</h3>
-                        <p>Two for to get NuggsPressed. Your daily dose of nugget joy.</p>
-                    </div>
-                    <div className={styles.featuredCard}>
-                        <div className={styles.featuredCardImagePlaceholder} style={{fontSize: '3rem'}}>💡</div>
-                        <h3>Low on Ideas?</h3>
-                        <p>Running low on inspiration? This collection showcases recipes big on flavour & low on effort.</p>
-                    </div>
-                    <div className={styles.featuredCard}>
-                        <div className={styles.featuredCardImagePlaceholder} style={{fontSize: '3rem'}}>⏱️</div>
-                        <h3>Fast and Furious</h3>
-                        <p>In a rush? These recipes under 20 mins will help you get to where you're going, quicker.</p>
-                    </div>
+            {/* New Tool Slider Section */}
+            <section className={styles.toolSliderSection}>
+                <div className={styles.toolSlider}>
+                    {tools.map((tool) => (
+                        <div
+                            key={tool.id}
+                            className={`${styles.toolCard} ${styles.sliderToolCard} ${tool.comingSoon ? styles.comingSoon : ''}`}
+                            onClick={() => !tool.comingSoon && setSelectedToolId(tool.id)}
+                        >
+                            <div className={styles.toolIcon}>{tool.icon}</div>
+                            <h3>{tool.name}</h3>
+                            <p>{tool.description}</p>
+                            {tool.comingSoon && <span className={styles.comingSoonTag}>Coming Soon</span>}
+                        </div>
+                    ))}
                 </div>
             </section>
 
@@ -345,26 +343,6 @@ Be creative and make it sound delicious!`;
                     </div>
                 </aside>
             </div>
-
-            <section id="features" className={styles.featuresSection}>
-                <h2>Nugget AI Tools</h2>
-                <p>Discover our suite of AI-powered nugget tools</p>
-                
-                <div className={styles.toolsGrid}>
-                    {tools.map((tool) => (
-                        <div 
-                            key={tool.id}
-                            className={`${styles.toolCard} ${tool.comingSoon ? styles.comingSoon : ''}`}
-                            onClick={() => !tool.comingSoon && setSelectedToolId(tool.id)}
-                        >
-                            <div className={styles.toolIcon}>{tool.icon}</div>
-                            <h3>{tool.name}</h3>
-                            <p>{tool.description}</p>
-                            {tool.comingSoon && <span className={styles.comingSoonTag}>Coming Soon</span>}
-                        </div>
-                    ))}
-                </div>
-            </section>
 
             {selectedToolId && (
                 <section className={styles.toolSection}>
@@ -457,57 +435,6 @@ Be creative and make it sound delicious!`;
                     </div>
                 </section>
             )}
-
-            <section id="about" className={styles.aboutSection}>
-                <h2>About nuggs.ai</h2>
-                <p>nuggs.ai is the world's first AI platform dedicated to enhancing your chicken nugget experience. Our mission is to elevate this beloved food through technology, whether you're a casual fan or a nugget connoisseur.</p>
-                
-                <div className={styles.statsContainer}>
-                    <div className={styles.statItem}>
-                        <span className={styles.statNumber}>7+</span>
-                        <span className={styles.statLabel}>AI Tools</span>
-                    </div>
-                    <div className={styles.statItem}>
-                        <span className={styles.statNumber}>1000+</span>
-                        <span className={styles.statLabel}>Recipe Possibilities</span>
-                    </div>
-                    <div className={styles.statItem}>
-                        <span className={styles.statNumber}>24/7</span>
-                        <span className={styles.statLabel}>Nugget Assistance</span>
-                    </div>
-                </div>
-            </section>
-            
-            <footer id="contact" className={styles.footer}>
-                <div className={styles.footerContent}>
-                    <div className={styles.footerLogo}>
-                        <h2>nuggs.ai</h2>
-                        <p>Powered by AI, fueled by nuggets</p>
-                    </div>
-                    
-                    <div className={styles.footerLinks}>
-                        <div className={styles.linkColumn}>
-                            <h3>Tools</h3>
-                            <a href="#">Recipe Generator</a>
-                            <a href="#">Nugget Critic</a>
-                            <a href="#">Dip Pairing</a>
-                            <a href="#">More Tools</a>
-                        </div>
-                        
-                        <div className={styles.linkColumn}>
-                            <h3>Company</h3>
-                            <a href="#">About Us</a>
-                            <a href="#">Privacy Policy</a>
-                            <a href="#">Terms of Service</a>
-                            <a href="#">Contact</a>
-                        </div>
-                    </div>
-                </div>
-                
-                <div className={styles.copyright}>
-                    &copy; {new Date().getFullYear()} nuggs.ai - All rights reserved
-                </div>
-            </footer>
         </div>
     );
 } 
