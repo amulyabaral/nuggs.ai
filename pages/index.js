@@ -4,12 +4,12 @@ import { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import styles from '../styles/Home.module.css';
 
-// Tools data with added icons and more detailed descriptions
+// Updated Tools data
 const tools = [
     {
         id: 'recipe',
-        name: 'AI Nugget Recipe Generator',
-        description: 'Create unique nugget recipes (meat, veggie, etc.) based on your preferences, dietary restrictions, or available ingredients. Specify difficulty and cook time if you like!',
+        name: 'Get custom nugget recipes',
+        description: 'Create unique nugget recipes (meat, veggie, etc.) based on your preferences, dietary restrictions, or available ingredients. Specify difficulty and cook time!',
         icon: '🍳',
         inputType: 'textarea',
         inputPlaceholder: "e.g., 'Spicy gluten-free veggie nuggets, easy, under 30 mins' or 'Korean-inspired pork nuggets with gochujang'",
@@ -19,7 +19,7 @@ const tools = [
     },
     {
         id: 'critic',
-        name: 'Nugget Critic AI',
+        name: 'AI critique for your nuggz',
         description: 'Upload a photo of your nuggets and get professional feedback on appearance, probable texture, and overall appeal.',
         icon: '📸',
         inputType: 'file',
@@ -29,7 +29,7 @@ const tools = [
     },
     {
         id: 'dip',
-        name: 'Dip Pairing AI',
+        name: 'Find the perfect dip',
         description: 'Discover the perfect sauce pairings for any nugget style. Get personalized recommendations and homemade sauce recipes.',
         icon: '🥫',
         inputPlaceholder: "e.g., 'Spicy nuggets' or 'Plant-based nuggets with herbs'",
@@ -37,7 +37,7 @@ const tools = [
     },
     {
         id: 'brands',
-        name: 'Nugget Brand Comparator',
+        name: 'Compare nugget brands',
         description: 'Compare nutritional values, ingredients, and taste profiles of popular nugget brands to find your perfect match.',
         icon: '⚖️',
         inputPlaceholder: "e.g., 'Compare two specific nugget brands' or 'Healthiest frozen nugget brands'",
@@ -46,7 +46,7 @@ const tools = [
     },
     {
         id: 'deals',
-        name: 'Nugget Deal Finder',
+        name: 'Discover nugget deals',
         description: 'Locate the best nugget promotions and deals at restaurants near you for maximum nugget value.',
         icon: '🔍',
         inputPlaceholder: "e.g., 'Best nugget deals in [Your City]' or 'Where to find BOGO nuggets'",
@@ -55,7 +55,7 @@ const tools = [
     },
     {
         id: 'calories',
-        name: 'Nugget Calorie Counter',
+        name: 'Estimate nugget calories',
         description: 'Upload a photo of your nugget meal and get an estimate of calories, protein, and other nutritional information.',
         icon: '🔢',
         inputType: 'file',
@@ -65,7 +65,7 @@ const tools = [
     },
     {
         id: 'trivia',
-        name: 'Nugget History & Trivia',
+        name: 'Nugget history & trivia',
         description: 'Explore fascinating facts and history about nuggets, or ask specific nugget-related questions.',
         icon: '🧠',
         inputPlaceholder: "e.g., 'When were nuggets invented?' (or leave empty for random facts)",
@@ -76,88 +76,33 @@ const tools = [
 const PROXY_API_URL = '/api/generate';
 
 export default function HomePage() {
-    const [selectedToolId, setSelectedToolId] = useState(null);
-    const [activeTool, setActiveTool] = useState(null);
+    const [selectedToolId, setSelectedToolId] = useState(tools[0].id); // Default to the first tool (recipe)
+    const [activeTool, setActiveTool] = useState(tools[0]);
     const [inputValue, setInputValue] = useState('');
     const [results, setResults] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [selectedFile, setSelectedFile] = useState(null);
 
-    const [selectedDifficulty, setSelectedDifficulty] = useState('Any');
-    const [selectedCookTime, setSelectedCookTime] = useState('Any');
+    const [selectedDifficulty, setSelectedDifficulty] = useState(tools[0].difficultyOptions[0]);
+    const [selectedCookTime, setSelectedCookTime] = useState(tools[0].cookTimeOptions[0]);
 
-    const sliderRef = useRef(null);
-    const autoSlideTimeoutRef = useRef(null);
+    // Removed sliderRef and autoSlideTimeoutRef
 
+    // Effect to update activeTool when selectedToolId changes
     useEffect(() => {
-        const startAutoSlide = () => {
-            if (sliderRef.current) {
-                autoSlideTimeoutRef.current = setTimeout(() => {
-                    const slider = sliderRef.current;
-                    const firstChild = slider.children[0];
-                    if (firstChild) {
-                        const scrollAmount = firstChild.offsetWidth + parseFloat(getComputedStyle(firstChild).marginRight || '0');
-                        let newScrollLeft = slider.scrollLeft + scrollAmount;
-                        if (newScrollLeft >= slider.scrollWidth - slider.clientWidth) {
-                            newScrollLeft = 0;
-                        }
-                        slider.scrollTo({ left: newScrollLeft, behavior: 'smooth' });
-                    }
-                    startAutoSlide();
-                }, 5000);
-            }
-        };
-
-        startAutoSlide();
-
-        return () => {
-            if (autoSlideTimeoutRef.current) {
-                clearTimeout(autoSlideTimeoutRef.current);
-            }
-        };
-    }, [tools]);
-
-    const handleSliderNav = (direction) => {
-        if (sliderRef.current) {
-            if (autoSlideTimeoutRef.current) clearTimeout(autoSlideTimeoutRef.current);
-
-            const slider = sliderRef.current;
-            const firstChild = slider.children[0];
-            if (!firstChild) return;
-
-            const scrollAmount = firstChild.offsetWidth + parseFloat(getComputedStyle(firstChild).marginRight || '0');
-            let newScrollLeft;
-
-            if (direction === 'next') {
-                newScrollLeft = slider.scrollLeft + scrollAmount;
-                if (newScrollLeft >= slider.scrollWidth - slider.clientWidth -1) {
-                    newScrollLeft = 0;
-                }
-            } else {
-                newScrollLeft = slider.scrollLeft - scrollAmount;
-                if (newScrollLeft < 0) {
-                    newScrollLeft = slider.scrollWidth - slider.clientWidth;
-                }
-            }
-            slider.scrollTo({ left: newScrollLeft, behavior: 'smooth' });
-        }
-    };
-
-    useEffect(() => {
-        if (selectedToolId) {
-            const tool = tools.find(t => t.id === selectedToolId);
+        const tool = tools.find(t => t.id === selectedToolId);
+        if (tool) {
             setActiveTool(tool);
             setInputValue('');
             setResults('');
             setError('');
             setSelectedFile(null);
-            if (tool?.id === 'recipe') {
+            // Reset recipe-specific options if switching to the recipe tool
+            if (tool.id === 'recipe') {
                 setSelectedDifficulty(tool.difficultyOptions?.[0] || 'Any');
                 setSelectedCookTime(tool.cookTimeOptions?.[0] || 'Any');
             }
-        } else {
-            setActiveTool(null);
         }
     }, [selectedToolId]);
 
@@ -261,7 +206,7 @@ Be creative and make it sound delicious!`;
                 <title>nuggs.ai - The Ultimate Nugget AI Platform</title>
                 <meta name="description" content="AI-powered tools for all your chicken nugget needs - recipes, reviews, pairings and more!" />
                 <link rel="icon" href="/nuggets.png" />
-                <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+                {/* Font links moved to _app.js */}
             </Head>
 
             <header className={styles.mainHeader}>
@@ -269,63 +214,47 @@ Be creative and make it sound delicious!`;
                     <Image src="/nuggets.png" alt="nuggs.ai Logo" width={40} height={40} />
                     <span className={styles.logoText}>nuggs.ai</span>
                 </div>
-                <nav className={styles.mainNav}>
-                    <a href="#feeling-lucky">Feeling Lucky?</a>
-                    <a href="#activity">Activity</a>
-                    <a href="#share-recipe">Share Your Recipe</a>
-                </nav>
-                <div className={styles.userActions}>
-                    <a href="#signin" className={styles.signInButton}>Sign in</a>
-                    <a href="#signup" className={styles.signUpButton}>Sign up</a>
-                </div>
-            </header>
-            
-            <section className={styles.toolSliderSection}>
-                <button onClick={() => handleSliderNav('prev')} className={`${styles.sliderArrow} ${styles.sliderArrowPrev}`}>&lt;</button>
-                <div className={styles.toolSlider} ref={sliderRef}>
-                    {tools.map((tool) => (
-                        <div
+                <nav className={styles.toolPillNavigation}>
+                    {tools.map(tool => (
+                        <button
                             key={tool.id}
-                            className={`${styles.toolCard} ${styles.sliderToolCard} ${tool.comingSoon ? styles.comingSoon : ''} ${selectedToolId === tool.id ? styles.selectedToolCard : ''}`}
+                            className={`${styles.toolPill} ${selectedToolId === tool.id ? styles.activeToolPill : ''} ${tool.comingSoon ? styles.comingSoonPill : ''}`}
                             onClick={() => {
                                 if (!tool.comingSoon) {
-                                    setSelectedToolId(tool.id === selectedToolId ? null : tool.id);
-                                    if (autoSlideTimeoutRef.current) clearTimeout(autoSlideTimeoutRef.current);
+                                    setSelectedToolId(tool.id);
                                 }
                             }}
+                            disabled={tool.comingSoon}
                         >
-                            <div className={styles.toolIcon}>{tool.icon}</div>
-                            <h3>{tool.name}</h3>
-                            <p>{tool.description}</p>
-                            {tool.comingSoon && <span className={styles.comingSoonTag}>Coming Soon</span>}
-                        </div>
-                    ))}
-                </div>
-                <button onClick={() => handleSliderNav('next')} className={`${styles.sliderArrow} ${styles.sliderArrowNext}`}>&gt;</button>
-            </section>
-
-            {selectedToolId && activeTool && (
-                <section className={styles.toolSection}>
-                    <div className={styles.toolContainer}>
-                        <button className={styles.backButton} onClick={() => setSelectedToolId(null)}>
-                            &larr; Back to Tool Overview
+                            {tool.icon} {tool.name}
+                            {tool.comingSoon && <span className={styles.comingSoonTagPill}>Soon</span>}
                         </button>
+                    ))}
+                </nav>
+            </header>
+            
+            {/* Removed toolSliderSection */}
+
+            {activeTool && (
+                <section className={styles.toolDisplaySection}>
+                    <div className={styles.toolContainer}>
+                        {/* Removed backButton as pill navigation is primary */}
                         
                         <div className={styles.toolHeader}>
-                            <span className={styles.toolIconLarge}>{activeTool?.icon}</span>
-                            <h2>{activeTool?.name}</h2>
+                            <span className={styles.toolIconLarge}>{activeTool.icon}</span>
+                            <h2>{activeTool.name}</h2> {/* Name is already updated */}
                         </div>
                         
-                        <p className={styles.toolDescription}>{activeTool?.description}</p>
+                        <p className={styles.toolDescription}>{activeTool.description}</p>
                         
-                        {activeTool?.comingSoon ? (
+                        {activeTool.comingSoon ? (
                             <div className={styles.comingSoonMessage}>
                                 <h3>Coming Soon!</h3>
                                 <p>We're still perfecting this nugget tool. Check back soon!</p>
                             </div>
                         ) : (
                             <form onSubmit={handleSubmit} className={styles.toolForm}>
-                                {activeTool?.id === 'recipe' && (
+                                {activeTool.id === 'recipe' && (
                                     <div className={styles.recipeOptions}>
                                         <div>
                                             <label htmlFor="difficulty">Difficulty: </label>
@@ -354,7 +283,7 @@ Be creative and make it sound delicious!`;
                                     </div>
                                 )}
 
-                                {activeTool?.inputType === 'textarea' ? (
+                                {activeTool.inputType === 'textarea' ? (
                                     <textarea
                                         value={inputValue}
                                         onChange={(e) => setInputValue(e.target.value)}
@@ -362,14 +291,16 @@ Be creative and make it sound delicious!`;
                                         rows="4"
                                         disabled={isLoading}
                                     />
-                                ) : activeTool?.inputType === 'file' ? (
+                                ) : activeTool.inputType === 'file' ? (
                                     <div className={styles.fileUpload}>
-                                        <label>
+                                        <label htmlFor={`fileUpload-${activeTool.id}`} className={styles.uploadAreaLabel}>
                                             <input
+                                                id={`fileUpload-${activeTool.id}`}
                                                 type="file"
                                                 accept="image/*"
                                                 onChange={handleFileChange}
                                                 disabled={isLoading}
+                                                style={{ display: 'none' }} // Hide default input
                                             />
                                             <div className={styles.uploadArea}>
                                                 {selectedFile ? (
@@ -377,7 +308,13 @@ Be creative and make it sound delicious!`;
                                                         <p>{selectedFile.name}</p>
                                                         <button 
                                                             type="button" 
-                                                            onClick={(e) => {e.stopPropagation(); setSelectedFile(null)}}
+                                                            onClick={(e) => {
+                                                                e.preventDefault(); // Prevent form submission if inside label
+                                                                setSelectedFile(null);
+                                                                // Clear the file input visually if needed
+                                                                const fileInput = document.getElementById(`fileUpload-${activeTool.id}`);
+                                                                if (fileInput) fileInput.value = "";
+                                                            }}
                                                         >
                                                             Remove
                                                         </button>
@@ -386,6 +323,7 @@ Be creative and make it sound delicious!`;
                                                     <>
                                                         <span className={styles.uploadIcon}>📁</span>
                                                         <p>{activeTool.inputPlaceholder}</p>
+                                                        <p className={styles.uploadAreaHint}>Click or drag file here</p>
                                                     </>
                                                 )}
                                             </div>
@@ -396,24 +334,24 @@ Be creative and make it sound delicious!`;
                                         type="text"
                                         value={inputValue}
                                         onChange={(e) => setInputValue(e.target.value)}
-                                        placeholder={activeTool?.inputPlaceholder}
+                                        placeholder={activeTool.inputPlaceholder}
                                         disabled={isLoading}
                                     />
                                 )}
                                 
                                 <button 
                                     type="submit" 
-                                    disabled={isLoading || (activeTool?.inputType === 'file' && !selectedFile)}
+                                    disabled={isLoading || (activeTool.inputType === 'file' && !selectedFile && !activeTool.comingSoon) || activeTool.comingSoon}
                                     className={styles.submitButton}
                                 >
-                                    {isLoading ? 'Processing...' : activeTool?.buttonText}
+                                    {isLoading ? 'Processing...' : activeTool.buttonText}
                                 </button>
                             </form>
                         )}
                         
                         {isLoading && <div className={styles.loadingSpinner}></div>}
                         {error && <p className={styles.errorMessage}>Error: {error}</p>}
-                        {results && (
+                        {results && !activeTool.comingSoon && (
                             <div className={styles.resultsContainer}>
                                 <h3>Results</h3>
                                 <div className={styles.resultsContent}>
@@ -424,6 +362,7 @@ Be creative and make it sound delicious!`;
                     </div>
                 </section>
             )}
+            {/* Footer or other sections can go here */}
         </div>
     );
 } 
