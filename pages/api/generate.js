@@ -25,13 +25,29 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'promptText is required in the request body.' });
     }
 
+    // Add system instruction to only answer nugget-related queries
+    const systemInstruction = `You are an AI assistant specialized ONLY in chicken nugget-related topics. 
+    These include nugget recipes, cooking methods, history, trivia, dipping sauces, 
+    nutritional information, and brands. You must politely refuse to answer any 
+    questions that are not directly related to chicken or meat nuggets or plant-based nugget alternatives. 
+    Always respond in a friendly, helpful manner when the topic is nugget-related. Do not add fluff to your response.
+    It should be concise and to the point.`;
+
     const requestBody = {
-        contents: [{
-            parts: [{ text: promptText }]
-        }],
-        // Optional: Add safety settings or generation config if needed
-        // safetySettings: [{ category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }],
-        // generationConfig: { temperature: 0.7, maxOutputTokens: 800 }
+        contents: [
+            {
+                parts: [{ text: systemInstruction }]
+            },
+            {
+                parts: [{ text: promptText }]
+            }
+        ],
+        generationConfig: { 
+            temperature: 0.7, 
+            maxOutputTokens: 1024,
+            topP: 0.95,
+            topK: 40
+        }
     };
 
     try {
