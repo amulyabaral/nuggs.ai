@@ -19,7 +19,7 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: 'API key not configured on server.' });
     }
 
-    const { promptText } = req.body;
+    const { promptText, imageData, mimeType } = req.body;
 
     if (!promptText) {
         return res.status(400).json({ error: 'promptText is required in the request body.' });
@@ -33,19 +33,30 @@ export default async function handler(req, res) {
     Always respond in a friendly, helpful manner when the topic is nugget-related. Do not add fluff to your response.
     It should be concise and to the point. Format your responses using Markdown where appropriate (e.g., for lists, bolding, italics, headings).`;
 
-    const requestBody = {
+    const parts = [{ text: promptText }];
+
+    if (imageData && mimeType) {
+        parts.push({
+            inline_data: {
+                mime_type: mimeType,
+                data: imageData
+            }
+        });
+    }
+
+    const requestPayload = {
         system_instruction: {
             parts: [{ text: systemInstruction }]
         },
         contents: [
             {
                 role: "user",
-                parts: [{ text: promptText }]
+                parts: parts
             }
         ],
         generationConfig: {
             temperature: 0.7,
-            maxOutputTokens: 1024,
+            maxOutputTokens: 2048,
             topP: 0.95,
             topK: 40
         }
@@ -57,7 +68,7 @@ export default async function handler(req, res) {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(requestBody),
+            body: JSON.stringify(requestPayload),
         });
 
         const responseData = await geminiResponse.json();

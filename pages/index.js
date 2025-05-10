@@ -41,7 +41,6 @@ const tools = [
         inputType: 'file',
         inputPlaceholder: "Upload an image of your nuggets",
         buttonText: 'Analyze Nuggets',
-        comingSoon: true,
     },
     {
         id: 'dip',
@@ -104,6 +103,7 @@ export default function HomePage() {
     const [selectedCookTime, setSelectedCookTime] = useState(tools[0].cookTimeOptions[0].value);
     const [selectedEquipment, setSelectedEquipment] = useState({}); // For multi-select equipment
     const [checkedInstructions, setCheckedInstructions] = useState({});
+    const [currentMimeType, setCurrentMimeType] = useState(''); // Added for image uploads
 
     // State for ingredient substitutes modal
     const [substituteInfo, setSubstituteInfo] = useState({
@@ -198,6 +198,25 @@ IMPORTANT:
                     return null;
                 }
                 return basePrompt + `You are an AI dip pairing expert. Format your response using Markdown. For nuggets described as "${userInput}", suggest 3 perfect dipping sauces. For each sauce, briefly explain why it's a good pairing and include a simple homemade recipe. Format the response in Markdown. ONLY suggest sauces for nuggets. If asked about non-nugget foods, politely explain you specialize in nugget pairings only.`;
+            case 'critic':
+                // For the critic tool, the userInput (text input) is not directly used in the prompt to Gemini,
+                // as the primary input is the image. However, the prompt itself is static.
+                // The image data will be handled separately in handleSubmit.
+                return `You are "NuggetVision AI", a sophisticated food critic specializing in analyzing images of nuggets (all types: chicken, veggie, fish, etc.).
+Based on the provided image, please provide a concise and constructive critique. Format your response using Markdown.
+
+Your critique should cover:
+1.  **Appearance:**
+    *   Color (e.g., golden brown, too dark, too pale).
+    *   Shape and uniformity.
+    *   Coating texture (e.g., looks crispy, looks soggy, breading distribution).
+2.  **Probable Texture:** Based on visual cues, infer the likely texture (e.g., "appears very crispy," "might be a bit soft").
+3.  **Overall Appeal:** Give an overall impression.
+4.  **Suggestions for Improvement (Optional):** If applicable, offer 1-2 brief, actionable tips for how the nuggets could be improved next time (e.g., "Consider a slightly higher cooking temperature for better browning").
+5.  **Dipping Sauce Pairing:** Suggest 1-2 dipping sauces that would complement these nuggets well, briefly explaining why.
+
+Keep your tone encouraging and helpful. Focus only on what can be observed from the image.
+If the image is unclear or not of nuggets, or if no image is provided, politely state that you cannot provide a critique for that reason.`;
             default:
                 let defaultPrompt = basePrompt + `Format your response using Markdown. `;
                 if (userInput) {
@@ -209,12 +228,25 @@ IMPORTANT:
         }
     };
 
+    const fileToBase64 = (file) => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result.split(',')[1]); // Get base64 part
+        reader.onerror = error => reject(error);
+    });
+
     const handleSubmit = async (event) => {
         event.preventDefault();
         if (!activeTool || activeTool.comingSoon) return;
 
         const promptText = getPromptForTool(activeTool, inputValue);
-        if (!promptText && activeTool.id !== 'trivia') {
+
+        if (activeTool.id === 'critic' && !selectedFile) {
+            setError('Please upload an image of your nuggets for critique.');
+            return;
+        }
+
+        if (!promptText && activeTool.id !== 'trivia' && activeTool.id !== 'critic') { // Critic prompt is static, image is main input
             return;
         }
 
@@ -222,11 +254,22 @@ IMPORTANT:
         setResults('');
         setError('');
 
+        let requestBody = { promptText };
+
         try {
+            if (activeTool.id === 'critic' && selectedFile) {
+                const imageData = await fileToBase64(selectedFile);
+                requestBody = {
+                    promptText, // This is the instructional prompt for the critic
+                    imageData,
+                    mimeType: currentMimeType || selectedFile.type // Use stored mimeType or derive from file
+                };
+            }
+
             const response = await fetch(PROXY_API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ promptText }),
+                body: JSON.stringify(requestBody),
             });
 
             const data = await response.json();
@@ -269,7 +312,15 @@ IMPORTANT:
     };
 
     const handleFileChange = (event) => {
-        setSelectedFile(event.target.files[0]);
+        const file = event.target.files[0];
+        if (file) {
+            setSelectedFile(file);
+            setCurrentMimeType(file.type); // Store mime type
+            setError(''); // Clear previous errors
+        } else {
+            setSelectedFile(null);
+            setCurrentMimeType('');
+        }
     };
 
     const handleInstructionToggle = (index) => {
