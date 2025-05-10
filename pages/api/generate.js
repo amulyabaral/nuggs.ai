@@ -9,6 +9,15 @@ if (!GEMINI_API_KEY) {
     console.error("CRITICAL: GEMINI_API_KEY environment variable is not set. The API route will not function.");
 }
 
+// Add this config to increase the body size limit
+export const config = {
+    api: {
+        bodyParser: {
+            sizeLimit: '10mb', // Increase limit to 10MB (or adjust as needed)
+        },
+    },
+};
+
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
         res.setHeader('Allow', ['POST']);
@@ -37,15 +46,15 @@ export default async function handler(req, res) {
 
     if (imageData && mimeType) {
         parts.push({
-            inline_data: {
-                mime_type: mimeType,
+            inlineData: {
+                mimeType: mimeType,
                 data: imageData
             }
         });
     }
 
     const requestPayload = {
-        system_instruction: {
+        systemInstruction: {
             parts: [{ text: systemInstruction }]
         },
         contents: [
