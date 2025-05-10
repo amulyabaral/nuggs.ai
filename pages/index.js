@@ -95,7 +95,7 @@ const tools = [
     {
         id: 'trivia',
         name: 'Nugget history & trivia',
-        description: 'Explore fascinating facts and history about nuggets, or ask specific nugget-related questions.',
+        description: 'Ask for fascinating facts and history about nuggets, or ask specific nugget-related questions.',
         icon: '🧠',
         inputPlaceholder: "e.g., 'When were nuggets invented?' (or leave empty for random facts)",
         buttonText: 'Get Nugget Knowledge',
