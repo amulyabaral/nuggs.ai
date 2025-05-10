@@ -49,7 +49,7 @@ const tools = [
     },
     {
         id: 'critic',
-        name: 'AI critique for your nuggz',
+        name: 'AI critique for your nuggets',
         description: 'Upload a photo of your nuggets and get professional feedback on appearance, probable texture, and overall appeal.',
         icon: '📸',
         inputType: 'file',
