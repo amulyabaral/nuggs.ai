@@ -356,7 +356,7 @@ IMPORTANT:
                     <span className={styles.logoText}>nuggs.ai</span>
                 </div>
                 <p className={styles.tagline}>
-                    Crafting culinary excellence, one nugget at a time. Your AI partner for the perfect bite!
+                    The future is now. AI will help you make the best nuggets of your life, and more..
                 </p>
                 <nav className={styles.toolPillNavigation}>
                     {tools.map(tool => (
