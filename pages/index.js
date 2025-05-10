@@ -209,7 +209,22 @@ IMPORTANT:
             }
 
             if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
-                setResults(data.candidates[0].content.parts[0].text);
+                let aiResponseText = data.candidates[0].content.parts[0].text;
+
+                if (activeTool.id === 'recipe') {
+                    // Attempt to extract JSON string if wrapped in markdown code blocks
+                    // Handles ```json ... ``` or ``` ... ```
+                    // Regex ensures the markdown block is the entire string or extracts from it.
+                    const markdownMatch = aiResponseText.match(/^```(?:json)?\s*([\s\S]+?)\s*```$/);
+                    if (markdownMatch && markdownMatch[1]) {
+                        aiResponseText = markdownMatch[1];
+                    }
+                    
+                    // Trim whitespace thoroughly. This is very important for successful JSON.parse.
+                    aiResponseText = aiResponseText.trim();
+                }
+
+                setResults(aiResponseText);
                 if (activeTool.id === 'recipe') {
                     setCheckedInstructions({});
                 }
