@@ -852,6 +852,92 @@ IMPORTANT:
         }
     };
 
+    // Helper function to render critique results
+    const renderCritiqueResults = (jsonData) => {
+        console.log("Attempting to parse critique JSON. Raw data received:", jsonData);
+        try {
+            const critique = JSON.parse(jsonData);
+            console.log("Successfully parsed critique JSON:", critique);
+
+            if (critique.error && critique.error !== "string") { // Check if error field has a value
+                return <p className={styles.errorMessage}>Error from AI: {critique.error}</p>;
+            }
+            
+            // Ensure all expected top-level objects exist, even if their content is placeholder
+            const appearance = critique.appearance || { title: "Appearance", color: "N/A", shapeAndUniformity: "N/A", coatingTexture: "N/A" };
+            const probableTexture = critique.probableTexture || { title: "Probable Texture", description: "N/A" };
+            const overallAppeal = critique.overallAppeal || { title: "Overall Appeal", description: "N/A" };
+            const suggestionsForImprovement = critique.suggestionsForImprovement || { title: "Suggestions for Improvement", suggestion: "N/A" };
+            const dippingSaucePairing = critique.dippingSaucePairing || { title: "Dipping Sauce Pairing", sauceName: "N/A", reason: "N/A" };
+
+
+            return (
+                <div className={styles.critiqueOutputContainer}>
+                    {critique.critiqueTitle && critique.critiqueTitle !== "string" && (
+                        <h3 className={styles.critiqueOverallTitle}>{critique.critiqueTitle}</h3>
+                    )}
+
+                    <div className={styles.critiqueCard}>
+                        <h4 className={styles.critiqueCardTitle}>{appearance.title || "Appearance"}</h4>
+                        <div className={styles.critiqueCardContent}>
+                            <p><strong>Color:</strong> {appearance.color !== "string" ? appearance.color : "N/A"}</p>
+                            <p><strong>Shape & Uniformity:</strong> {appearance.shapeAndUniformity !== "string" ? appearance.shapeAndUniformity : "N/A"}</p>
+                            <p><strong>Coating Texture:</strong> {appearance.coatingTexture !== "string" ? appearance.coatingTexture : "N/A"}</p>
+                        </div>
+                    </div>
+
+                    <div className={styles.critiqueCard}>
+                        <h4 className={styles.critiqueCardTitle}>{probableTexture.title || "Probable Texture"}</h4>
+                        <div className={styles.critiqueCardContent}>
+                            <p>{probableTexture.description !== "string" ? probableTexture.description : "N/A"}</p>
+                        </div>
+                    </div>
+
+                    <div className={styles.critiqueCard}>
+                        <h4 className={styles.critiqueCardTitle}>{overallAppeal.title || "Overall Appeal"}</h4>
+                        <div className={styles.critiqueCardContent}>
+                            <p>{overallAppeal.description !== "string" ? overallAppeal.description : "N/A"}</p>
+                        </div>
+                    </div>
+                    
+                    {(suggestionsForImprovement.suggestion && suggestionsForImprovement.suggestion !== "string" && suggestionsForImprovement.suggestion !== "N/A") && (
+                        <div className={styles.critiqueCard}>
+                            <h4 className={styles.critiqueCardTitle}>{suggestionsForImprovement.title || "Suggestions for Improvement"}</h4>
+                            <div className={styles.critiqueCardContent}>
+                                <p>{suggestionsForImprovement.suggestion}</p>
+                            </div>
+                        </div>
+                    )}
+
+                    {(dippingSaucePairing.sauceName && dippingSaucePairing.sauceName !== "string" && dippingSaucePairing.sauceName !== "N/A") && (
+                         <div className={styles.critiqueCard}>
+                            <h4 className={styles.critiqueCardTitle}>{dippingSaucePairing.title || "Dipping Sauce Pairing"}</h4>
+                            <div className={styles.critiqueCardContent}>
+                                <p><strong>Suggested Sauce:</strong> {dippingSaucePairing.sauceName}</p>
+                                <p><strong>Reason:</strong> {dippingSaucePairing.reason !== "string" ? dippingSaucePairing.reason : "N/A"}</p>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        } catch (e) {
+            console.error("Failed to parse or render critique JSON. Error:", e);
+            console.error("Raw JSON data that failed to parse:", jsonData);
+            return (
+                <>
+                    <p className={styles.errorMessage}>
+                        Oops! We had trouble displaying this critique.
+                        This can sometimes happen if the AI's response isn't perfect JSON.
+                        Here's the raw data from the AI:
+                    </p>
+                    <div className={styles.resultsContent}>
+                        <ReactMarkdown>{jsonData}</ReactMarkdown>
+                    </div>
+                </>
+            );
+        }
+    };
+
     return (
         <div className={styles.pageContainer}>
             <Head>
