@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import styles from '../styles/Home.module.css';
 
-const AMAZON_AFFILIATE_TAG = 'nuggs00-20';
+const AMAZON_AFFILIATE_TAG = 'yournewtag-20';
 
 // Define common exclusions
 const commonExclusions = [
@@ -16,96 +16,100 @@ const commonExclusions = [
     { id: 'pork', label: 'Pork', emoji: '🐖' },
     { id: 'soy', label: 'Soy', emoji: '🌱' },
     { id: 'eggs', label: 'Eggs', emoji: '🥚' },
+    { id: 'fish', label: 'Fish', emoji: '🐟' },
+    { id: 'vegan', label: 'Vegan (Strict Plant-Based)', emoji: '🌿' },
+    { id: 'vegetarian', label: 'Vegetarian (No Meat/Fish)', emoji: '🥕' },
+    { id: 'lowcarb', label: 'Low Carb', emoji: '📉' },
+    { id: 'lowfat', label: 'Low Fat', emoji: '🥑' },
+    { id: 'highprotein', label: 'High Protein', emoji: '💪' },
 ];
 
-// Updated Tools data
+// Updated Tools data for Healthy Food Substitutes
 const tools = [
     {
-        id: 'recipe',
-        name: 'Get custom nugget recipes',
-        description: 'Create unique nugget recipes (meat, veggie, etc.) based on your preferences. Specify difficulty, cook time, equipment, exclusions, and general ideas. Click on ingredients, dips, or drinks to search for them on Amazon!',
-        icon: '🍳',
+        id: 'suggestionExplorer',
+        name: 'Find Healthy Alternatives',
+        description: 'Enter a food or ingredient, and get healthier suggestions, direct alternatives, or portion advice. Compare nutritional information side-by-side.',
+        icon: '🔄', // Icon for swapping/alternatives
         inputType: 'textarea',
-        inputPlaceholder: "e.g., 'Spicy veggie nuggets using chickpeas' or 'Kid-friendly baked chicken nuggets, simple ingredients'",
-        buttonText: 'Generate Recipe',
-        difficultyOptions: [
-            { label: 'Baby', value: 'Baby', emoji: '👶' },
-            { label: 'Home Chef', value: 'Home Chef', emoji: '👩‍🍳' },
-            { label: 'Enthusiast', value: 'Enthusiast', emoji: '🔥' },
-            { label: 'Pro', value: 'Pro', emoji: '🌟' },
+        inputPlaceholder: "e.g., 'Potato chips', 'White bread', 'Sour cream in a recipe', 'Ground beef for burgers'",
+        buttonText: 'Get Suggestions',
+    },
+    {
+        id: 'recipeGenerator',
+        name: 'Healthy Recipe Ideas',
+        description: 'Get custom healthy recipes. Specify ingredients you have, dietary needs, preferred cuisine, cook time, and equipment. Click ingredients for Amazon search.',
+        icon: '🥗', // Icon for healthy recipes
+        inputType: 'textarea',
+        inputPlaceholder: "e.g., 'Quick vegan lunch with quinoa and avocado' or 'Low-carb dinner using chicken breast and broccoli'",
+        buttonText: 'Generate Healthy Recipe',
+        difficultyOptions: [ // Kept difficulty, can be adapted
+            { label: 'Beginner', value: 'Beginner', emoji: '🧑‍🍳' },
+            { label: 'Intermediate', value: 'Intermediate', emoji: '👩‍🍳' },
+            { label: 'Advanced', value: 'Advanced', emoji: '🌟' },
         ],
-        cookTimeOptions: [
+        cookTimeOptions: [ // Kept cook time
             { label: '< 20 min', value: '< 20 min', emoji: '⏱️' },
-            { label: '20-40 min', value: '20-40 min', emoji: '⏳' },
-            { label: '> 40 min', value: '> 40 min', emoji: '⏰' },
+            { label: '20-45 min', value: '20-45 min', emoji: '⏳' },
+            { label: '> 45 min', value: '> 45 min', emoji: '⏰' },
         ],
-        equipmentOptions: [
+        equipmentOptions: [ // Kept equipment
             { label: 'Oven', value: 'oven', emoji: '♨️' },
             { label: 'Air Fryer', value: 'airfryer', emoji: '💨' },
-            { label: 'Deep Fryer', value: 'deepfryer', emoji: '🔥' },
-            { label: 'Pan/Stovetop', value: 'pan', emoji: '🍳' },
-            { label: 'Microwave', value: 'microwave', emoji: '💡' }, // For reheating or specific steps
+            { label: 'Stovetop', value: 'pan', emoji: '🍳' },
+            { label: 'Microwave', value: 'microwave', emoji: '💡' },
+            { label: 'Blender', value: 'blender', emoji: '🥤' },
+            { label: 'Instant Pot / Pressure Cooker', value: 'pressurecooker', emoji: '🍲' },
         ],
     },
     {
-        id: 'critic',
-        name: 'AI critique for your nuggets',
-        description: 'Upload a photo of your nuggets and get professional feedback on appearance, probable texture, and overall appeal.',
-        icon: '📸',
-        inputType: 'file',
-        inputPlaceholder: "Upload an image of your nuggets",
-        buttonText: 'Analyze Nuggets',
+        id: 'mealAnalyzer',
+        name: 'Analyze Your Meal',
+        description: 'Upload a photo of your meal or describe it. Get feedback on its healthiness, suggestions for improvement, ingredient swaps, and portion advice.',
+        icon: '🍽️', // Icon for meal analysis
+        inputType: 'file', // Can also allow text input as fallback
+        inputPlaceholder: "Upload an image or describe your meal (e.g., 'Pasta with cream sauce and garlic bread')",
+        buttonText: 'Analyze Meal',
+    },
+    {
+        id: 'nutritionFacts',
+        name: 'Nutrition & Healthy Eating Facts',
+        description: 'Ask questions about nutrition, food benefits, or get interesting facts about healthy eating.',
+        icon: '💡', // Icon for knowledge/facts
+        inputPlaceholder: "e.g., 'Benefits of eating broccoli?' or 'What are complete proteins?' (or leave empty for random facts)",
+        buttonText: 'Get Facts',
+    },
+    {
+        id: 'foodComparer',
+        name: 'Compare Foods',
+        description: 'Compare nutritional values and ingredients of different food items or brands.',
+        icon: '⚖️',
+        inputPlaceholder: "e.g., 'Compare almond milk vs oat milk' or 'Greek yogurt vs regular yogurt'",
+        buttonText: 'Compare Foods',
+        comingSoon: true, // This can be complex to implement well without structured data
     },
     {
         id: 'community',
-        name: 'Community Nuggs (#nuggs #nuggsai)',
-        description: 'See what fellow nugget enthusiasts are creating! Click the button to view posts tagged with #nuggs or #nuggsai on Instagram.',
-        icon: '🌐', // Globe icon
-        isLinkOut: true, // Custom property to identify this type of tool
-        linkUrl: 'https://www.instagram.com/explore/tags/nuggsai/' // Links to #nuggsai, description mentions both
+        name: 'Healthy Food Community',
+        description: 'See what others are cooking and sharing! Click to view posts tagged with #HealthyEating or #HealthySubstitutes on Instagram.',
+        icon: '🌐',
+        isLinkOut: true,
+        linkUrl: 'https://www.instagram.com/explore/tags/healthyeating/' // Example link
     },
     {
-        id: 'brands',
-        name: 'Compare nugget brands',
-        description: 'Compare nutritional values, ingredients, and taste profiles of popular nugget brands to find your perfect match.',
-        icon: '⚖️',
-        inputPlaceholder: "e.g., 'Compare two specific nugget brands' or 'Healthiest frozen nugget brands'",
-        buttonText: 'Compare Brands',
+        id: 'mealPlanner',
+        name: 'AI Meal Planner',
+        description: 'Get AI-suggested meal plans for the day or week based on your dietary goals and preferences. (Coming Soon)',
+        icon: '📅',
+        buttonText: 'Plan My Meals',
         comingSoon: true,
-    },
-    {
-        id: 'deals',
-        name: 'Discover nugget deals',
-        description: 'Locate the best nugget promotions and deals at restaurants near you for maximum nugget value.',
-        icon: '🔍',
-        inputPlaceholder: "e.g., 'Best nugget deals in [Your City]' or 'Where to find BOGO nuggets'",
-        buttonText: 'Find Deals',
-        comingSoon: true,
-    },
-    {
-        id: 'calories',
-        name: 'Estimate nugget calories',
-        description: 'Upload a photo of your nugget meal and get an estimate of calories, protein, and other nutritional information.',
-        icon: '🔢',
-        inputType: 'file',
-        inputPlaceholder: "Upload an image of your nugget meal",
-        buttonText: 'Calculate Calories',
-        comingSoon: true,
-    },
-    {
-        id: 'trivia',
-        name: 'Nugget history & trivia',
-        description: 'Ask for fascinating facts and history about nuggets, or ask specific nugget-related questions.',
-        icon: '🧠',
-        inputPlaceholder: "e.g., 'When were nuggets invented?' (or leave empty for random facts)",
-        buttonText: 'Get Nugget Knowledge',
     },
 ];
 
 const PROXY_API_URL = '/api/generate';
 
 export default function HomePage() {
-    const [selectedToolId, setSelectedToolId] = useState(tools[0].id); // Default to the first tool (recipe)
+    const [selectedToolId, setSelectedToolId] = useState(tools[0].id);
     const [activeTool, setActiveTool] = useState(tools[0]);
     const [inputValue, setInputValue] = useState('');
     const [results, setResults] = useState('');
@@ -113,13 +117,13 @@ export default function HomePage() {
     const [error, setError] = useState('');
     const [selectedFile, setSelectedFile] = useState(null);
 
-    const [selectedDifficulty, setSelectedDifficulty] = useState(tools[0].difficultyOptions[0].value);
-    const [selectedCookTime, setSelectedCookTime] = useState(tools[0].cookTimeOptions[0].value);
-    const [selectedEquipment, setSelectedEquipment] = useState({}); // For multi-select equipment
-    const [currentMimeType, setCurrentMimeType] = useState(''); // Added for image uploads
+    const [selectedDifficulty, setSelectedDifficulty] = useState(tools.find(t => t.id === 'recipeGenerator')?.difficultyOptions?.[0]?.value || 'Beginner');
+    const [selectedCookTime, setSelectedCookTime] = useState(tools.find(t => t.id === 'recipeGenerator')?.cookTimeOptions?.[0]?.value || '< 20 min');
+    const [selectedEquipment, setSelectedEquipment] = useState({});
+    const [currentMimeType, setCurrentMimeType] = useState('');
 
     // New state for recipe tool inputs
-    const [selectedExclusions, setSelectedExclusions] = useState({}); // For selectable exclusion buttons
+    const [selectedExclusions, setSelectedExclusions] = useState({});
 
     // New state for instruction timers
     const [instructionTimersData, setInstructionTimersData] = useState({});
@@ -136,8 +140,8 @@ export default function HomePage() {
             setError('');
             setSelectedFile(null);
             // Reset recipe-specific options if switching to the recipe tool
-            if (tool.id === 'recipe') {
-                setSelectedDifficulty(tool.difficultyOptions?.[0]?.value || 'Baby');
+            if (tool.id === 'recipeGenerator') {
+                setSelectedDifficulty(tool.difficultyOptions?.[0]?.value || 'Beginner');
                 setSelectedCookTime(tool.cookTimeOptions?.[0]?.value || '< 20 min');
                 setSelectedEquipment({}); // Reset equipment
                 setSelectedExclusions({}); // Reset exclusions
@@ -158,7 +162,7 @@ export default function HomePage() {
 
     // Effect to initialize/reset timers when recipe results change
     useEffect(() => {
-        if (activeTool.id === 'recipe' && results) {
+        if (activeTool.id === 'recipeGenerator' && results) {
             try {
                 const recipe = JSON.parse(results);
                 if (recipe.instructions && Array.isArray(recipe.instructions)) {
@@ -185,7 +189,7 @@ export default function HomePage() {
                 clearInterval(currentRunningTimer.intervalId);
             }
             setCurrentRunningTimer({ intervalId: null, stepIndex: null });
-        } else if (activeTool.id !== 'recipe') { // Clear if not recipe tool or no results
+        } else if (activeTool.id !== 'recipeGenerator') { // Clear if not recipe tool or no results
             setInstructionTimersData({});
             if (currentRunningTimer.intervalId) {
                 clearInterval(currentRunningTimer.intervalId);
@@ -341,20 +345,21 @@ export default function HomePage() {
     };
 
     const getPromptForTool = (tool, userInput) => {
-        let basePrompt = `You are an AI expert. `;
+        let basePrompt = `You are an AI expert focused on healthy eating, nutrition, and food substitutions. Your goal is to provide helpful, actionable, and evidence-informed advice. `;
         switch (tool.id) {
-            case 'trivia':
-                let triviaPrompt = basePrompt + "You are a fun and knowledgeable AI expert on nugget history, trivia, and fun facts (all types of nuggets, not just chicken). Format your response using Markdown. ";
+            case 'nutritionFacts':
+                let triviaPrompt = basePrompt + "You are a knowledgeable and engaging AI expert on nutrition, healthy eating habits, food science, and the benefits of various foods. Format your response using Markdown. ";
                 if (userInput) {
                     triviaPrompt += `Please answer the following question concisely and engagingly: "${userInput}"`;
                 } else {
-                    triviaPrompt += "Tell me an interesting and surprising fun fact or piece of trivia about nuggets.";
+                    triviaPrompt += "Tell me an interesting and surprising fun fact or piece of information about healthy eating or nutrition.";
                 }
-                triviaPrompt += " Keep your response friendly and suitable for a general audience. ONLY answer nugget-related questions. If asked about non-nugget topics, politely explain you're a nugget specialist.";
+                triviaPrompt += " Keep your response friendly, informative, and suitable for a general audience. If asked about non-food/nutrition topics, politely explain your specialization.";
                 return triviaPrompt;
-            case 'recipe':
+
+            case 'recipeGenerator':
                 if (!userInput) {
-                    setError("Please describe the type of nugget recipe you'd like.");
+                    setError("Please describe the type of healthy recipe you'd like, or list some ingredients you have.");
                     return null;
                 }
                 const activeEquipment = Object.keys(selectedEquipment)
@@ -371,117 +376,132 @@ export default function HomePage() {
                     .map(([key]) => commonExclusions.find(ex => ex.id === key)?.label || key)
                     .join(', ');
 
-                let recipePrompt = `You are an AI chef specializing in creative nugget recipes (including meat-based, plant-based, fish, etc.).
+                let recipePrompt = `You are an AI chef specializing in creating healthy and delicious recipes.
 The user wants a recipe based on this core request: "${userInput}".
 Additionally, consider these user preferences:
 - Difficulty: ${selectedDifficulty}
 - Target Cook Time: ${selectedCookTime}
 - Available Equipment: ${equipmentInstructions}
-- Items to AVOID if possible: "${activeExclusionLabels || 'None specified'}"
+- Dietary Restrictions/Preferences to AVOID or ACCOMMODATE: "${activeExclusionLabels || 'None specified'}"
 
 Please provide the response STRICTLY as a single, valid JSON object with the following structure:
 {
-  "recipeName": "A catchy recipe name (e.g., 'Spicy Honey Glazed Chicken Nuggets')",
-  "description": "A brief, enticing description of the recipe (2-3 sentences). Include a note if any exclusion preferences were specifically addressed.",
+  "recipeName": "A catchy and descriptive healthy recipe name (e.g., 'Mediterranean Quinoa Salad with Lemon-Herb Dressing')",
+  "description": "A brief, enticing description of the recipe, highlighting its health aspects (2-3 sentences). Mention if any specific dietary preferences were addressed.",
   "prepTime": "Estimated preparation time (e.g., '15 minutes')",
   "cookTime": "Estimated cooking time (e.g., '20 minutes')",
   "difficultyRating": "${selectedDifficulty}",
-  "servings": "Number of servings (e.g., 'Approx. 20 nuggets' or '4 servings')",
+  "servings": "Number of servings (e.g., '2-3 servings' or 'Approx. 4 cups')",
+  "healthBenefits": ["Briefly list 2-3 key health benefits or nutritional highlights (e.g., 'Rich in fiber', 'Good source of plant-based protein', 'Low in saturated fat')"],
   "ingredients": [
-    { "name": "Ingredient Name", "quantity": "Amount (e.g., '1', '1/2', '2-3')", "unit": "Unit (e.g., 'lb', 'cup', 'tbsp', 'cloves', 'medium')", "notes": "Optional: brief notes like 'boneless, skinless', 'finely chopped', 'to taste'" }
+    { "name": "Ingredient Name", "quantity": "Amount (e.g., '1', '1/2', '2-3')", "unit": "Unit (e.g., 'cup', 'tbsp', 'cloves', 'medium', 'oz')", "notes": "Optional: brief notes like 'cooked', 'finely chopped', 'low-sodium version recommended'" }
   ],
   "instructions": [
-    { "stepNumber": 1, "description": "Detailed instruction for this step. Be clear and concise. If specific equipment was mentioned (Available Equipment above), tailor instructions for it. If multiple suitable equipment options were listed, you can prioritize one or briefly mention alternatives." }
+    { "stepNumber": 1, "description": "Detailed instruction for this step. Be clear and concise. If specific equipment was mentioned, tailor instructions for it. Offer healthy cooking tips where appropriate (e.g., 'bake instead of fry')." }
   ],
-  "dippingSauceSuggestions": [
-    { "name": "Sauce Name 1", "description": "Why it pairs well (1-2 sentences)", "recipeDetails": "Optional: Simple homemade recipe for the dip (Markdown for lists/steps, keep concise).", "amazonSearchKeywords": ["keyword1", "keyword2 for sauce 1"] }
+  "substitutionSuggestions": [
+    { "originalIngredient": "Original Ingredient Name (if applicable)", "healthierSubstitute": "Healthier Substitute Name", "reason": "Why it's a healthier choice (1-2 sentences)", "notes": "Optional: tips for using the substitute" }
   ],
-  "drinkSuggestions": [
-    { "name": "Drink Name 1", "emoji": "🥤", "description": "Why it pairs well (1-2 sentences)", "amazonSearchKeywords": ["keyword for drink 1"] }
+  "pairingSuggestions": [
+    { "type": "Side Dish | Drink | Garnish", "name": "Item Name", "description": "Why it pairs well and complements the meal's healthiness (1-2 sentences)", "amazonSearchKeywords": ["keyword1", "keyword2 for pairing"] }
   ]
 }
 
 IMPORTANT:
-- You MUST ONLY generate nugget-related recipes. If asked for any non-nugget recipe, respond with a JSON object: {"error": "I specialize only in nugget recipes."}.
+- You MUST ONLY generate healthy food recipes. If asked for an unhealthy recipe without a request for modification, or a non-food recipe, respond with a JSON object: {"error": "I specialize in healthy recipes. How can I help you make a healthier version or find a nutritious alternative?"}.
 - Ensure the entire response is a single, valid JSON object. Do not include any text, pleasantries, or markdown formatting outside of this JSON object.
-- For "ingredients", "quantity" should be a string. "unit" should also be a string. Each ingredient object should be simple.
-- For "instructions", "stepNumber" should be a number. Ensure instructions are adapted for the 'Available Equipment' specified.
-- All string values within the JSON must be properly escaped.
-- Be creative and make the recipe sound delicious within the JSON structure!
-- If items to AVOID are mentioned, try to create a recipe that avoids them. If an unavoidable ingredient from this list is core to the request, clearly state this and suggest an alternative in the 'notes' of that ingredient or in the main recipe 'description'.
-- For "dippingSauceSuggestions" (1-3 suggestions): each object needs "name", "description", "amazonSearchKeywords" (array). "recipeDetails" is optional.
-- For "drinkSuggestions" (1-3 suggestions): each object needs "name", "description", "amazonSearchKeywords" (array). "emoji" is optional but encouraged (e.g., 🥤, 🍷, 🍺, 🍹, 🥛).`;
+- For "ingredients", "quantity" and "unit" should be strings.
+- For "instructions", "stepNumber" should be a number.
+- For "substitutionSuggestions" (0-3 suggestions): focus on common swaps to make the dish even healthier or cater to restrictions.
+- For "pairingSuggestions" (0-2 suggestions): suggest healthy side dishes, drinks, or garnishes.
+- If dietary restrictions are mentioned, try to create a recipe that meets them. If a core ingredient conflicts, clearly state this and suggest an alternative in the 'notes' of that ingredient or in the main recipe 'description' or 'substitutionSuggestions'.
+- All string values within the JSON must be properly escaped.`;
                 return recipePrompt;
-            case 'dip':
+
+            case 'suggestionExplorer':
                 if (!userInput) {
-                    setError("Please describe the type of nugget you're having.");
+                    setError("Please enter a food or ingredient you'd like to find alternatives for.");
                     return null;
                 }
-                // The AI should now return a JSON array of dip objects
-                return basePrompt + `You are an AI dip pairing expert. For nuggets described as "${userInput}", suggest 2-3 perfect dipping sauces.
-Provide the response STRICTLY as a single, valid JSON array, where each object in the array has the following structure:
+                return basePrompt + `The user is looking for healthy alternatives or advice regarding: "${userInput}".
+Provide the response STRICTLY as a single, valid JSON object with the following structure:
 {
-  "dipName": "string (e.g., 'Creamy Honey Mustard')",
-  "description": "string (Briefly explain why it's a good pairing, 1-2 sentences)",
-  "recipeDetails": "string (A simple homemade recipe for the dip. Use Markdown for formatting if needed, like lists for ingredients/steps. Keep it concise.)",
-  "amazonSearchKeywords": ["string", "string"] 
+  "originalItem": "${userInput}",
+  "analysis": "Brief nutritional overview or common concerns associated with the original item (1-2 sentences).",
+  "suggestions": [
+    {
+      "type": "Direct Substitute | Healthier Version | Ingredient Swap | Portion Control | Recipe Idea",
+      "suggestedItem": "Name of the suggested food/ingredient/method",
+      "description": "Detailed explanation of the suggestion, why it's healthier, and how to use it (2-4 sentences). Include specific benefits like 'lower in sugar', 'higher in fiber', 'plant-based option'.",
+      "nutritionalComparison": { // Optional: if applicable and data is available
+        "original": { "calories": "X kcal", "fat": "Y g", "sugar": "Z g", "notes": "per serving/100g" },
+        "suggested": { "calories": "A kcal", "fat": "B g", "sugar": "C g", "notes": "per serving/100g" }
+      },
+      "recipeSnippet": "Optional: A very brief recipe idea or usage tip (e.g., 'Try using mashed avocado instead of mayonnaise in your next sandwich.')",
+      "amazonSearchKeywords": ["keyword1 for suggested item", "keyword2"]
+    }
+  ],
+  "generalTips": [
+    "Offer 1-2 general healthy eating tips related to the user's query."
+  ]
 }
 
-Example for "amazonSearchKeywords": For 'Creamy Honey Mustard', keywords could be ["honey mustard dip", "dijon mustard for dip"]. These should be terms to find pre-made versions or key ingredients on an e-commerce site. These keywords will be used to construct a search link.
 IMPORTANT:
-- Ensure the entire response is a single, valid JSON array of objects. Do not include any text, pleasantries, or markdown formatting outside of this JSON structure, except within the "recipeDetails" field.
-- All string values within the JSON must be properly escaped.
-- ONLY suggest sauces for nuggets. If asked about non-nugget foods, respond with a JSON array containing a single object: [{"error": "I specialize only in nugget pairings."}].`;
-            case 'critic':
-                // For the critic tool, the userInput (text input) is not directly used in the prompt to Gemini,
-                // as the primary input is the image. However, the prompt itself is static.
-                // The image data will be handled separately in handleSubmit.
-                return `You are "NuggetVision AI", a sophisticated food critic specializing in analyzing images of nuggets (all types: chicken, veggie, fish, etc.).
-Based on the provided image, provide a concise and constructive critique.
+- Provide 2-4 diverse and actionable suggestions.
+- Focus on practical, easily accessible alternatives.
+- If the original item is already healthy, acknowledge that and perhaps offer tips on preparation or pairing.
+- Ensure the entire response is a single, valid JSON object. No text outside this structure.
+- All string values must be properly escaped.
+- If the query is unclear or not food-related, respond with JSON: {"error": "Please provide a specific food or ingredient for suggestions."}`;
+
+            case 'mealAnalyzer':
+                // For image analysis, the prompt is more about the output structure.
+                // The actual image data is sent separately.
+                // If userInput is present, it means the user described the meal.
+                let mealDescription = userInput ? `The user describes their meal as: "${userInput}".` : "The user has uploaded an image of their meal.";
+
+                return basePrompt + `You are "NutriVision AI", a sophisticated AI nutritionist specializing in analyzing meals (from images or descriptions) for their healthiness.
+${mealDescription}
+Based on the provided information (image and/or text), provide a constructive analysis and suggestions for improvement.
 
 Please provide the response STRICTLY as a single, valid JSON object with the following structure:
 {
-  "critiqueTitle": "string (e.g., 'NuggetVision AI Critique')",
-  "appearanceAndTextureAppeal": "string (A descriptive paragraph combining appearance details like color, shape, uniformity, coating texture, with probable texture, and overall appeal. Make it engaging, 2-4 sentences.)",
-  "starRating": "number (A rating out of 5 stars, e.g., 4.5. Be critical but fair.)",
-  "suggestionsForImprovement": {
-    "title": "Suggestions for Improvement",
-    "suggestion": "string (Optional: 1-2 brief, actionable tips. If none, provide 'N/A' or an empty string)"
+  "mealTitle": "string (e.g., 'NutriVision AI Meal Analysis')",
+  "overallAssessment": {
+    "healthScore": "number (A rating from 1-10, 10 being healthiest. Be critical but fair.)",
+    "summary": "string (A descriptive paragraph on the meal's apparent composition, potential nutritional balance (macros, micros), and overall health impression. 2-4 sentences.)",
+    "positiveAspects": ["string (List 1-3 positive aspects, e.g., 'Good source of vegetables', 'Includes lean protein')"],
+    "areasForImprovement": ["string (List 1-3 areas for improvement, e.g., 'High in saturated fat', 'Could include more fiber', 'Portion size appears large')"]
   },
-  "dippingSauceSuggestions": [
+  "detailedSuggestions": [
     {
-      "name": "Sauce Name 1",
-      "description": "Why it pairs well (1-2 sentences)",
-      "recipeDetails": "Optional: Simple homemade recipe for the dip (Markdown for lists/steps, keep concise).",
-      "amazonSearchKeywords": ["keyword1", "keyword2 for sauce 1"]
+      "suggestionType": "Ingredient Swap | Portion Adjustment | Cooking Method Change | Add Nutrient-Rich Food | Reduce Unhealthy Component",
+      "specificAdvice": "string (Actionable advice, e.g., 'Swap white rice for brown rice to increase fiber.', 'Consider reducing the cheese portion by half.')",
+      "reasoning": "string (Why this change would be beneficial, e.g., 'Brown rice has a lower glycemic index and more micronutrients.')"
     }
   ],
-  "drinkSuggestions": [
-    {
-      "name": "Drink Name 1",
-      "emoji": "🥤",
-      "description": "Why it pairs well (1-2 sentences)",
-      "amazonSearchKeywords": ["keyword for drink 1"]
-    }
-  ],
-  "ebayPotential": {
-    "title": "Can you sell this nugget on eBay?",
-    "isSellable": "boolean (true if it has a very unique/iconic shape resembling something specific, false otherwise)",
-    "reason": "string (Explain why it might be sellable e.g., 'Resembles a tiny map of Texas!' or why it's better to eat e.g., 'A perfectly normal, delicious-looking nugget.')",
-    "estimatedValue": "string (If sellable, suggest a humorous or broad price range e.g., '$5 - $500 depending on the collector!' or 'Priceless culinary experience'. If not sellable, 'N/A' or 'Best enjoyed by eating.')",
-    "suggestion": "string (e.g., 'List it under 'Unique Food Art'!' or 'Probably best to just eat this masterpiece.')"
+  "healthierAlternativeMealIdea": { // Optional: Suggest a completely different healthier meal
+    "name": "string (e.g., 'Instead of creamy pasta, try a Zucchini Noodle Stir-fry with Tofu')",
+    "description": "string (Brief description of the alternative meal and its benefits)"
   },
-  "error": "string (Optional: Use this field if the image is unclear, not of nuggets, or if no image is provided, e.g., 'Cannot provide critique: Image is unclear or not of nuggets.')"
+  "estimatedNutrition": { // Optional: very rough estimate if possible
+    "calories": "string (e.g., 'Approx. 600-800 kcal')",
+    "protein": "string (e.g., 'Approx. 20-30g')",
+    "fat": "string (e.g., 'Approx. 30-40g')",
+    "carbs": "string (e.g., 'Approx. 50-70g')",
+    "notes": "string (e.g., 'This is a rough estimate. Actual values depend on specific ingredients and portions.')"
+  },
+  "error": "string (Optional: Use this field if the image is unclear, not of food, or if analysis is not possible, e.g., 'Cannot provide analysis: Image is unclear or not of food.')"
 }
 
 IMPORTANT:
-- Ensure the entire response is a single, valid JSON object. Do not include any text, pleasantries, or markdown formatting outside of this JSON object, except within 'recipeDetails' for sauces.
-- All string values within the JSON must be properly escaped.
-- For "dippingSauceSuggestions" (1-2 suggestions): each object needs "name", "description", "amazonSearchKeywords". "recipeDetails" is optional.
-- For "drinkSuggestions" (1-2 suggestions): each object needs "name", "description", "amazonSearchKeywords". "emoji" is optional.
-- For "ebayPotential": "isSellable" must be a boolean. If not sellable, "reason" should reflect that, and "estimatedValue" and "suggestion" should be appropriate (e.g., "N/A", "Better to eat"). Only suggest it's sellable if the shape is TRULY remarkable or resembles something specific and recognizable. Otherwise, default to it not being sellable.
-- If the image is unsuitable for critique, populate the main "error" field in the JSON and provide minimal or placeholder content for other fields.`;
-            case 'community': // New tool for Instagram/Community posts
+- Ensure the entire response is a single, valid JSON object. No text outside this structure.
+- All string values must be properly escaped.
+- Provide 1-3 "detailedSuggestions".
+- If the meal is already very healthy, acknowledge this and offer minor tips or affirmations.
+- If only a text description is provided (no image), base the analysis on that.
+- If the image/description is unsuitable, populate the main "error" field.`;
+            case 'community':
                 return null; // No AI prompt needed for this tool
             default:
                 let defaultPrompt = basePrompt + `Format your response using Markdown. `;
@@ -515,12 +535,12 @@ IMPORTANT:
 
         const promptText = getPromptForTool(activeTool, inputValue);
 
-        if (activeTool.id === 'critic' && !selectedFile) {
-            setError('Please upload an image of your nuggets for critique.');
+        if (activeTool.id === 'mealAnalyzer' && !selectedFile && !inputValue) {
+            setError('Please upload an image or describe your meal for analysis.');
             return;
         }
 
-        if (!promptText && activeTool.id !== 'trivia' && activeTool.id !== 'critic') {
+        if (!promptText && activeTool.id !== 'nutritionFacts' && activeTool.id !== 'mealAnalyzer' && activeTool.id !== 'suggestionExplorer') {
             return;
         }
 
@@ -531,10 +551,10 @@ IMPORTANT:
         let requestBody = { promptText };
 
         try {
-            if (activeTool.id === 'critic' && selectedFile) {
+            if (activeTool.id === 'mealAnalyzer' && selectedFile) {
                 const imageData = await fileToBase64(selectedFile);
                 requestBody = {
-                    promptText, // This is the instructional prompt for the critic
+                    promptText, // This is the instructional prompt for the analyzer
                     imageData,
                     mimeType: currentMimeType || selectedFile.type // Use stored mimeType or derive from file
                 };
@@ -555,7 +575,7 @@ IMPORTANT:
             if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
                 let aiResponseText = data.candidates[0].content.parts[0].text;
 
-                if (activeTool.id === 'recipe' || activeTool.id === 'critic' || activeTool.id === 'dip') {
+                if (activeTool.id === 'recipeGenerator' || activeTool.id === 'mealAnalyzer' || activeTool.id === 'suggestionExplorer' ) {
                     // Attempt to extract JSON string if wrapped in markdown code blocks
                     // Handles ```json ... ``` or ``` ... ```
                     const markdownMatch = aiResponseText.match(/^```(?:json)?\s*([\s\S]+?)\s*```$/);
@@ -566,7 +586,7 @@ IMPORTANT:
                 }
 
                 setResults(aiResponseText);
-                if (activeTool.id === 'recipe') {
+                if (activeTool.id === 'recipeGenerator') {
                     // setCheckedInstructions({}); // This line is now handled by instructionTimersData reset
                 }
             } else if (data.promptFeedback?.blockReason) {
@@ -654,16 +674,16 @@ IMPORTANT:
             console.warn("Invalid search term for Amazon:", itemNameOrKeywords);
             return;
         }
-        const amazonSearchUrl = `https://www.amazon.com/s?k=${searchTerm}&tag=${AMAZON_AFFILIATE_TAG}&ref=nuggsai_${itemType}`;
+        const amazonSearchUrl = `https://www.amazon.com/s?k=${searchTerm}&tag=${AMAZON_AFFILIATE_TAG}&ref=healthysubstai_${itemType}`;
         window.open(amazonSearchUrl, '_blank', 'noopener,noreferrer');
     };
 
     // Helper function to render recipe results from JSON
     const renderRecipeResults = (jsonData) => {
-        console.log("Attempting to parse recipe JSON. Raw data received:", jsonData); // Log the raw data
+        console.log("Attempting to parse healthy recipe JSON. Raw data received:", jsonData);
         try {
             const recipe = JSON.parse(jsonData);
-            console.log("Successfully parsed recipe JSON:", recipe); // Log the parsed object
+            console.log("Successfully parsed healthy recipe JSON:", recipe);
 
             if (recipe.error) {
                 return <p className={styles.errorMessage}>Error from AI: {recipe.error}</p>;
@@ -672,7 +692,7 @@ IMPORTANT:
             return (
                 <div className={styles.recipeOutputContainer}>
                     <div className={styles.recipeNameCard}>
-                        <h2>{recipe.recipeName || 'N/A'}</h2>
+                        <h2>{recipe.recipeName || 'Healthy Recipe'}</h2>
                         <p>{recipe.description || 'No description provided.'}</p>
                         <div className={styles.recipeMeta}>
                             <span><strong>Prep:</strong> {recipe.prepTime || 'N/A'}</span>
@@ -680,6 +700,14 @@ IMPORTANT:
                             <span><strong>Difficulty:</strong> {recipe.difficultyRating || 'N/A'}</span>
                             <span><strong>Servings:</strong> {recipe.servings || 'N/A'}</span>
                         </div>
+                        {recipe.healthBenefits && recipe.healthBenefits.length > 0 && (
+                            <div className={styles.healthBenefitsSection}>
+                                <strong>Health Highlights:</strong>
+                                <ul>
+                                    {recipe.healthBenefits.map((benefit, idx) => <li key={idx}>{benefit}</li>)}
+                                </ul>
+                            </div>
+                        )}
                     </div>
 
                     <div className={styles.recipeSection}>
@@ -746,44 +774,35 @@ IMPORTANT:
                         ) : <p>No instructions provided.</p>}
                     </div>
 
-                    {recipe.dippingSauceSuggestions && recipe.dippingSauceSuggestions.length > 0 && (
+                    {recipe.substitutionSuggestions && recipe.substitutionSuggestions.length > 0 && (
                         <div className={styles.recipeSection}>
-                            <h3>Dipping Sauce Suggestions</h3>
+                            <h3>Healthier Substitution Ideas</h3>
                             <div className={styles.suggestionCardsContainer}>
-                                {recipe.dippingSauceSuggestions.map((sauce, index) => (
-                                    <div 
-                                        key={`sauce-${index}`} 
-                                        className={styles.suggestionCard}
-                                        onClick={() => handleAmazonSearch(sauce.amazonSearchKeywords || sauce.name, 'dip_suggestion')}
-                                        title={`Search for ${sauce.name} related items on Amazon`}
-                                    >
-                                        <h4>{sauce.name}</h4>
-                                        {sauce.description && <p>{sauce.description}</p>}
-                                        {sauce.recipeDetails && (
-                                            <div className={styles.suggestionRecipeDetails}>
-                                                <h5>Simple Recipe:</h5>
-                                                <ReactMarkdown>{sauce.recipeDetails}</ReactMarkdown>
-                                            </div>
-                                        )}
+                                {recipe.substitutionSuggestions.map((sub, index) => (
+                                    <div key={`sub-${index}`} className={styles.suggestionCard}>
+                                        <h4>{sub.healthierSubstitute}</h4>
+                                        {sub.originalIngredient && <p><small>Instead of: {sub.originalIngredient}</small></p>}
+                                        <p>{sub.reason}</p>
+                                        {sub.notes && <small><em>Note: {sub.notes}</em></small>}
                                     </div>
                                 ))}
                             </div>
                         </div>
                     )}
 
-                    {recipe.drinkSuggestions && recipe.drinkSuggestions.length > 0 && (
+                    {recipe.pairingSuggestions && recipe.pairingSuggestions.length > 0 && (
                         <div className={styles.recipeSection}>
-                            <h3>Drink Pairing Suggestions</h3>
+                            <h3>Healthy Pairing Suggestions</h3>
                             <div className={styles.suggestionCardsContainer}>
-                                {recipe.drinkSuggestions.map((drink, index) => (
+                                {recipe.pairingSuggestions.map((item, index) => (
                                     <div 
-                                        key={`drink-${index}`} 
+                                        key={`pairing-${index}`} 
                                         className={styles.suggestionCard}
-                                        onClick={() => handleAmazonSearch(drink.amazonSearchKeywords || drink.name, 'drink_suggestion')}
-                                        title={`Search for ${drink.name} related items on Amazon`}
+                                        onClick={() => handleAmazonSearch(item.amazonSearchKeywords || item.name, 'pairing_suggestion')}
+                                        title={`Search for ${item.name} related items on Amazon`}
                                     >
-                                        <h4>{drink.emoji && <span className={styles.suggestionEmoji}>{drink.emoji}</span>} {drink.name}</h4>
-                                        {drink.description && <p>{drink.description}</p>}
+                                        <h4>{item.emoji && <span className={styles.suggestionEmoji}>{item.emoji}</span>} {item.name} <small>({item.type})</small></h4>
+                                        {item.description && <p>{item.description}</p>}
                                     </div>
                                 ))}
                             </div>
@@ -792,7 +811,7 @@ IMPORTANT:
                 </div>
             );
         } catch (e) {
-            console.error("Failed to parse recipe JSON. Error:", e);
+            console.error("Failed to parse healthy recipe JSON. Error:", e);
             console.error("Raw JSON data that failed to parse:", jsonData);
             // Fallback to render as markdown if JSON parsing fails
             return (
@@ -812,115 +831,182 @@ IMPORTANT:
 
     // Helper function to render critique results
     const renderCritiqueResults = (jsonData) => {
-        console.log("Attempting to parse critique JSON. Raw data received:", jsonData);
+        console.log("Attempting to parse meal analysis JSON. Raw data received:", jsonData);
         try {
-            const critique = JSON.parse(jsonData);
-            console.log("Successfully parsed critique JSON:", critique);
+            const analysis = JSON.parse(jsonData);
+            console.log("Successfully parsed meal analysis JSON:", analysis);
 
-            if (critique.error && critique.error !== "string" && critique.error.toLowerCase() !== "n/a" && critique.error.trim() !== "") {
-                return <p className={styles.errorMessage}>Error from AI: {critique.error}</p>;
+            if (analysis.error && analysis.error.trim() !== "") {
+                return <p className={styles.errorMessage}>Error from AI: {analysis.error}</p>;
             }
 
-            // Destructure with defaults for robustness
             const {
-                critiqueTitle = "NuggetVision AI Critique",
-                appearanceAndTextureAppeal = "No specific details on appearance, texture, or appeal were provided.",
-                starRating, // Can be undefined
-                suggestionsForImprovement = { title: "Suggestions for Improvement", suggestion: "N/A" },
-                dippingSauceSuggestions = [],
-                drinkSuggestions = [],
-                ebayPotential = { title: "Can you sell this nugget on eBay?", isSellable: false, reason: "N/A", estimatedValue: "N/A", suggestion: "Probably best to just eat it." }
-            } = critique;
+                mealTitle = "NutriVision AI Meal Analysis",
+                overallAssessment = {},
+                detailedSuggestions = [],
+                healthierAlternativeMealIdea,
+                estimatedNutrition
+            } = analysis;
+
+            const {
+                healthScore,
+                summary = "No overall summary provided.",
+                positiveAspects = [],
+                areasForImprovement = []
+            } = overallAssessment;
 
             return (
                 <div className={styles.critiqueOutputContainer}>
-                    {critiqueTitle && critiqueTitle.toLowerCase() !== "string" && (
-                        <h3 className={styles.critiqueOverallTitle}>{critiqueTitle}</h3>
-                    )}
+                    {mealTitle && <h3 className={styles.critiqueOverallTitle}>{mealTitle}</h3>}
 
                     <div className={styles.critiqueCard}>
                         <h4 className={styles.critiqueCardTitle}>Overall Assessment</h4>
                         <div className={styles.critiqueCardContent}>
-                            <p>{appearanceAndTextureAppeal}</p>
-                            {starRating !== undefined && starRating !== null && (
-                                <p><strong>Rating:</strong> {Number(starRating).toFixed(1)} / 5 stars</p>
+                            {healthScore !== undefined && <p><strong>Health Score:</strong> {Number(healthScore).toFixed(1)} / 10</p>}
+                            <p>{summary}</p>
+                            {positiveAspects.length > 0 && (
+                                <>
+                                    <strong>Positive Aspects:</strong>
+                                    <ul>{positiveAspects.map((aspect, i) => <li key={`pos-${i}`}>{aspect}</li>)}</ul>
+                                </>
+                            )}
+                            {areasForImprovement.length > 0 && (
+                                <>
+                                    <strong>Areas for Improvement:</strong>
+                                    <ul>{areasForImprovement.map((area, i) => <li key={`imp-${i}`}>{area}</li>)}</ul>
+                                </>
                             )}
                         </div>
                     </div>
 
-                    {(suggestionsForImprovement.suggestion && suggestionsForImprovement.suggestion.toLowerCase() !== "string" && suggestionsForImprovement.suggestion.toLowerCase() !== "n/a" && suggestionsForImprovement.suggestion.trim() !== "") && (
+                    {detailedSuggestions.length > 0 && (
                         <div className={styles.critiqueCard}>
-                            <h4 className={styles.critiqueCardTitle}>{suggestionsForImprovement.title || "Suggestions for Improvement"}</h4>
+                            <h4 className={styles.critiqueCardTitle}>Detailed Suggestions</h4>
+                            {detailedSuggestions.map((sugg, index) => (
+                                <div key={`sugg-${index}`} className={styles.suggestionDetailItem}>
+                                    <h5>{sugg.suggestionType}</h5>
+                                    <p><strong>Advice:</strong> {sugg.specificAdvice}</p>
+                                    <p><em>Reasoning: {sugg.reasoning}</em></p>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {healthierAlternativeMealIdea && healthierAlternativeMealIdea.name && (
+                         <div className={styles.critiqueCard}>
+                            <h4 className={styles.critiqueCardTitle}>Healthier Alternative Idea</h4>
                             <div className={styles.critiqueCardContent}>
-                                <p>{suggestionsForImprovement.suggestion}</p>
+                                <p><strong>Try:</strong> {healthierAlternativeMealIdea.name}</p>
+                                <p>{healthierAlternativeMealIdea.description}</p>
                             </div>
                         </div>
                     )}
-
-                    {dippingSauceSuggestions && dippingSauceSuggestions.length > 0 && (
-                        <div className={styles.recipeSection}> {/* Reusing recipeSection style for consistency */}
-                            <h3>Dipping Sauce Suggestions</h3>
-                            <div className={styles.suggestionCardsContainer}>
-                                {dippingSauceSuggestions.map((sauce, index) => (
-                                    <div
-                                        key={`critique-sauce-${index}`}
-                                        className={styles.suggestionCard}
-                                        onClick={() => handleAmazonSearch(sauce.amazonSearchKeywords || sauce.name, 'dip_suggestion')}
-                                        title={`Search for ${sauce.name} related items on Amazon`}
-                                    >
-                                        <h4>{sauce.name}</h4>
-                                        {sauce.description && <p>{sauce.description}</p>}
-                                        {sauce.recipeDetails && (
-                                            <div className={styles.suggestionRecipeDetails}>
-                                                <h5>Simple Recipe:</h5>
-                                                <ReactMarkdown>{sauce.recipeDetails}</ReactMarkdown>
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
+                    
+                    {estimatedNutrition && (
+                         <div className={styles.critiqueCard}>
+                            <h4 className={styles.critiqueCardTitle}>Estimated Nutrition (Rough Guide)</h4>
+                            <div className={styles.critiqueCardContent}>
+                                {estimatedNutrition.calories && <p><strong>Calories:</strong> {estimatedNutrition.calories}</p>}
+                                {estimatedNutrition.protein && <p><strong>Protein:</strong> {estimatedNutrition.protein}</p>}
+                                {estimatedNutrition.fat && <p><strong>Fat:</strong> {estimatedNutrition.fat}</p>}
+                                {estimatedNutrition.carbs && <p><strong>Carbs:</strong> {estimatedNutrition.carbs}</p>}
+                                {estimatedNutrition.notes && <p><small><em>{estimatedNutrition.notes}</em></small></p>}
                             </div>
                         </div>
                     )}
-
-                    {drinkSuggestions && drinkSuggestions.length > 0 && (
-                        <div className={styles.recipeSection}> {/* Reusing recipeSection style */}
-                            <h3>Drink Pairing Suggestions</h3>
-                            <div className={styles.suggestionCardsContainer}>
-                                {drinkSuggestions.map((drink, index) => (
-                                    <div
-                                        key={`critique-drink-${index}`}
-                                        className={styles.suggestionCard}
-                                        onClick={() => handleAmazonSearch(drink.amazonSearchKeywords || drink.name, 'drink_suggestion')}
-                                        title={`Search for ${drink.name} related items on Amazon`}
-                                    >
-                                        <h4>{drink.emoji && <span className={styles.suggestionEmoji}>{drink.emoji}</span>} {drink.name}</h4>
-                                        {drink.description && <p>{drink.description}</p>}
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    <div className={styles.critiqueCard}>
-                        <h4 className={styles.critiqueCardTitle}>{ebayPotential.title || "Can you sell this nugget on eBay?"}</h4>
-                        <div className={styles.critiqueCardContent}>
-                            <p>{ebayPotential.reason}</p>
-                            {ebayPotential.isSellable && ebayPotential.estimatedValue && ebayPotential.estimatedValue.toLowerCase() !== "n/a" && (
-                                <p><strong>Estimated eBay Value:</strong> {ebayPotential.estimatedValue}</p>
-                            )}
-                            <p><em>{ebayPotential.suggestion}</em></p>
-                        </div>
-                    </div>
                 </div>
             );
         } catch (e) {
-            console.error("Failed to parse or render critique JSON. Error:", e);
+            console.error("Failed to parse or render meal analysis JSON. Error:", e);
             console.error("Raw JSON data that failed to parse:", jsonData);
             return (
                 <>
                     <p className={styles.errorMessage}>
-                        Oops! We had trouble displaying this critique.
+                        Oops! We had trouble displaying this meal analysis.
                         This can sometimes happen if the AI's response isn't perfect JSON.
+                        Here's the raw data from the AI:
+                    </p>
+                    <div className={styles.resultsContent}>
+                        <ReactMarkdown>{jsonData}</ReactMarkdown>
+                    </div>
+                </>
+            );
+        }
+    };
+
+    // New helper function to render Suggestion Explorer results
+    const renderSuggestionExplorerResults = (jsonData) => {
+        console.log("Attempting to parse suggestion explorer JSON. Raw data received:", jsonData);
+        try {
+            const data = JSON.parse(jsonData);
+            console.log("Successfully parsed suggestion explorer JSON:", data);
+
+            if (data.error) {
+                return <p className={styles.errorMessage}>Error from AI: {data.error}</p>;
+            }
+
+            const { originalItem, analysis, suggestions = [], generalTips = [] } = data;
+
+            return (
+                <div className={styles.suggestionExplorerOutputContainer}>
+                    <h3>Alternatives for: {originalItem}</h3>
+                    {analysis && <p className={styles.suggestionAnalysis}>{analysis}</p>}
+
+                    {suggestions.length > 0 && (
+                        <div className={styles.suggestionList}>
+                            <h4>Suggestions:</h4>
+                            {suggestions.map((sugg, index) => (
+                                <div key={index} className={styles.suggestionItemCard}>
+                                    <h5>{sugg.suggestedItem} <span className={styles.suggestionTypeTag}>({sugg.type})</span></h5>
+                                    <p>{sugg.description}</p>
+                                    {sugg.nutritionalComparison && (
+                                        <div className={styles.nutritionalComparison}>
+                                            <h6>Nutritional Snapshot (Approx.):</h6>
+                                            <div className={styles.comparisonTable}>
+                                                <div>
+                                                    <strong>Original ({originalItem}):</strong>
+                                                    {sugg.nutritionalComparison.original && Object.entries(sugg.nutritionalComparison.original).map(([key, value]) => key !== 'notes' ? <span key={key}>{key}: {value}</span> : null)}
+                                                    {sugg.nutritionalComparison.original?.notes && <small><em>({sugg.nutritionalComparison.original.notes})</em></small>}
+                                                </div>
+                                                <div>
+                                                    <strong>Suggested ({sugg.suggestedItem}):</strong>
+                                                    {sugg.nutritionalComparison.suggested && Object.entries(sugg.nutritionalComparison.suggested).map(([key, value]) => key !== 'notes' ? <span key={key}>{key}: {value}</span> : null)}
+                                                    {sugg.nutritionalComparison.suggested?.notes && <small><em>({sugg.nutritionalComparison.suggested.notes})</em></small>}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {sugg.recipeSnippet && <p className={styles.recipeSnippet}><strong>Tip:</strong> {sugg.recipeSnippet}</p>}
+                                    {sugg.amazonSearchKeywords && sugg.amazonSearchKeywords.length > 0 && (
+                                        <button 
+                                            onClick={() => handleAmazonSearch(sugg.amazonSearchKeywords, 'suggestion_item')}
+                                            className={styles.amazonSearchButtonSmall}
+                                        >
+                                            Search for {sugg.suggestedItem} on Amazon
+                                        </button>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {generalTips.length > 0 && (
+                        <div className={styles.generalTipsSection}>
+                            <h4>General Healthy Eating Tips:</h4>
+                            <ul>
+                                {generalTips.map((tip, index) => <li key={index}>{tip}</li>)}
+                            </ul>
+                        </div>
+                    )}
+                </div>
+            );
+        } catch (e) {
+            console.error("Failed to parse suggestion explorer JSON. Error:", e);
+            console.error("Raw JSON data that failed to parse:", jsonData);
+            return (
+                <>
+                    <p className={styles.errorMessage}>
+                        Oops! We had trouble displaying these suggestions.
                         Here's the raw data from the AI:
                     </p>
                     <div className={styles.resultsContent}>
@@ -934,19 +1020,18 @@ IMPORTANT:
     return (
         <div className={styles.pageContainer}>
             <Head>
-                <title>nuggs.ai - Nugget recipes and more</title>
-                <meta name="description" content="AI-powered tool for chicken nugget recipes, reviews, pairings and more!" />
-                <link rel="icon" href="/nuggets.png" />
-                {/* Font links moved to _app.js */}
+                <title>AI Healthy Food Substitutes & Recipes</title>
+                <meta name="description" content="AI-powered tools for healthy food suggestions, recipes, meal analysis, and nutritional information." />
+                <link rel="icon" href="/healthy-icon.png" />
             </Head>
 
             <header className={styles.mainHeaderPill}>
                 <div className={styles.logoArea}>
-                    <Image src="/nuggets.png" alt="nuggs.ai Logo" width={40} height={40} />
-                    <span className={styles.logoText}>nuggs.ai</span>
+                    <Image src="/healthy-icon.png" alt="Healthy Food AI Logo" width={40} height={40} />
+                    <span className={styles.logoText}>HealthySubst.AI</span>
                 </div>
                 <p className={styles.tagline}>
-                    This AI won't steal your job. It will instead help you make the best nuggets of your life, and more..
+                    Your AI companion for smarter, healthier eating choices and delicious recipes.
                 </p>
                 <nav className={styles.toolPillNavigation}>
                     {tools.map(tool => (
@@ -967,16 +1052,12 @@ IMPORTANT:
                 </nav>
             </header>
             
-            {/* Removed toolSliderSection */}
-
             {activeTool && (
                 <section className={styles.toolDisplaySection}>
                     <div className={styles.toolContainer}>
-                        {/* Removed backButton as pill navigation is primary */}
-                        
                         <div className={styles.toolHeader}>
                             <span className={styles.toolIconLarge}>{activeTool.icon}</span>
-                            <h2>{activeTool.name}</h2> {/* Name is already updated */}
+                            <h2>{activeTool.name}</h2>
                         </div>
                         
                         <p className={styles.toolDescription}>{activeTool.description}</p>
@@ -984,7 +1065,7 @@ IMPORTANT:
                         {activeTool.comingSoon ? (
                             <div className={styles.comingSoonMessage}>
                                 <h3>Coming Soon!</h3>
-                                <p>We're still perfecting this nugget tool. Check back soon!</p>
+                                <p>We're working on this feature to help you eat healthier. Check back soon!</p>
                             </div>
                         ) : activeTool.isLinkOut ? (
                             <div className={styles.linkOutToolContainer}>
@@ -992,19 +1073,19 @@ IMPORTANT:
                                     href={activeTool.linkUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className={`${styles.submitButton} ${styles.linkOutButton}`} // Re-use submitButton style and add specific
+                                    className={`${styles.submitButton} ${styles.linkOutButton}`}
                                 >
-                                    {activeTool.icon} View #nuggs & #nuggsai on Instagram
+                                    {activeTool.icon} {activeTool.name === "Healthy Food Community" ? "Explore #HealthyEating on Instagram" : `View ${activeTool.name}`}
                                 </a>
                                 {activeTool.id === 'community' && (
                                     <p className={styles.inputHint} style={{marginTop: '1rem', textAlign: 'center'}}>
-                                        Share your own creations with #nuggs or #nuggsai to be featured!
+                                        Share your healthy creations with #HealthyEating or #HealthySubstitutes!
                                     </p>
                                 )}
                             </div>
                         ) : (
                             <form onSubmit={handleSubmit} className={styles.toolForm}>
-                                {activeTool.id === 'recipe' && (
+                                {activeTool.id === 'recipeGenerator' && (
                                     <>
                                         <div className={styles.recipeOptionsRow}>
                                             <div className={styles.recipeOptionsGroup}>
@@ -1078,16 +1159,23 @@ IMPORTANT:
                                         </p>
                                     </>
                                 )}
+                                {activeTool.id === 'mealAnalyzer' && activeTool.inputType === 'file' && (
+                                     <p className={styles.inputHint}>
+                                        You can upload an image of your meal, or describe it in the text box below. For best results with image uploads, ensure the photo is clear and well-lit.
+                                    </p>
+                                )}
 
-                                {activeTool.inputType === 'textarea' ? (
+                                {activeTool.inputType === 'textarea' || (activeTool.id === 'mealAnalyzer' && !selectedFile) ? (
                                     <textarea
                                         value={inputValue}
                                         onChange={(e) => setInputValue(e.target.value)}
-                                        placeholder={activeTool.inputPlaceholder}
+                                        placeholder={activeTool.id === 'mealAnalyzer' && selectedFile ? "Optional: Add details about the meal in the image..." : activeTool.inputPlaceholder}
                                         rows="4"
                                         disabled={isLoading}
                                     />
-                                ) : activeTool.inputType === 'file' ? (
+                                ) : null }
+
+                                {activeTool.inputType === 'file' ? (
                                     <div className={styles.fileUpload}>
                                         <label htmlFor={`fileUpload-${activeTool.id}`} className={styles.uploadAreaLabel}>
                                             <input
@@ -1096,7 +1184,7 @@ IMPORTANT:
                                                 accept="image/*"
                                                 onChange={handleFileChange}
                                                 disabled={isLoading}
-                                                style={{ display: 'none' }} // Hide default input
+                                                style={{ display: 'none' }}
                                             />
                                             <div className={styles.uploadArea}>
                                                 {selectedFile ? (
@@ -1105,9 +1193,8 @@ IMPORTANT:
                                                         <button 
                                                             type="button" 
                                                             onClick={(e) => {
-                                                                e.preventDefault(); // Prevent form submission if inside label
+                                                                e.preventDefault();
                                                                 setSelectedFile(null);
-                                                                // Clear the file input visually if needed
                                                                 const fileInput = document.getElementById(`fileUpload-${activeTool.id}`);
                                                                 if (fileInput) fileInput.value = "";
                                                             }}
@@ -1125,7 +1212,7 @@ IMPORTANT:
                                             </div>
                                         </label>
                                     </div>
-                                ) : (
+                                ) : (activeTool.inputType !== 'textarea' && !(activeTool.id === 'mealAnalyzer')) ? (
                                     <input
                                         type="text"
                                         value={inputValue}
@@ -1137,7 +1224,7 @@ IMPORTANT:
                                 
                                 <button 
                                     type="submit" 
-                                    disabled={isLoading || (activeTool.inputType === 'file' && !selectedFile && !activeTool.comingSoon) || activeTool.comingSoon}
+                                    disabled={isLoading || (activeTool.id === 'mealAnalyzer' && !selectedFile && !inputValue && !activeTool.comingSoon) || (activeTool.inputType === 'file' && !selectedFile && activeTool.id !== 'mealAnalyzer' && !activeTool.comingSoon) || activeTool.comingSoon}
                                     className={styles.submitButton}
                                 >
                                     {isLoading ? 'Processing...' : activeTool.buttonText}
@@ -1148,24 +1235,21 @@ IMPORTANT:
                         {isLoading && <div className={styles.loadingSpinner}></div>}
                         {error && <p className={styles.errorMessage}>Error: {error}</p>}
                         
-                        {/* Display AI/Gemini results */}
                         {results && !activeTool.comingSoon && !activeTool.isLinkOut && (
                             <div className={styles.resultsContainer}>
-                                {activeTool.id === 'recipe' ? renderRecipeResults(results) : 
-                                 activeTool.id === 'critic' ? renderCritiqueResults(results) :
-                                 ( // Default for other AI tools like trivia
+                                {activeTool.id === 'recipeGenerator' ? renderRecipeResults(results) : 
+                                 activeTool.id === 'mealAnalyzer' ? renderCritiqueResults(results) :
+                                 activeTool.id === 'suggestionExplorer' ? renderSuggestionExplorerResults(results) :
+                                 (
                                     <div className={styles.resultsContent}>
                                         <ReactMarkdown>{results}</ReactMarkdown>
                                     </div>
                                 )}
                             </div>
                         )}
-
                     </div>
                 </section>
             )}
-
-            {/* Footer or other sections can go here */}
         </div>
     );
 } 

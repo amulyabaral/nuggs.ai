@@ -576,6 +576,24 @@
   color: #444;
 }
 
+.healthBenefitsSection {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed #f0f0f0;
+  font-size: 0.9rem;
+}
+.healthBenefitsSection strong {
+  color: #28a745; /* Green for health benefits */
+  display: block;
+  margin-bottom: 0.3rem;
+}
+.healthBenefitsSection ul {
+  list-style: disc;
+  padding-left: 20px;
+  margin: 0;
+  color: #555;
+}
+
 .recipeSection {
   background-color: #fdfdfd; /* Slightly off-white for sections */
   border-radius: 10px;
@@ -946,6 +964,133 @@
   margin-bottom: 0.2rem;
 }
 
+/* Styles for Suggestion Explorer Output */
+.suggestionExplorerOutputContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+.suggestionExplorerOutputContainer h3 { /* For "Alternatives for: [Item]" */
+  font-size: 1.5rem;
+  color: #333;
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+.suggestionAnalysis {
+  font-style: italic;
+  color: #555;
+  background-color: #f8f9fa;
+  padding: 0.75rem;
+  border-radius: 6px;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+.suggestionList h4 {
+  font-size: 1.3rem;
+  color: #e67e22;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 0.5rem;
+}
+.suggestionItemCard {
+  background-color: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1.2rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+.suggestionItemCard h5 {
+  font-size: 1.2rem;
+  color: #007bff; /* Blue for suggested item */
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+.suggestionTypeTag {
+  font-size: 0.8rem;
+  font-weight: normal;
+  color: #6c757d;
+  background-color: #e9ecef;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  margin-left: 0.5rem;
+}
+.suggestionItemCard p {
+  font-size: 0.95rem;
+  color: #444;
+  line-height: 1.6;
+  margin-bottom: 0.75rem;
+}
+.nutritionalComparison {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background-color: #f9f9f9;
+  border-radius: 6px;
+}
+.nutritionalComparison h6 {
+  font-size: 1rem;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+.comparisonTable {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  font-size: 0.85rem;
+}
+.comparisonTable > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.comparisonTable strong {
+  font-weight: 600;
+  color: #17a2b8; /* Teal for original/suggested titles */
+}
+.comparisonTable small {
+  color: #777;
+}
+.recipeSnippet {
+  font-size: 0.9rem;
+  background-color: #e6fff0; /* Light green for tips */
+  padding: 0.5rem;
+  border-radius: 4px;
+  border-left: 3px solid #28a745;
+}
+.amazonSearchButtonSmall {
+  background-color: #ffc107; /* Amazon-like yellow */
+  color: #111;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.8rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-top: 0.5rem;
+}
+.amazonSearchButtonSmall:hover {
+  background-color: #e0a800;
+}
+.generalTipsSection {
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: #e7f5ff; /* Light blue for general tips */
+  border-radius: 6px;
+}
+.generalTipsSection h4 {
+  font-size: 1.2rem;
+  color: #0056b3;
+  margin-bottom: 0.5rem;
+}
+.generalTipsSection ul {
+  list-style: disc;
+  padding-left: 20px;
+  font-size: 0.95rem;
+  color: #333;
+}
+
 /* Responsive Design */
 @media (max-width: 992px) {
   /* .mainContentArea might not be used, adjust .toolDisplaySection if needed */
@@ -1041,9 +1186,6 @@
   .recipeMeta {
     gap: 0.5rem 1rem;
     font-size: 0.85rem;
-  }
-  .recipeSection {
-    padding: 1.2rem;
   }
   .recipeSection h3 {
     font-size: 1.2rem;
