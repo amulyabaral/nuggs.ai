@@ -67,25 +67,24 @@
   text-shadow: 0 0 8px #70C2FF;
 }
 
-/* Hero Section Styles */
+/* Hero Section Styles - Updated with pill-shaped search prompt */
 .heroSection {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 4rem 5% 3rem;
+  padding: 3rem 5% 2rem;
   text-align: center;
-  /* Add abstract background shapes if desired, or keep it clean */
-  /* background: radial-gradient(ellipse at top left, rgba(112, 194, 255, 0.1), transparent 50%),
-              radial-gradient(ellipse at bottom right, rgba(255, 112, 166, 0.1), transparent 50%); */
+  background: radial-gradient(ellipse at top left, rgba(255, 158, 112, 0.1), transparent 60%),
+              radial-gradient(ellipse at bottom right, rgba(255, 112, 166, 0.1), transparent 60%);
 }
 
 .heroTitle {
-  font-size: 4.5rem; /* Large, impactful title */
-  font-weight: 700; /* Bolder font */
-  margin-bottom: 1rem;
+  font-size: 3.5rem;
+  font-weight: 700;
+  margin-bottom: 0.8rem;
   line-height: 1.1;
-  background: linear-gradient(90deg, #FF70A6, #FF9E70, #FFD170, #A0E6FF, #70C2FF);
+  background: linear-gradient(90deg, #FF70A6, #FF9E70, #FFD170);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -94,11 +93,182 @@
 }
 
 .heroSubtitle {
-  font-size: 1.5rem;
+  font-size: 1.3rem;
   color: #b0b0b0;
-  margin-bottom: 2.5rem;
+  margin-bottom: 1.5rem;
   max-width: 600px;
   font-weight: 400;
+}
+
+/* New pill search bar */
+.pillSearchContainer {
+  width: 100%;
+  max-width: 700px;
+  margin: 0 auto 2rem;
+}
+
+.pillSearchBar {
+  display: flex;
+  background-color: #252525;
+  border: 2px solid #3a3a3a;
+  border-radius: 50px;
+  padding: 0.2rem;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.pillSearchBar:focus-within {
+  border-color: #FF9E70;
+  box-shadow: 0 5px 20px rgba(255, 158, 112, 0.3);
+}
+
+.pillSearchInput {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #e0e0e0;
+  padding: 1rem 1.5rem;
+  font-size: 1.1rem;
+  font-family: 'Inter', sans-serif;
+}
+
+.pillSearchInput:focus {
+  outline: none;
+}
+
+.pillSearchButton {
+  background: linear-gradient(90deg, #FF70A6, #FF9E70);
+  color: #fff;
+  border: none;
+  border-radius: 40px;
+  padding: 0.8rem 1.5rem;
+  margin: 0.2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pillSearchButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(255, 112, 166, 0.3);
+}
+
+.randomIdeasButton {
+  background: transparent;
+  color: #FF9E70;
+  border: 1px solid #FF9E70;
+  border-radius: 25px;
+  padding: 0.7rem 1.5rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.randomIdeasButton:hover {
+  background-color: rgba(255, 158, 112, 0.1);
+  transform: translateY(-1px);
+}
+
+/* Updated recipe options styling */
+.recipeOptionsGroup {
+  margin-bottom: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.recipeOptionsGroup label {
+  font-weight: 500;
+  color: #d0d0d0;
+  font-size: 1rem;
+  text-align: left;
+  margin-bottom: 0.3rem;
+}
+
+.radioButtonsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.radioButton {
+  background-color: #2a2a2a;
+  color: #c0c0c0;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 30px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.radioButton:hover:not(:disabled) {
+  background-color: #333;
+  color: #fff;
+  transform: translateY(-2px);
+}
+
+.radioButtonSelected {
+  background: linear-gradient(90deg, #FF70A6, #FF9E70);
+  color: white;
+  box-shadow: 0 3px 8px rgba(255, 112, 166, 0.2);
+}
+
+.radioButtonSelected:hover:not(:disabled) {
+  background: linear-gradient(90deg, #FF70A6, #FF9E70);
+  opacity: 0.9;
+}
+
+.exclusionButton {
+  background-color: #2a2a2a;
+  color: #c0c0c0;
+}
+
+.exclusionButtonSelected {
+  background-color: #553030;
+  color: #ffc0c0;
+  text-decoration: line-through;
+}
+
+/* Updated recipe output styling */
+.recipeNameCard {
+  background: linear-gradient(145deg, #222, #2a2a2a);
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+  border: 1px solid #333;
+  margin-bottom: 1.5rem;
+}
+
+.suggestionCard {
+  background: linear-gradient(145deg, #222, #2a2a2a);
+  border-radius: 12px;
+  padding: 1.2rem;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+  cursor: pointer;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  border: 1px solid #333;
+}
+
+.suggestionCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+  border-color: #FF70A6;
 }
 
 /* Main Tool Display Area (Recipe Generator focus) */
@@ -158,73 +328,6 @@
 .toolForm textarea::placeholder,
 .toolForm input[type="text"]::placeholder {
   color: #777;
-}
-
-
-.recipeOptionsGroup {
-  margin-bottom: 0.5rem; /* Reduced margin as part of the main form */
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-.recipeOptionsGroup label {
-  font-weight: 500;
-  color: #c0c0c0;
-  font-size: 0.95rem;
-  text-align: left;
-}
-.radioButtonsContainer {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-}
-.radioButton {
-  background-color: #282828;
-  color: #b0b0b0;
-  border: 1px solid #444;
-  padding: 0.6rem 1.2rem;
-  border-radius: 20px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-.radioButton:hover:not(:disabled) {
-  background-color: #333;
-  border-color: #555;
-  color: #fff;
-}
-.radioButtonSelected {
-  background: linear-gradient(90deg, #FF70A6, #FF9E70);
-  color: white;
-  border-color: transparent; /* Or a subtle border matching gradient */
-  box-shadow: 0 2px 8px rgba(255, 112, 166, 0.3);
-}
-.radioButtonSelected:hover:not(:disabled) {
-  background: linear-gradient(90deg, #e86395, #ec8f63);
-}
-.radioButtonEmoji {
-  font-size: 1.1em;
-}
-
-.exclusionButton {
-  background-color: #282828;
-  color: #b0b0b0;
-  border: 1px solid #444;
-}
-.exclusionButton:hover:not(:disabled) {
-  background-color: #333;
-  border-color: #555;
-}
-.exclusionButtonSelected {
-  background-color: #553030; /* Dark red for selected/excluded */
-  border-color: #884040;
-  color: #ffc0c0;
-  text-decoration: line-through;
-  opacity: 0.9;
 }
 
 .inputHint {
@@ -327,13 +430,6 @@
   margin-top: 1rem;
 }
 
-.recipeNameCard {
-  background-color: #222; /* Darker card */
-  border-radius: 12px;
-  padding: 1.5rem 2rem;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-  border: 1px solid #333;
-}
 .recipeNameCard h2 {
   font-size: 1.8rem;
   background: linear-gradient(90deg, #FF70A6, #FF9E70);
@@ -540,20 +636,6 @@
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 1rem;
   margin-top: 0.5rem;
-}
-.suggestionCard {
-  background-color: #252525;
-  border: 1px solid #383838;
-  border-radius: 8px;
-  padding: 1rem;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-.suggestionCard:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-  border-color: #FF70A6; /* Pink accent */
 }
 .suggestionCard h4 {
   font-size: 1.15rem;
@@ -856,6 +938,23 @@
   }
   .recipeNameCard h2 { font-size: 1.6rem; }
   .recipeSection h3 { font-size: 1.3rem; }
+  .pillSearchBar {
+    flex-direction: column;
+    border-radius: 20px;
+    padding: 0.5rem;
+  }
+  
+  .pillSearchInput {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    font-size: 1rem;
+  }
+  
+  .pillSearchButton {
+    width: 100%;
+    margin-top: 0.5rem;
+    justify-content: center;
+  }
 }
 
 @media (max-width: 480px) {

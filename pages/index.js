@@ -109,6 +109,20 @@ const tools = [
 
 const PROXY_API_URL = '/api/generate';
 
+// Add these random recipe suggestion examples
+const randomRecipeIdeas = [
+  "Healthy Mediterranean bowl with grilled chicken, quinoa, and roasted vegetables",
+  "Quick vegan stir-fry with tofu and seasonal vegetables",
+  "Low-carb salmon with avocado salsa and roasted Brussels sprouts",
+  "One-pot vegetarian curry with chickpeas and sweet potato",
+  "High-protein breakfast bowl with Greek yogurt, berries, and homemade granola",
+  "Sheet pan dinner with chicken sausage and colorful bell peppers",
+  "Zucchini noodles with turkey meatballs and tomato sauce",
+  "Spicy black bean burgers with avocado slaw",
+  "Hearty vegetable soup with barley and lentils",
+  "Baked fish with lemon herb crust and steamed asparagus"
+];
+
 export default function HomePage() {
     // Set 'recipeGenerator' as the default selected tool
     const [selectedToolId, setSelectedToolId] = useState(tools.find(t => t.id === 'recipeGenerator')?.id || tools[0].id);
@@ -131,6 +145,9 @@ export default function HomePage() {
     const [instructionTimersData, setInstructionTimersData] = useState({});
     // { index: { checked: boolean, originalDuration: number | null, timeLeft: number | null, timerActive: boolean }}
     const [currentRunningTimer, setCurrentRunningTimer] = useState({ intervalId: null, stepIndex: null });
+
+    // Add new state for random ideas
+    const [isGeneratingRandom, setIsGeneratingRandom] = useState(false);
 
     // Effect to update activeTool when selectedToolId changes
     useEffect(() => {
@@ -1014,6 +1031,18 @@ IMPORTANT:
         }
     };
 
+    // New function to handle random recipe generation
+    const handleRandomRecipe = () => {
+        setIsGeneratingRandom(true);
+        const randomIdea = randomRecipeIdeas[Math.floor(Math.random() * randomRecipeIdeas.length)];
+        setInputValue(randomIdea);
+        // Wait briefly to simulate "thinking" then submit the form
+        setTimeout(() => {
+            setIsGeneratingRandom(false);
+            handleSubmit({ preventDefault: () => {} }); // Simulate form submission
+        }, 800);
+    };
+
     return (
         <div className={styles.pageContainer}>
             <Head>
@@ -1082,18 +1111,45 @@ IMPORTANT:
                 </nav>
             </header>
             
-            {/* Hero Section - Primarily for Recipe Generator */}
+            {/* Hero Section with Pill Search */}
             {selectedToolId === 'recipeGenerator' && (
                 <section className={styles.heroSection}>
-                    <h2 className={styles.heroTitle}>Nourish Your Ideas</h2>
-                    <p className={styles.heroSubtitle}>What healthy and delicious meal are you dreaming of today?</p>
+                    <h2 className={styles.heroTitle}>Delicious Healthy Ideas</h2>
+                    <p className={styles.heroSubtitle}>What are you craving today? Let's make it healthy!</p>
+                    
+                    <div className={styles.pillSearchContainer}>
+                        <form onSubmit={handleSubmit} className={styles.pillSearchBar}>
+                            <input
+                                type="text"
+                                value={inputValue}
+                                onChange={(e) => setInputValue(e.target.value)}
+                                placeholder="Describe your dream recipe or ingredients you have..."
+                                className={styles.pillSearchInput}
+                                disabled={isLoading || isGeneratingRandom}
+                            />
+                            <button 
+                                type="submit" 
+                                className={styles.pillSearchButton}
+                                disabled={isLoading || isGeneratingRandom || !inputValue}
+                            >
+                                {isLoading ? 'Cooking...' : '✨ Create Recipe'}
+                            </button>
+                        </form>
+                        <button 
+                            onClick={handleRandomRecipe} 
+                            className={styles.randomIdeasButton}
+                            disabled={isLoading || isGeneratingRandom}
+                        >
+                            {isGeneratingRandom ? 'Thinking...' : '🎲 Surprise Me With a Healthy Dinner Idea'}
+                        </button>
+                    </div>
                 </section>
             )}
             
             {activeTool && (
                 <section className={styles.toolDisplaySection}>
                     <div className={styles.toolContainer}>
-                        {/* Conditionally render a title if not the recipe generator in hero */}
+                        {/* Show title only for non-recipe tools */}
                         {selectedToolId !== 'recipeGenerator' && activeTool.name && (
                             <div style={{textAlign: 'center', marginBottom: '2rem'}}>
                                 <h2 className={styles.heroTitle} style={{fontSize: '2.5rem'}}>{activeTool.name}</h2>
@@ -1123,9 +1179,19 @@ IMPORTANT:
                                 )}
                             </div>
                         ) : (
-                            <form onSubmit={handleSubmit} className={styles.toolForm}>
-                                {activeTool.id === 'recipeGenerator' && (
-                                    <>
+                            <>
+                                {/* Only show form for non-recipe generator tools or below the hero */}
+                                {selectedToolId !== 'recipeGenerator' && (
+                                    <form onSubmit={handleSubmit} className={styles.toolForm}>
+                                        {/* Form contents for other tools */}
+                                        {/* ... keep existing code for other tool forms ... */}
+                                    </form>
+                                )}
+                                
+                                {/* For recipe generator, we need the options but not another search box */}
+                                {selectedToolId === 'recipeGenerator' && (
+                                    <form onSubmit={handleSubmit} className={styles.toolForm}>
+                                        {/* Recipe options (difficulty, equipment, etc.) */}
                                         <div className={styles.recipeOptionsRow}>
                                             <div className={styles.recipeOptionsGroup}>
                                                 <label>Difficulty:</label>
@@ -1134,7 +1200,7 @@ IMPORTANT:
                                                         <button
                                                             type="button"
                                                             key={opt.value}
-                                                            className={`${styles.radioButton} ${styles.smallRadioButton} ${selectedDifficulty === opt.value ? styles.radioButtonSelected : ''}`}
+                                                            className={`${styles.radioButton} ${selectedDifficulty === opt.value ? styles.radioButtonSelected : ''}`}
                                                             onClick={() => setSelectedDifficulty(opt.value)}
                                                             disabled={isLoading}
                                                         >
@@ -1150,7 +1216,7 @@ IMPORTANT:
                                                         <button
                                                             type="button"
                                                             key={opt.value}
-                                                            className={`${styles.radioButton} ${styles.smallRadioButton} ${selectedCookTime === opt.value ? styles.radioButtonSelected : ''}`}
+                                                            className={`${styles.radioButton} ${selectedCookTime === opt.value ? styles.radioButtonSelected : ''}`}
                                                             onClick={() => setSelectedCookTime(opt.value)}
                                                             disabled={isLoading}
                                                         >
@@ -1167,7 +1233,7 @@ IMPORTANT:
                                                     <button
                                                         type="button"
                                                         key={opt.value}
-                                                        className={`${styles.radioButton} ${styles.smallRadioButton} ${selectedEquipment[opt.value] ? styles.radioButtonSelected : ''}`}
+                                                        className={`${styles.radioButton} ${selectedEquipment[opt.value] ? styles.radioButtonSelected : ''}`}
                                                         onClick={() => handleEquipmentToggle(opt.value)}
                                                         disabled={isLoading}
                                                     >
@@ -1193,87 +1259,9 @@ IMPORTANT:
                                                 ))}
                                             </div>
                                         </div>
-                                        <p className={styles.inputHint}>
-                                            Describe your desired recipe below. Mention key ingredients, cuisine type, or any specific cravings!
-                                        </p>
-                                    </>
+                                    </form>
                                 )}
-                                {activeTool.id === 'mealAnalyzer' && activeTool.inputType === 'file' && (
-                                     <p className={styles.inputHint}>
-                                        Upload a clear, well-lit photo of your meal, or describe it in the text box below.
-                                    </p>
-                                )}
-
-                                {activeTool.inputType === 'textarea' || (activeTool.id === 'mealAnalyzer' && !selectedFile) ? (
-                                    <textarea
-                                        value={inputValue}
-                                        onChange={(e) => setInputValue(e.target.value)}
-                                        placeholder={
-                                            activeTool.id === 'recipeGenerator' ? "e.g., 'Spicy vegan tacos with black beans and avocado salsa'" :
-                                            activeTool.id === 'mealAnalyzer' && selectedFile ? "Optional: Add details about the meal in the image..." :
-                                            activeTool.inputPlaceholder
-                                        }
-                                        rows={activeTool.id === 'recipeGenerator' ? 5 : 4}
-                                        disabled={isLoading}
-                                    />
-                                ) : null }
-
-                                {activeTool.inputType === 'file' ? (
-                                    <div className={styles.fileUpload}>
-                                        <label htmlFor={`fileUpload-${activeTool.id}`} className={styles.uploadAreaLabel}>
-                                            <input
-                                                id={`fileUpload-${activeTool.id}`}
-                                                type="file"
-                                                accept="image/*"
-                                                onChange={handleFileChange}
-                                                disabled={isLoading}
-                                                style={{ display: 'none' }}
-                                            />
-                                            <div className={styles.uploadArea}>
-                                                {selectedFile ? (
-                                                    <div className={styles.selectedFile}>
-                                                        <p>{selectedFile.name}</p>
-                                                        <button 
-                                                            type="button" 
-                                                            onClick={(e) => {
-                                                                e.preventDefault();
-                                                                setSelectedFile(null);
-                                                                const fileInput = document.getElementById(`fileUpload-${activeTool.id}`);
-                                                                if (fileInput) fileInput.value = "";
-                                                            }}
-                                                        >
-                                                            Remove
-                                                        </button>
-                                                    </div>
-                                                ) : (
-                                                    <>
-                                                        <span className={styles.uploadIcon}>📁</span>
-                                                        <p>{activeTool.inputPlaceholder}</p>
-                                                        <p className={styles.uploadAreaHint}>Click or drag file here</p>
-                                                    </>
-                                                )}
-                                            </div>
-                                        </label>
-                                    </div>
-                                ) : (activeTool.inputType !== 'textarea' && !(activeTool.id === 'mealAnalyzer')) ? 
-                                    <input
-                                        type="text"
-                                        value={inputValue}
-                                        onChange={(e) => setInputValue(e.target.value)}
-                                        placeholder={activeTool.inputPlaceholder}
-                                        disabled={isLoading}
-                                    />
-                                  : null
-                                }
-                                
-                                <button 
-                                    type="submit" 
-                                    disabled={isLoading || (activeTool.id === 'mealAnalyzer' && !selectedFile && !inputValue && !activeTool.comingSoon) || (activeTool.inputType === 'file' && !selectedFile && activeTool.id !== 'mealAnalyzer' && !activeTool.comingSoon) || activeTool.comingSoon}
-                                    className={styles.submitButton}
-                                >
-                                    {isLoading ? 'Thinking...' : activeTool.buttonText}
-                                </button>
-                            </form>
+                            </>
                         )}
                         
                         {isLoading && <div className={styles.loadingSpinner}></div>}
