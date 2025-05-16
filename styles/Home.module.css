@@ -2,11 +2,11 @@
 .pageContainer {
   width: 100%;
   font-family: 'Inter', sans-serif;
-  color: #e0e0e0; /* Light text */
+  color: #5a3e36; /* Warm brown text */
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background-color: transparent; /* Body has the dark bg */
+  background-color: #fffaf5; /* Warm off-white background */
 }
 
 /* New Header Styles */
@@ -16,9 +16,9 @@
   align-items: center;
   padding: 1.5rem 5%;
   width: 100%;
-  background-color: rgba(18, 18, 18, 0.8); /* Slightly transparent dark header */
+  background-color: #fff2e6; /* Light peach background */
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid #2a2a2a;
+  border-bottom: 1px solid #ffe6cc;
   position: sticky;
   top: 0;
   z-index: 1000;
@@ -31,15 +31,17 @@
 }
 
 .logoText {
-  font-family: 'VT323', monospace; /* Keeping VT323 for a bit of character */
-  font-size: 2.5rem;
-  font-weight: normal;
+  font-family: 'Comic Sans MS', 'Chalkboard SE', cursive; /* Playful font */
+  font-size: 2.8rem;
+  font-weight: bold;
   letter-spacing: 1px;
-  background: linear-gradient(90deg, #70C2FF, #A0E6FF, #FF70A6, #FF9E70);
+  background: linear-gradient(90deg, #FF6B6B, #FFD166, #FF9E70);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   text-fill-color: transparent;
+  transform: rotate(-2deg); /* Slight rotation for playfulness */
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
 }
 
 .headerNav {
@@ -48,9 +50,9 @@
 }
 
 .navLink {
-  color: #c0c0c0;
+  color: #FF6B6B; /* Coral red */
   font-size: 0.9rem;
-  font-weight: 500;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   transition: color 0.2s ease;
@@ -63,8 +65,44 @@
 
 .navLink:hover,
 .navLinkActive {
-  color: #ffffff;
-  text-shadow: 0 0 8px #70C2FF;
+  color: #e94c4c; /* Darker coral on hover/active */
+  text-shadow: 0 0 8px rgba(255, 107, 107, 0.2);
+}
+
+/* Food Image Showcase */
+.foodImageShowcase {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  padding: 2rem 5%;
+  flex-wrap: wrap;
+}
+
+.foodImageCard {
+  border-radius: 20px;
+  box-shadow: 0 10px 25px rgba(255, 107, 107, 0.15);
+  overflow: hidden;
+  transform: rotate(-1deg);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+  max-width: 400px;
+}
+
+.foodImageCard:nth-child(2) {
+  transform: rotate(1deg);
+}
+
+.foodImageCard:hover {
+  transform: rotate(0) scale(1.03);
+  box-shadow: 0 15px 35px rgba(255, 107, 107, 0.25);
+}
+
+.foodImage {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  border-radius: 18px;
 }
 
 /* Hero Section Styles - Updated with pill-shaped search prompt */
@@ -75,8 +113,8 @@
   justify-content: center;
   padding: 3rem 5% 2rem;
   text-align: center;
-  background: radial-gradient(ellipse at top left, rgba(255, 158, 112, 0.1), transparent 60%),
-              radial-gradient(ellipse at bottom right, rgba(255, 112, 166, 0.1), transparent 60%);
+  background: radial-gradient(ellipse at top left, rgba(255, 158, 112, 0.2), transparent 60%),
+              radial-gradient(ellipse at bottom right, rgba(255, 112, 166, 0.2), transparent 60%);
 }
 
 .heroTitle {
@@ -84,17 +122,12 @@
   font-weight: 700;
   margin-bottom: 0.8rem;
   line-height: 1.1;
-  background: linear-gradient(90deg, #FF70A6, #FF9E70, #FFD170);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  text-fill-color: transparent;
-  padding: 0.2em 0;
+  color: #FF6B6B; /* Coral red */
 }
 
 .heroSubtitle {
   font-size: 1.3rem;
-  color: #b0b0b0;
+  color: #7D5A50; /* Warm brown */
   margin-bottom: 1.5rem;
   max-width: 600px;
   font-weight: 400;
@@ -109,11 +142,11 @@
 
 .pillSearchBar {
   display: flex;
-  background-color: #252525;
-  border: 2px solid #3a3a3a;
+  background-color: #fff;
+  border: 2px solid #FFD166; /* Yellow border */
   border-radius: 50px;
   padding: 0.2rem;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 5px 15px rgba(255, 209, 102, 0.2);
   overflow: hidden;
   transition: all 0.3s ease;
 }
@@ -127,7 +160,7 @@
   flex: 1;
   background: transparent;
   border: none;
-  color: #e0e0e0;
+  color: #5a3e36; /* Warm brown text */
   padding: 1rem 1.5rem;
   font-size: 1.1rem;
   font-family: 'Inter', sans-serif;
@@ -283,11 +316,11 @@
 .toolContainer {
   max-width: 800px;
   width: 100%;
-  background-color: #1c1c1c; /* Darker card background */
+  background-color: #fff; /* Light card background */
   border-radius: 16px;
   padding: 2.5rem;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-  border: 1px solid #2a2a2a;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  border: 1px solid #f5e8e0;
 }
 
 .toolHeader { /* This might be less prominent if form is directly in hero */

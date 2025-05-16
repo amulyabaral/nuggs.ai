@@ -1089,7 +1089,6 @@ IMPORTANT:
 
             <header className={styles.mainHeader}>
                 <div className={styles.logoArea}>
-                    <Image src="/logo.png" alt="Nuggs.AI Logo" width={36} height={36} />
                     <h1 className={styles.logoText}>NUGGS.AI</h1>
                 </div>
                 <nav className={styles.headerNav}>
@@ -1110,6 +1109,28 @@ IMPORTANT:
                     ))}
                 </nav>
             </header>
+            
+            {/* Add food image showcase at the top */}
+            <div className={styles.foodImageShowcase}>
+                <div className={styles.foodImageCard}>
+                    <Image 
+                        src="/food_1.webp" 
+                        alt="Delicious healthy food" 
+                        width={400} 
+                        height={300} 
+                        className={styles.foodImage}
+                    />
+                </div>
+                <div className={styles.foodImageCard}>
+                    <Image 
+                        src="/food_2.webp" 
+                        alt="Nutritious meal" 
+                        width={400} 
+                        height={300}
+                        className={styles.foodImage}
+                    />
+                </div>
+            </div>
             
             {/* Hero Section with Pill Search */}
             {selectedToolId === 'recipeGenerator' && (
