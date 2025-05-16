@@ -9,16 +9,15 @@
   background-color: #fffaf5; /* Warm off-white background */
 }
 
-/* New Header Styles */
+/* Header Styles - More professional */
 .mainHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 1.5rem 5%;
   width: 100%;
-  background-color: #fff2e6; /* Light peach background */
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid #ffe6cc;
+  background-color: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
   position: sticky;
   top: 0;
   z-index: 1000;
@@ -27,21 +26,26 @@
 .logoArea {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
 }
 
 .logoText {
-  font-family: 'Comic Sans MS', 'Chalkboard SE', cursive; /* Playful font */
-  font-size: 2.8rem;
-  font-weight: bold;
-  letter-spacing: 1px;
-  background: linear-gradient(90deg, #FF6B6B, #FFD166, #FF9E70);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  text-fill-color: transparent;
-  transform: rotate(-2deg); /* Slight rotation for playfulness */
-  text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+  font-family: 'Montserrat', 'Helvetica Neue', sans-serif; /* More professional font */
+  font-size: 2.2rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: #FF6B6B;
+  position: relative;
+}
+
+.logoText::after {
+  content: "";
+  position: absolute;
+  bottom: 2px;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background-color: #FFD166;
+  border-radius: 2px;
 }
 
 .headerNav {
@@ -50,7 +54,7 @@
 }
 
 .navLink {
-  color: #FF6B6B; /* Coral red */
+  color: #5a3e36;
   font-size: 0.9rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -59,42 +63,120 @@
   cursor: pointer;
   background: none;
   border: none;
-  padding: 0;
+  padding: 0.5rem 0;
   font-family: inherit;
+  position: relative;
+}
+
+.navLink::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background-color: #FF6B6B;
+  transition: all 0.3s ease;
+  transform: translateX(-50%);
+}
+
+.navLink:hover::after,
+.navLinkActive::after {
+  width: 100%;
 }
 
 .navLink:hover,
 .navLinkActive {
-  color: #e94c4c; /* Darker coral on hover/active */
-  text-shadow: 0 0 8px rgba(255, 107, 107, 0.2);
+  color: #FF6B6B;
 }
 
-/* Food Image Showcase */
-.foodImageShowcase {
-  display: flex;
-  justify-content: center;
+/* Integrated Hero Section with Food Images */
+.enhancedHeroSection {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 2rem;
-  padding: 2rem 5%;
-  flex-wrap: wrap;
+  padding: 3rem 5%;
+  position: relative;
+  min-height: 500px;
+  background-color: #fff;
+}
+
+.enhancedHeroSection::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(255, 245, 230, 0.8) 0%, rgba(255, 255, 255, 0.4) 100%);
+  z-index: 0;
+}
+
+.heroContent {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-right: 2rem;
+}
+
+.heroTitle {
+  font-size: 3.5rem;
+  font-weight: 800;
+  margin-bottom: 1.2rem;
+  line-height: 1.1;
+  color: #FF6B6B;
+  position: relative;
+}
+
+.heroTitle::after {
+  content: "";
+  position: absolute;
+  bottom: -10px;
+  left: 0;
+  width: 80px;
+  height: 4px;
+  background-color: #FFD166;
+  border-radius: 2px;
+}
+
+.heroSubtitle {
+  font-size: 1.2rem;
+  color: #7D5A50;
+  margin-bottom: 2rem;
+  line-height: 1.6;
+  max-width: 500px;
+}
+
+.heroImageLayout {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
 }
 
 .foodImageCard {
   border-radius: 20px;
-  box-shadow: 0 10px 25px rgba(255, 107, 107, 0.15);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
   overflow: hidden;
-  transform: rotate(-1deg);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
   position: relative;
-  max-width: 400px;
+  max-width: 350px;
+  transform: rotate(-5deg) translateY(-20px);
+  z-index: 2;
 }
 
-.foodImageCard:nth-child(2) {
-  transform: rotate(1deg);
-}
-
-.foodImageCard:hover {
-  transform: rotate(0) scale(1.03);
-  box-shadow: 0 15px 35px rgba(255, 107, 107, 0.25);
+.foodImageCard2 {
+  border-radius: 20px;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  position: absolute;
+  max-width: 300px;
+  right: 30px;
+  bottom: 30px;
+  transform: rotate(3deg);
+  z-index: 1;
 }
 
 .foodImage {
@@ -102,68 +184,86 @@
   width: 100%;
   height: auto;
   object-fit: cover;
-  border-radius: 18px;
 }
 
-/* Hero Section Styles - Updated with pill-shaped search prompt */
-.heroSection {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem 5% 2rem;
-  text-align: center;
-  background: radial-gradient(ellipse at top left, rgba(255, 158, 112, 0.2), transparent 60%),
-              radial-gradient(ellipse at bottom right, rgba(255, 112, 166, 0.2), transparent 60%);
+/* Decorative elements */
+.imageDot1, .imageDot2, .imageDot3 {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #FFD166;
 }
 
-.heroTitle {
-  font-size: 3.5rem;
-  font-weight: 700;
-  margin-bottom: 0.8rem;
-  line-height: 1.1;
-  color: #FF6B6B; /* Coral red */
+.imageDot1 {
+  top: -15px;
+  left: 30px;
 }
 
-.heroSubtitle {
-  font-size: 1.3rem;
-  color: #7D5A50; /* Warm brown */
-  margin-bottom: 1.5rem;
-  max-width: 600px;
-  font-weight: 400;
+.imageDot2 {
+  top: -5px;
+  left: 50px;
 }
 
-/* New pill search bar */
+.imageDot3 {
+  top: 5px;
+  left: 70px;
+}
+
+.leafDecoration {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  background-color: #8FC03A;
+  border-radius: 50% 0 50% 50%;
+  transform: rotate(45deg);
+  right: -15px;
+  top: -15px;
+}
+
+.leafDecoration::after {
+  content: "";
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background-color: #fffaf5;
+  border-radius: 50% 0 50% 50%;
+  top: 10px;
+  left: 10px;
+}
+
+/* Search container styling */
 .pillSearchContainer {
   width: 100%;
-  max-width: 700px;
-  margin: 0 auto 2rem;
+  max-width: 500px;
+  margin-top: 1rem;
 }
 
 .pillSearchBar {
   display: flex;
+  flex-direction: column;
   background-color: #fff;
-  border: 2px solid #FFD166; /* Yellow border */
-  border-radius: 50px;
-  padding: 0.2rem;
-  box-shadow: 0 5px 15px rgba(255, 209, 102, 0.2);
+  border: 2px solid #FFD166;
+  border-radius: 12px;
+  padding: 0.5rem;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
   overflow: hidden;
   transition: all 0.3s ease;
 }
 
 .pillSearchBar:focus-within {
   border-color: #FF9E70;
-  box-shadow: 0 5px 20px rgba(255, 158, 112, 0.3);
+  box-shadow: 0 8px 25px rgba(255, 158, 112, 0.15);
 }
 
 .pillSearchInput {
-  flex: 1;
   background: transparent;
   border: none;
-  color: #5a3e36; /* Warm brown text */
-  padding: 1rem 1.5rem;
-  font-size: 1.1rem;
+  color: #5a3e36;
+  padding: 1rem 1rem;
+  font-size: 1rem;
   font-family: 'Inter', sans-serif;
+  margin-bottom: 0.5rem;
 }
 
 .pillSearchInput:focus {
@@ -171,42 +271,44 @@
 }
 
 .pillSearchButton {
-  background: linear-gradient(90deg, #FF70A6, #FF9E70);
-  color: #fff;
+  background: #FF6B6B;
+  color: white;
   border: none;
-  border-radius: 40px;
-  padding: 0.8rem 1.5rem;
-  margin: 0.2rem;
+  border-radius: 8px;
+  padding: 0.8rem 1rem;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
 }
 
 .pillSearchButton:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 3px 10px rgba(255, 112, 166, 0.3);
+  background: #e45a5a;
+  transform: translateY(-2px);
 }
 
 .randomIdeasButton {
   background: transparent;
-  color: #FF9E70;
-  border: 1px solid #FF9E70;
-  border-radius: 25px;
-  padding: 0.7rem 1.5rem;
-  font-size: 0.95rem;
+  color: #FF6B6B;
+  border: 1px solid #FF6B6B;
+  border-radius: 8px;
+  padding: 0.7rem 1rem;
+  font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
-  margin-top: 0.5rem;
-  transition: all 0.2s ease;
+  margin-top: 0.8rem;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .randomIdeasButton:hover {
-  background-color: rgba(255, 158, 112, 0.1);
-  transform: translateY(-1px);
+  background-color: rgba(255, 107, 107, 0.1);
 }
 
 /* Updated recipe options styling */
@@ -910,26 +1012,38 @@
 
 /* Responsive Design Adjustments */
 @media (max-width: 992px) {
-  .heroTitle {
-    font-size: 3.5rem;
+  .enhancedHeroSection {
+    grid-template-columns: 1fr;
+    padding: 2rem 5%;
   }
-  .heroSubtitle {
-    font-size: 1.3rem;
+  
+  .heroContent {
+    padding-right: 0;
+    text-align: center;
+    align-items: center;
   }
-  .toolContainer {
-    padding: 2rem;
+  
+  .heroTitle::after {
+    left: 50%;
+    transform: translateX(-50%);
   }
-  .mainHeader {
-    padding: 1rem 3%;
+  
+  .heroImageLayout {
+    justify-content: center;
+    margin-top: 2rem;
   }
-  .logoText {
-    font-size: 2rem;
+  
+  .foodImageCard, .foodImageCard2 {
+    position: relative;
+    transform: none;
+    right: auto;
+    bottom: auto;
+    top: auto;
+    margin: 0 auto;
   }
-  .headerNav {
-    gap: 1rem;
-  }
-  .navLink {
-    font-size: 0.85rem;
+  
+  .foodImageCard2 {
+    display: none;
   }
 }
 

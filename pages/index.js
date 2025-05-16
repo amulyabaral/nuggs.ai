@@ -1110,62 +1110,70 @@ IMPORTANT:
                 </nav>
             </header>
             
-            {/* Add food image showcase at the top */}
-            <div className={styles.foodImageShowcase}>
-                <div className={styles.foodImageCard}>
-                    <Image 
-                        src="/food_1.webp" 
-                        alt="Delicious healthy food" 
-                        width={400} 
-                        height={300} 
-                        className={styles.foodImage}
-                    />
-                </div>
-                <div className={styles.foodImageCard}>
-                    <Image 
-                        src="/food_2.webp" 
-                        alt="Nutritious meal" 
-                        width={400} 
-                        height={300}
-                        className={styles.foodImage}
-                    />
-                </div>
-            </div>
-            
-            {/* Hero Section with Pill Search */}
-            {selectedToolId === 'recipeGenerator' && (
-                <section className={styles.heroSection}>
-                    <h2 className={styles.heroTitle}>Delicious Healthy Ideas</h2>
-                    <p className={styles.heroSubtitle}>What are you craving today? Let's make it healthy!</p>
+            {/* Replace the separate food showcase with an integrated hero section */}
+            <section className={styles.enhancedHeroSection}>
+                <div className={styles.heroContent}>
+                    <h2 className={styles.heroTitle}>Taste the Difference</h2>
+                    <p className={styles.heroSubtitle}>
+                        Transform your favorite meals into healthier versions without sacrificing flavor. 
+                        Tell us what you're craving, and we'll create a delicious, nutritious recipe just for you.
+                    </p>
                     
-                    <div className={styles.pillSearchContainer}>
-                        <form onSubmit={handleSubmit} className={styles.pillSearchBar}>
-                            <input
-                                type="text"
-                                value={inputValue}
-                                onChange={(e) => setInputValue(e.target.value)}
-                                placeholder="Describe your dream recipe or ingredients you have..."
-                                className={styles.pillSearchInput}
-                                disabled={isLoading || isGeneratingRandom}
-                            />
+                    {selectedToolId === 'recipeGenerator' && (
+                        <div className={styles.pillSearchContainer}>
+                            <form onSubmit={handleSubmit} className={styles.pillSearchBar}>
+                                <input
+                                    type="text"
+                                    value={inputValue}
+                                    onChange={(e) => setInputValue(e.target.value)}
+                                    placeholder="E.g., 'Pasta without gluten' or 'High-protein breakfast bowl'"
+                                    className={styles.pillSearchInput}
+                                    disabled={isLoading || isGeneratingRandom}
+                                />
+                                <button 
+                                    type="submit" 
+                                    className={styles.pillSearchButton}
+                                    disabled={isLoading || isGeneratingRandom || !inputValue}
+                                >
+                                    {isLoading ? 'Creating Recipe...' : '✨ Create Healthy Recipe'}
+                                </button>
+                            </form>
                             <button 
-                                type="submit" 
-                                className={styles.pillSearchButton}
-                                disabled={isLoading || isGeneratingRandom || !inputValue}
+                                onClick={handleRandomRecipe} 
+                                className={styles.randomIdeasButton}
+                                disabled={isLoading || isGeneratingRandom}
                             >
-                                {isLoading ? 'Cooking...' : '✨ Create Recipe'}
+                                {isGeneratingRandom ? 'Finding Ideas...' : '🎲 Inspire Me With Healthy Options'}
                             </button>
-                        </form>
-                        <button 
-                            onClick={handleRandomRecipe} 
-                            className={styles.randomIdeasButton}
-                            disabled={isLoading || isGeneratingRandom}
-                        >
-                            {isGeneratingRandom ? 'Thinking...' : '🎲 Surprise Me With a Healthy Dinner Idea'}
-                        </button>
+                        </div>
+                    )}
+                </div>
+                
+                <div className={styles.heroImageLayout}>
+                    <div className={styles.foodImageCard}>
+                        <Image 
+                            src="/food_1.webp" 
+                            alt="Delicious healthy food" 
+                            width={400} 
+                            height={300} 
+                            className={styles.foodImage}
+                        />
+                        <div className={styles.imageDot1}></div>
+                        <div className={styles.imageDot2}></div>
+                        <div className={styles.imageDot3}></div>
                     </div>
-                </section>
-            )}
+                    <div className={styles.foodImageCard2}>
+                        <Image 
+                            src="/food_2.webp" 
+                            alt="Nutritious meal" 
+                            width={400} 
+                            height={300}
+                            className={styles.foodImage}
+                        />
+                        <div className={styles.leafDecoration}></div>
+                    </div>
+                </div>
+            </section>
             
             {activeTool && (
                 <section className={styles.toolDisplaySection}>
