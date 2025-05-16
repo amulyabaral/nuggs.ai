@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import styles from '../styles/Home.module.css';
 
-const AMAZON_AFFILIATE_TAG = 'yournewtag-20';
+const AMAZON_AFFILIATE_TAG = 'nuggs00-20';
 
 // Define common exclusions
 const commonExclusions = [
@@ -1020,15 +1020,51 @@ IMPORTANT:
     return (
         <div className={styles.pageContainer}>
             <Head>
-                <title>AI Healthy Food Substitutes & Recipes</title>
-                <meta name="description" content="AI-powered tools for healthy food suggestions, recipes, meal analysis, and nutritional information." />
+                <title>Nuggs.AI - Healthy Food Substitutes, Recipes & AI Nutrition Tools</title>
+                <meta name="description" content="Discover healthy food alternatives, get AI-generated recipes, analyze your meals, and learn nutrition facts with Nuggs.AI. Your smart companion for healthier eating." />
                 <link rel="icon" href="/healthy-icon.png" />
+
+                {/* SEO / Open Graph / Twitter Card Meta Tags */}
+                <meta property="og:title" content="Nuggs.AI - Healthy Food Substitutes, Recipes & AI Nutrition Tools" />
+                <meta property="og:description" content="Your AI companion for smarter, healthier eating choices. Find substitutes, generate recipes, analyze meals, and get nutrition facts." />
+                <meta property="og:type" content="website" />
+                <meta property="og:url" content="https://nuggs.ai" />
+                <meta property="og:image" content="https://nuggs.ai/healthy-icon-og.png" />
+                <meta property="og:image:alt" content="Nuggs.AI Logo" />
+                
+                <meta name="twitter:card" content="summary_large_image" />
+                <meta name="twitter:title" content="Nuggs.AI - Healthy Food Substitutes, Recipes & AI Nutrition Tools" />
+                <meta name="twitter:description" content="Your AI companion for smarter, healthier eating choices. Find substitutes, generate recipes, analyze meals, and get nutrition facts." />
+                <meta name="twitter:image" content="https://nuggs.ai/healthy-icon-og.png" />
+
+                <link rel="canonical" href="https://nuggs.ai" />
+
+                {/* Structured Data (JSON-LD) */}
+                <script type="application/ld+json">
+                    {`
+                        {
+                            "@context": "https://schema.org",
+                            "@type": "WebSite",
+                            "name": "Nuggs.AI",
+                            "url": "https://nuggs.ai",
+                            "description": "AI-powered tools for healthy food suggestions, recipes, meal analysis, and nutritional information.",
+                            "potentialAction": {
+                                "@type": "SearchAction",
+                                "target": {
+                                    "@type": "EntryPoint",
+                                    "urlTemplate": "https://nuggs.ai/search?q={search_term_string}"
+                                },
+                                "query-input": "required name=search_term_string"
+                            }
+                        }
+                    `}
+                </script>
             </Head>
 
             <header className={styles.mainHeaderPill}>
                 <div className={styles.logoArea}>
-                    <Image src="/healthy-icon.png" alt="Healthy Food AI Logo" width={40} height={40} />
-                    <span className={styles.logoText}>HealthySubst.AI</span>
+                    <Image src="/healthy-icon.png" alt="Nuggs.AI Logo" width={40} height={40} />
+                    <h1 className={styles.logoText}>Nuggs.AI</h1>
                 </div>
                 <p className={styles.tagline}>
                     Your AI companion for smarter, healthier eating choices and delicious recipes.
