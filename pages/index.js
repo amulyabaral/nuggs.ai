@@ -1022,20 +1022,20 @@ IMPORTANT:
             <Head>
                 <title>Nuggs.AI - Healthy Food Substitutes, Recipes & AI Nutrition Tools</title>
                 <meta name="description" content="Discover healthy food alternatives, get AI-generated recipes, analyze your meals, and learn nutrition facts with Nuggs.AI. Your smart companion for healthier eating." />
-                <link rel="icon" href="/healthy-icon.png" />
+                <link rel="icon" href="/logo.png" />
 
                 {/* SEO / Open Graph / Twitter Card Meta Tags */}
                 <meta property="og:title" content="Nuggs.AI - Healthy Food Substitutes, Recipes & AI Nutrition Tools" />
                 <meta property="og:description" content="Your AI companion for smarter, healthier eating choices. Find substitutes, generate recipes, analyze meals, and get nutrition facts." />
                 <meta property="og:type" content="website" />
                 <meta property="og:url" content="https://nuggs.ai" />
-                <meta property="og:image" content="https://nuggs.ai/healthy-icon-og.png" />
+                <meta property="og:image" content="https://nuggs.ai/logo.png" />
                 <meta property="og:image:alt" content="Nuggs.AI Logo" />
                 
                 <meta name="twitter:card" content="summary_large_image" />
                 <meta name="twitter:title" content="Nuggs.AI - Healthy Food Substitutes, Recipes & AI Nutrition Tools" />
                 <meta name="twitter:description" content="Your AI companion for smarter, healthier eating choices. Find substitutes, generate recipes, analyze meals, and get nutrition facts." />
-                <meta name="twitter:image" content="https://nuggs.ai/healthy-icon-og.png" />
+                <meta name="twitter:image" content="https://nuggs.ai/logo.png" />
 
                 <link rel="canonical" href="https://nuggs.ai" />
 
@@ -1063,7 +1063,7 @@ IMPORTANT:
 
             <header className={styles.mainHeaderPill}>
                 <div className={styles.logoArea}>
-                    <Image src="/healthy-icon.png" alt="Nuggs.AI Logo" width={40} height={40} />
+                    <Image src="/logo.png" alt="Nuggs.AI Logo" width={40} height={40} />
                     <h1 className={styles.logoText}>Nuggs.AI</h1>
                 </div>
                 <p className={styles.tagline}>
@@ -1085,6 +1085,10 @@ IMPORTANT:
                             {tool.comingSoon && <span className={styles.comingSoonTagPill}>Soon</span>}
                         </button>
                     ))}
+                    {/* Add Blog Link */}
+                    <a href="/blog" className={styles.toolPill} style={{ textDecoration: 'none' }}>
+                        📝 Blog
+                    </a>
                 </nav>
             </header>
             
