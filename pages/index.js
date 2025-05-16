@@ -1212,7 +1212,7 @@ IMPORTANT:
                                             </div>
                                         </label>
                                     </div>
-                                ) : (activeTool.inputType !== 'textarea' && !(activeTool.id === 'mealAnalyzer')) ? (
+                                ) : (activeTool.inputType !== 'textarea' && !(activeTool.id === 'mealAnalyzer')) ? 
                                     <input
                                         type="text"
                                         value={inputValue}
@@ -1220,7 +1220,8 @@ IMPORTANT:
                                         placeholder={activeTool.inputPlaceholder}
                                         disabled={isLoading}
                                     />
-                                )}
+                                  : null
+                                }
                                 
                                 <button 
                                     type="submit" 
