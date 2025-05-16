@@ -24,36 +24,27 @@ const commonExclusions = [
     { id: 'highprotein', label: 'High Protein', emoji: '💪' },
 ];
 
-// Updated Tools data for Healthy Food Substitutes
+// Updated Tools data
 const tools = [
-    {
-        id: 'suggestionExplorer',
-        name: 'Find Healthy Alternatives',
-        description: 'Enter a food or ingredient, and get healthier suggestions, direct alternatives, or portion advice. Compare nutritional information side-by-side.',
-        icon: '🔄', // Icon for swapping/alternatives
-        inputType: 'textarea',
-        inputPlaceholder: "e.g., 'Potato chips', 'White bread', 'Sour cream in a recipe', 'Ground beef for burgers'",
-        buttonText: 'Get Suggestions',
-    },
     {
         id: 'recipeGenerator',
         name: 'Healthy Recipe Ideas',
-        description: 'Get custom healthy recipes. Specify ingredients you have, dietary needs, preferred cuisine, cook time, and equipment. Click ingredients for Amazon search.',
-        icon: '🥗', // Icon for healthy recipes
+        description: 'Get custom healthy recipes. Specify ingredients you have, dietary needs, preferred cuisine, cook time, and equipment.',
+        icon: '🥗',
         inputType: 'textarea',
-        inputPlaceholder: "e.g., 'Quick vegan lunch with quinoa and avocado' or 'Low-carb dinner using chicken breast and broccoli'",
+        inputPlaceholder: "e.g., 'Quick vegan lunch with quinoa and avocado', 'Low-carb chicken dinner'",
         buttonText: 'Generate Healthy Recipe',
-        difficultyOptions: [ // Kept difficulty, can be adapted
+        difficultyOptions: [
             { label: 'Beginner', value: 'Beginner', emoji: '🧑‍🍳' },
             { label: 'Intermediate', value: 'Intermediate', emoji: '👩‍🍳' },
             { label: 'Advanced', value: 'Advanced', emoji: '🌟' },
         ],
-        cookTimeOptions: [ // Kept cook time
+        cookTimeOptions: [
             { label: '< 20 min', value: '< 20 min', emoji: '⏱️' },
             { label: '20-45 min', value: '20-45 min', emoji: '⏳' },
             { label: '> 45 min', value: '> 45 min', emoji: '⏰' },
         ],
-        equipmentOptions: [ // Kept equipment
+        equipmentOptions: [
             { label: 'Oven', value: 'oven', emoji: '♨️' },
             { label: 'Air Fryer', value: 'airfryer', emoji: '💨' },
             { label: 'Stovetop', value: 'pan', emoji: '🍳' },
@@ -63,54 +54,65 @@ const tools = [
         ],
     },
     {
+        id: 'suggestionExplorer',
+        name: 'Find Healthy Alternatives',
+        description: 'Enter a food or ingredient, and get healthier suggestions, direct alternatives, or portion advice.',
+        icon: '🔄',
+        inputType: 'textarea',
+        inputPlaceholder: "e.g., 'Potato chips', 'White bread', 'Sour cream'",
+        buttonText: 'Get Suggestions',
+    },
+    {
         id: 'mealAnalyzer',
         name: 'Analyze Your Meal',
-        description: 'Upload a photo of your meal or describe it. Get feedback on its healthiness, suggestions for improvement, ingredient swaps, and portion advice.',
-        icon: '🍽️', // Icon for meal analysis
-        inputType: 'file', // Can also allow text input as fallback
-        inputPlaceholder: "Upload an image or describe your meal (e.g., 'Pasta with cream sauce and garlic bread')",
+        description: 'Upload a photo of your meal or describe it. Get feedback on its healthiness and suggestions for improvement.',
+        icon: '🍽️',
+        inputType: 'file',
+        inputPlaceholder: "Upload an image or describe your meal...",
         buttonText: 'Analyze Meal',
     },
     {
         id: 'nutritionFacts',
-        name: 'Nutrition & Healthy Eating Facts',
+        name: 'Nutrition Facts',
         description: 'Ask questions about nutrition, food benefits, or get interesting facts about healthy eating.',
-        icon: '💡', // Icon for knowledge/facts
-        inputPlaceholder: "e.g., 'Benefits of eating broccoli?' or 'What are complete proteins?' (or leave empty for random facts)",
+        icon: '💡',
+        inputPlaceholder: "e.g., 'Benefits of broccoli?' or 'What are complete proteins?'",
         buttonText: 'Get Facts',
     },
-    {
-        id: 'foodComparer',
-        name: 'Compare Foods',
-        description: 'Compare nutritional values and ingredients of different food items or brands.',
-        icon: '⚖️',
-        inputPlaceholder: "e.g., 'Compare almond milk vs oat milk' or 'Greek yogurt vs regular yogurt'",
-        buttonText: 'Compare Foods',
-        comingSoon: true, // This can be complex to implement well without structured data
-    },
-    {
-        id: 'community',
-        name: 'Healthy Food Community',
-        description: 'See what others are cooking and sharing! Click to view posts tagged with #HealthyEating or #HealthySubstitutes on Instagram.',
-        icon: '🌐',
-        isLinkOut: true,
-        linkUrl: 'https://www.instagram.com/explore/tags/healthyeating/' // Example link
-    },
-    {
-        id: 'mealPlanner',
-        name: 'AI Meal Planner',
-        description: 'Get AI-suggested meal plans for the day or week based on your dietary goals and preferences. (Coming Soon)',
-        icon: '📅',
-        buttonText: 'Plan My Meals',
-        comingSoon: true,
-    },
+    // Add other tools back if they are still relevant and styled
+    // {
+    //     id: 'foodComparer',
+    //     name: 'Compare Foods',
+    //     description: 'Compare nutritional values of different food items.',
+    //     icon: '⚖️',
+    //     inputPlaceholder: "e.g., 'Compare almond milk vs oat milk'",
+    //     buttonText: 'Compare Foods',
+    //     comingSoon: true,
+    // },
+    // {
+    //     id: 'community',
+    //     name: 'Healthy Food Community',
+    //     description: 'Explore #HealthyEating on Instagram.',
+    //     icon: '🌐',
+    //     isLinkOut: true,
+    //     linkUrl: 'https://www.instagram.com/explore/tags/healthyeating/'
+    // },
+    // {
+    //     id: 'mealPlanner',
+    //     name: 'AI Meal Planner',
+    //     description: 'AI-suggested meal plans for your dietary goals. (Coming Soon)',
+    //     icon: '📅',
+    //     buttonText: 'Plan My Meals',
+    //     comingSoon: true,
+    // },
 ];
 
 const PROXY_API_URL = '/api/generate';
 
 export default function HomePage() {
-    const [selectedToolId, setSelectedToolId] = useState(tools[0].id);
-    const [activeTool, setActiveTool] = useState(tools[0]);
+    // Set 'recipeGenerator' as the default selected tool
+    const [selectedToolId, setSelectedToolId] = useState(tools.find(t => t.id === 'recipeGenerator')?.id || tools[0].id);
+    const [activeTool, setActiveTool] = useState(tools.find(t => t.id === selectedToolId) || tools[0]);
     const [inputValue, setInputValue] = useState('');
     const [results, setResults] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -139,24 +141,19 @@ export default function HomePage() {
             setResults('');
             setError('');
             setSelectedFile(null);
-            // Reset recipe-specific options if switching to the recipe tool
+            // Reset recipe-specific options
             if (tool.id === 'recipeGenerator') {
                 setSelectedDifficulty(tool.difficultyOptions?.[0]?.value || 'Beginner');
                 setSelectedCookTime(tool.cookTimeOptions?.[0]?.value || '< 20 min');
-                setSelectedEquipment({}); // Reset equipment
-                setSelectedExclusions({}); // Reset exclusions
-                setInstructionTimersData({}); // Clear timer data
-                if (currentRunningTimer.intervalId) {
-                    clearInterval(currentRunningTimer.intervalId);
-                }
-                setCurrentRunningTimer({ intervalId: null, stepIndex: null });
-            } else { // If switching away from recipe tool, also clear timers
-                setInstructionTimersData({});
-                if (currentRunningTimer.intervalId) {
-                    clearInterval(currentRunningTimer.intervalId);
-                }
-                setCurrentRunningTimer({ intervalId: null, stepIndex: null });
+                setSelectedEquipment({});
+                setSelectedExclusions({});
             }
+            // Clear timers when tool changes
+            setInstructionTimersData({});
+            if (currentRunningTimer.intervalId) {
+                clearInterval(currentRunningTimer.intervalId);
+            }
+            setCurrentRunningTimer({ intervalId: null, stepIndex: null });
         }
     }, [selectedToolId]);
 
@@ -1020,12 +1017,12 @@ IMPORTANT:
     return (
         <div className={styles.pageContainer}>
             <Head>
-                <title>Nuggs.AI - Healthy Food Substitutes, Recipes & AI Nutrition Tools</title>
-                <meta name="description" content="Discover healthy food alternatives, get AI-generated recipes, analyze your meals, and learn nutrition facts with Nuggs.AI. Your smart companion for healthier eating." />
+                <title>Nuggs.AI - Delicious Healthy Recipes & Smart Food Swaps</title>
+                <meta name="description" content="Discover tasty healthy recipes, find smart food substitutes, and get AI-powered nutrition advice with Nuggs.AI. Your free guide to healthier, delicious eating!" />
                 <link rel="icon" href="/logo.png" />
 
                 {/* SEO / Open Graph / Twitter Card Meta Tags */}
-                <meta property="og:title" content="Nuggs.AI - Healthy Food Substitutes, Recipes & AI Nutrition Tools" />
+                <meta property="og:title" content="Nuggs.AI - Delicious Healthy Recipes & Smart Food Swaps" />
                 <meta property="og:description" content="Your AI companion for smarter, healthier eating choices. Find substitutes, generate recipes, analyze meals, and get nutrition facts." />
                 <meta property="og:type" content="website" />
                 <meta property="og:url" content="https://nuggs.ai" />
@@ -1033,7 +1030,7 @@ IMPORTANT:
                 <meta property="og:image:alt" content="Nuggs.AI Logo" />
                 
                 <meta name="twitter:card" content="summary_large_image" />
-                <meta name="twitter:title" content="Nuggs.AI - Healthy Food Substitutes, Recipes & AI Nutrition Tools" />
+                <meta name="twitter:title" content="Nuggs.AI - Delicious Healthy Recipes & Smart Food Swaps" />
                 <meta name="twitter:description" content="Your AI companion for smarter, healthier eating choices. Find substitutes, generate recipes, analyze meals, and get nutrition facts." />
                 <meta name="twitter:image" content="https://nuggs.ai/logo.png" />
 
@@ -1061,19 +1058,16 @@ IMPORTANT:
                 </script>
             </Head>
 
-            <header className={styles.mainHeaderPill}>
+            <header className={styles.mainHeader}>
                 <div className={styles.logoArea}>
-                    <Image src="/logo.png" alt="Nuggs.AI Logo" width={40} height={40} />
-                    <h1 className={styles.logoText}>Nuggs.AI</h1>
+                    <Image src="/logo.png" alt="Nuggs.AI Logo" width={36} height={36} />
+                    <h1 className={styles.logoText}>NUGGS.AI</h1>
                 </div>
-                <p className={styles.tagline}>
-                    Your AI companion for smarter, healthier eating choices and delicious recipes.
-                </p>
-                <nav className={styles.toolPillNavigation}>
+                <nav className={styles.headerNav}>
                     {tools.map(tool => (
                         <button
                             key={tool.id}
-                            className={`${styles.toolPill} ${selectedToolId === tool.id ? styles.activeToolPill : ''} ${tool.comingSoon ? styles.comingSoonPill : ''}`}
+                            className={`${styles.navLink} ${selectedToolId === tool.id ? styles.navLinkActive : ''}`}
                             onClick={() => {
                                 if (!tool.comingSoon) {
                                     setSelectedToolId(tool.id);
@@ -1081,27 +1075,36 @@ IMPORTANT:
                             }}
                             disabled={tool.comingSoon}
                         >
-                            {tool.icon} {tool.name}
-                            {tool.comingSoon && <span className={styles.comingSoonTagPill}>Soon</span>}
+                            {tool.name}
+                            {tool.comingSoon && " (Soon)"}
                         </button>
                     ))}
                 </nav>
             </header>
             
+            {/* Hero Section - Primarily for Recipe Generator */}
+            {selectedToolId === 'recipeGenerator' && (
+                <section className={styles.heroSection}>
+                    <h2 className={styles.heroTitle}>Nourish Your Ideas</h2>
+                    <p className={styles.heroSubtitle}>What healthy and delicious meal are you dreaming of today?</p>
+                </section>
+            )}
+            
             {activeTool && (
                 <section className={styles.toolDisplaySection}>
                     <div className={styles.toolContainer}>
-                        <div className={styles.toolHeader}>
-                            <span className={styles.toolIconLarge}>{activeTool.icon}</span>
-                            <h2>{activeTool.name}</h2>
-                        </div>
-                        
-                        <p className={styles.toolDescription}>{activeTool.description}</p>
+                        {/* Conditionally render a title if not the recipe generator in hero */}
+                        {selectedToolId !== 'recipeGenerator' && activeTool.name && (
+                            <div style={{textAlign: 'center', marginBottom: '2rem'}}>
+                                <h2 className={styles.heroTitle} style={{fontSize: '2.5rem'}}>{activeTool.name}</h2>
+                                {activeTool.description && <p className={styles.heroSubtitle} style={{fontSize: '1.2rem', color: '#999'}}>{activeTool.description}</p>}
+                            </div>
+                        )}
                         
                         {activeTool.comingSoon ? (
                             <div className={styles.comingSoonMessage}>
                                 <h3>Coming Soon!</h3>
-                                <p>We're working on this feature to help you eat healthier. Check back soon!</p>
+                                <p>We're cooking up this feature. Check back soon!</p>
                             </div>
                         ) : activeTool.isLinkOut ? (
                             <div className={styles.linkOutToolContainer}>
@@ -1191,13 +1194,13 @@ IMPORTANT:
                                             </div>
                                         </div>
                                         <p className={styles.inputHint}>
-                                            For the main request below, be specific! Mention ingredients you like, dislike, or have on hand.
+                                            Describe your desired recipe below. Mention key ingredients, cuisine type, or any specific cravings!
                                         </p>
                                     </>
                                 )}
                                 {activeTool.id === 'mealAnalyzer' && activeTool.inputType === 'file' && (
                                      <p className={styles.inputHint}>
-                                        You can upload an image of your meal, or describe it in the text box below. For best results with image uploads, ensure the photo is clear and well-lit.
+                                        Upload a clear, well-lit photo of your meal, or describe it in the text box below.
                                     </p>
                                 )}
 
@@ -1205,8 +1208,12 @@ IMPORTANT:
                                     <textarea
                                         value={inputValue}
                                         onChange={(e) => setInputValue(e.target.value)}
-                                        placeholder={activeTool.id === 'mealAnalyzer' && selectedFile ? "Optional: Add details about the meal in the image..." : activeTool.inputPlaceholder}
-                                        rows="4"
+                                        placeholder={
+                                            activeTool.id === 'recipeGenerator' ? "e.g., 'Spicy vegan tacos with black beans and avocado salsa'" :
+                                            activeTool.id === 'mealAnalyzer' && selectedFile ? "Optional: Add details about the meal in the image..." :
+                                            activeTool.inputPlaceholder
+                                        }
+                                        rows={activeTool.id === 'recipeGenerator' ? 5 : 4}
                                         disabled={isLoading}
                                     />
                                 ) : null }
@@ -1264,13 +1271,13 @@ IMPORTANT:
                                     disabled={isLoading || (activeTool.id === 'mealAnalyzer' && !selectedFile && !inputValue && !activeTool.comingSoon) || (activeTool.inputType === 'file' && !selectedFile && activeTool.id !== 'mealAnalyzer' && !activeTool.comingSoon) || activeTool.comingSoon}
                                     className={styles.submitButton}
                                 >
-                                    {isLoading ? 'Processing...' : activeTool.buttonText}
+                                    {isLoading ? 'Thinking...' : activeTool.buttonText}
                                 </button>
                             </form>
                         )}
                         
                         {isLoading && <div className={styles.loadingSpinner}></div>}
-                        {error && <p className={styles.errorMessage}>Error: {error}</p>}
+                        {error && <p className={styles.errorMessage}>{error}</p>}
                         
                         {results && !activeTool.comingSoon && !activeTool.isLinkOut && (
                             <div className={styles.resultsContainer}>
