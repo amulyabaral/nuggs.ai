@@ -1085,10 +1085,6 @@ IMPORTANT:
                             {tool.comingSoon && <span className={styles.comingSoonTagPill}>Soon</span>}
                         </button>
                     ))}
-                    {/* Add Blog Link */}
-                    <a href="/blog" className={styles.toolPill} style={{ textDecoration: 'none' }}>
-                        📝 Blog
-                    </a>
                 </nav>
             </header>
             
