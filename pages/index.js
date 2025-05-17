@@ -627,20 +627,20 @@ IMPORTANT:
             <Head>
                 <title>Nuggs.AI - Delicious Healthy Recipes & Smart Food Swaps</title>
                 <meta name="description" content="Discover tasty healthy recipes, find smart food substitutes, and get AI-powered nutrition advice with Nuggs.AI. Your free guide to healthier, delicious eating!" />
-                <link rel="icon" href="/logo.png" />
+                <link rel="icon" href="/broccoli-logo.svg" />
 
                 {/* SEO / Open Graph / Twitter Card Meta Tags */}
                 <meta property="og:title" content="Nuggs.AI - Delicious Healthy Recipes & Smart Food Swaps" />
                 <meta property="og:description" content="Your AI companion for smarter, healthier eating choices. Find substitutes, generate recipes, analyze meals, and get nutrition facts." />
                 <meta property="og:type" content="website" />
                 <meta property="og:url" content="https://nuggs.ai" />
-                <meta property="og:image" content="https://nuggs.ai/logo.png" />
-                <meta property="og:image:alt" content="Nuggs.AI Logo" />
+                <meta property="og:image" content="https://nuggs.ai/broccoli-logo.svg" />
+                <meta property="og:image:alt" content="Nuggs.AI Broccoli Logo" />
                 
                 <meta name="twitter:card" content="summary_large_image" />
                 <meta name="twitter:title" content="Nuggs.AI - Delicious Healthy Recipes & Smart Food Swaps" />
                 <meta name="twitter:description" content="Your AI companion for smarter, healthier eating choices. Find substitutes, generate recipes, analyze meals, and get nutrition facts." />
-                <meta name="twitter:image" content="https://nuggs.ai/logo.png" />
+                <meta name="twitter:image" content="https://nuggs.ai/broccoli-logo.svg" />
 
                 <link rel="canonical" href="https://nuggs.ai" />
 
