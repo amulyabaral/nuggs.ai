@@ -49,6 +49,12 @@ const tools = [
             { label: '20-45 min', value: '20-45 min', emoji: '⏳' },
             { label: '> 45 min', value: '> 45 min', emoji: '⏰' },
         ],
+        servingSizeOptions: [
+            { label: '1-2', value: '1-2', emoji: '🍽️' },
+            { label: '3-4', value: '3-4', emoji: '🍽️🍽️' },
+            { label: '5-6', value: '5-6', emoji: '🍽️🍽️🍽️' },
+            { label: '7+', value: '7+', emoji: '🍽️🍽️🍽️🍽️' },
+        ],
         equipmentOptions: [
             { label: 'Oven', value: 'oven', emoji: '♨️' },
             { label: 'Air Fryer', value: 'airfryer', emoji: '💨' },
@@ -85,6 +91,9 @@ export default function HomePage() {
     const [instructionTimersData, setInstructionTimersData] = useState({});
     // { index: { checked: boolean, originalDuration: number | null, timeLeft: number | null, timerActive: boolean }}
     const [currentRunningTimer, setCurrentRunningTimer] = useState({ intervalId: null, stepIndex: null });
+
+    // Add serving size options to the recipe generator tool options
+    const [selectedServingSize, setSelectedServingSize] = useState('3-4'); // Default to 3-4 servings
 
     const router = useRouter();
 
@@ -333,6 +342,7 @@ The user wants a recipe based on this core request: "${userInput}".
 Additionally, consider these user preferences:
 - Difficulty: ${selectedDifficulty}
 - Target Cook Time: ${selectedCookTime}
+- Target Serving Size: ${selectedServingSize || 'Not specified, default to 2-4 servings'}
 - Available Equipment: ${equipmentInstructions}
 - Positive Dietary Preferences (e.g., make the recipe align with these): "${activePreferenceLabels || 'None specified'}"
 - Ingredients/Categories to STRICTLY EXCLUDE: "${activeExclusionLabels || 'None specified'}"
@@ -344,7 +354,13 @@ Please provide the response STRICTLY as a single, valid JSON object with the fol
   "prepTime": "Estimated preparation time (e.g., '15 minutes')",
   "cookTime": "Estimated cooking time (e.g., '20 minutes')",
   "difficultyRating": "${selectedDifficulty}",
-  "servings": "Number of servings (e.g., '2-3 servings' or 'Approx. 4 cups')",
+  "servings": "Number of servings (e.g., '${selectedServingSize || '2-4'} servings' or 'Approx. 4 cups')",
+  "nutritionInfo": {
+    "calories": "Calories per serving (e.g., '320 kcal')",
+    "protein": "Protein per serving (e.g., '12g')",
+    "carbs": "Carbs per serving (e.g., '45g')",
+    "fat": "Fat per serving (e.g., '14g')"
+  },
   "healthBenefits": ["Briefly list 2-3 key health benefits or nutritional highlights (e.g., 'Rich in fiber', 'Good source of plant-based protein', 'Low in saturated fat')"],
   "ingredients": [
     { "name": "Ingredient Name", "quantity": "Amount (e.g., '1', '1/2', '2-3')", "unit": "Unit (e.g., 'cup', 'tbsp', 'cloves', 'medium', 'oz')", "notes": "Optional: brief notes like 'cooked', 'finely chopped', 'low-sodium version recommended'" }
@@ -363,6 +379,7 @@ Please provide the response STRICTLY as a single, valid JSON object with the fol
 IMPORTANT:
 - You MUST ONLY generate healthy food recipes. If asked for an unhealthy recipe without a request for modification, or a non-food recipe, respond with a JSON object: {"error": "I specialize in healthy recipes. How can I help you make a healthier version or find a nutritious alternative?"}.
 - Ensure the entire response is a single, valid JSON object. Do not include any text, pleasantries, or markdown formatting outside of this JSON object.
+- ALWAYS include calorie information and basic nutritional values in the "nutritionInfo" object.
 - For "ingredients", "quantity" and "unit" should be strings.
 - For "instructions", "stepNumber" should be a number.
 - For "substitutionSuggestions" (0-3 suggestions): focus on common swaps to make the dish even healthier or cater to restrictions.
@@ -535,6 +552,9 @@ IMPORTANT:
                             <span><strong>Cook:</strong> {recipe.cookTime || 'N/A'}</span>
                             <span><strong>Difficulty:</strong> {recipe.difficultyRating || 'N/A'}</span>
                             <span><strong>Servings:</strong> {recipe.servings || 'N/A'}</span>
+                            {recipe.nutritionInfo && recipe.nutritionInfo.calories && (
+                                <span><strong>Calories:</strong> {recipe.nutritionInfo.calories}</span>
+                            )}
                         </div>
                         {recipe.healthBenefits && recipe.healthBenefits.length > 0 && (
                             <div className="healthBenefitsSection">
@@ -650,6 +670,38 @@ IMPORTANT:
                                         {item.description && <p>{item.description}</p>}
                                     </div>
                                 ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {recipe.nutritionInfo && (
+                        <div className="nutritionInfoSection">
+                            <strong>Nutrition (per serving):</strong>
+                            <div className="nutritionGrid">
+                                {recipe.nutritionInfo.calories && (
+                                    <div className="nutritionPill">
+                                        <span className="nutritionLabel">Calories:</span>
+                                        <span className="nutritionValue">{recipe.nutritionInfo.calories}</span>
+                                    </div>
+                                )}
+                                {recipe.nutritionInfo.protein && (
+                                    <div className="nutritionPill">
+                                        <span className="nutritionLabel">Protein:</span>
+                                        <span className="nutritionValue">{recipe.nutritionInfo.protein}</span>
+                                    </div>
+                                )}
+                                {recipe.nutritionInfo.carbs && (
+                                    <div className="nutritionPill">
+                                        <span className="nutritionLabel">Carbs:</span>
+                                        <span className="nutritionValue">{recipe.nutritionInfo.carbs}</span>
+                                    </div>
+                                )}
+                                {recipe.nutritionInfo.fat && (
+                                    <div className="nutritionPill">
+                                        <span className="nutritionLabel">Fat:</span>
+                                        <span className="nutritionValue">{recipe.nutritionInfo.fat}</span>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}
@@ -851,6 +903,23 @@ IMPORTANT:
                                             >
                                                 <span className="optionEmoji">{preference.emoji}</span>
                                                 {preference.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="optionsSection">
+                                    <h4>Serving Size:</h4>
+                                    <div className="optionButtons">
+                                        {activeTool.servingSizeOptions.map(opt => (
+                                            <button
+                                                type="button"
+                                                key={opt.value}
+                                                className={`optionPill ${selectedServingSize === opt.value ? "optionPillSelected" : ''}`}
+                                                onClick={() => setSelectedServingSize(opt.value)}
+                                                disabled={isLoading}
+                                            >
+                                                <span className="optionEmoji">{opt.emoji}</span> {opt.label}
                                             </button>
                                         ))}
                                     </div>

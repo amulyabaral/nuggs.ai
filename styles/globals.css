@@ -1210,4 +1210,49 @@ img {
 }
 .pillSearchInput::placeholder {
   color: #999999; /* Darker placeholder text */
+}
+
+/* Add these styles to the existing CSS */
+
+.nutritionInfoSection {
+  margin-top: 1rem;
+  padding-top: 0.8rem;
+  border-top: 1px dashed var(--border-color);
+  font-size: 0.9rem;
+}
+
+.nutritionInfoSection strong {
+  color: var(--accent-primary);
+  display: block;
+  margin-bottom: 0.4rem;
+  font-weight: 500;
+}
+
+.nutritionGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.3rem;
+}
+
+.nutritionPill {
+  background-color: #F8F9FA;
+  border: 1px solid var(--border-color);
+  border-radius: 50px;
+  padding: 0.3rem 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.nutritionLabel {
+  font-weight: 500;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.nutritionValue {
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 0.85rem;
 } 
