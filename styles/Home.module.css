@@ -383,10 +383,6 @@
   border-color: var(--accent-primary-hover);
 }
 
-.exclusionButton {
-  /* Inherits .radioButton styles, can add specifics if needed */
-}
-
 .exclusionButtonSelected {
   background-color: var(--text-secondary); /* A muted color for selected exclusion */
   color: var(--button-text-light);
