@@ -3,8 +3,8 @@
   --background-main: #FFFBF0; /* Warm Off-White/Light Peach */
   --background-card: #FFFFFF;
   --background-card-subtle: #FFFDF7;
-  --text-primary: #6B4F4B; /* Dark Warm Brown */
-  --text-secondary: #8D7772; /* Medium Warm Brown */
+  --text-primary: #333333; /* Darker text (almost black) */
+  --text-secondary: #555555; /* Slightly lighter but still dark */
   --text-placeholder: #B0A09A;
   --accent-primary: #FF9A8B; /* Soft Coral/Peach */
   --accent-primary-hover: #FF7F66;
@@ -274,7 +274,7 @@ img {
 .pillSearchInput {
   background: transparent;
   border: 1px solid var(--border-color); /* Outline for the input itself */
-  color: var(--text-primary);
+  color: #333333; /* Darker text */
   padding: 0.7rem 1.1rem; /* Padding inside input */
   font-size: 0.95rem; /* Adjusted font size */
   font-family: 'Manrope', sans-serif;
@@ -284,7 +284,7 @@ img {
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 .pillSearchInput::placeholder {
-  color: var(--text-placeholder);
+  color: #999999; /* Darker placeholder text */
 }
 
 .pillSearchInput:focus {
@@ -1130,4 +1130,36 @@ img {
 /* Fix spacing for the recipe sections */
 .optionsSection {
   margin-bottom: 1.2rem; /* Increased spacing between option sections */
+}
+
+/* Style for the new submit button in the search bar */
+.searchSubmitButton {
+  background: var(--accent-primary);
+  border: none;
+  color: var(--button-text-light);
+  font-size: 1.1rem;
+  padding: 0.5rem 0.8rem;
+  margin-left: 0.4rem;
+  border-radius: 18px;
+  cursor: pointer;
+  line-height: 1;
+  transition: all 0.2s ease;
+}
+
+.searchSubmitButton:hover:not(:disabled) {
+  background-color: var(--accent-primary-hover);
+  transform: translateY(-1px);
+}
+
+.searchSubmitButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Update input text to be darker */
+.pillSearchInput {
+  color: #333333; /* Darker text */
+}
+.pillSearchInput::placeholder {
+  color: #999999; /* Darker placeholder text */
 } 

@@ -711,7 +711,7 @@ IMPORTANT:
 
             <header className="mainHeader">
                 <div className="logoArea">
-                    <h1 className="logoText"><span className="logoEmoji">🥦</span> nuggs.ai</h1>
+                    <h1 className="logoText"><span className="logoEmoji">🥦 </span> nuggs.ai</h1>
                 </div>
                 <nav>
                     <Link href="/" className={`navLink ${router.pathname === '/' ? "navLinkActive" : ''}`}>
@@ -745,13 +745,12 @@ IMPORTANT:
                                     disabled={isLoading || isRandomLoading}
                                 />
                                 <button
-                                    type="button"
-                                    className="inputRandomButton"
-                                    onClick={handleRandomRecipeSubmit}
-                                    disabled={isLoading || isRandomLoading}
-                                    title="Generate a random recipe based on current selections"
+                                    type="submit"
+                                    className="searchSubmitButton"
+                                    disabled={isLoading || isRandomLoading || !inputValue}
+                                    title="Generate recipe based on your input"
                                 >
-                                    🎲
+                                    🔍
                                 </button>
                             </div>
                             
