@@ -309,6 +309,7 @@ export default function HomePage() {
             equipmentInstructions = activeEquipment.join(', ');
         }
 
+        // Get active exclusions as a formatted string with labels
         const activeExclusionLabels = Object.entries(selectedExclusions)
             .filter(([_, value]) => value)
             .map(([key]) => commonExclusions.find(ex => ex.id === key)?.label || key)
@@ -353,7 +354,8 @@ IMPORTANT:
 - For "substitutionSuggestions" (0-3 suggestions): focus on common swaps to make the dish even healthier or cater to restrictions.
 - For "pairingSuggestions" (0-2 suggestions): suggest healthy side dishes, drinks, or garnishes.
 - If dietary restrictions are mentioned, try to create a recipe that meets them. If a core ingredient conflicts, clearly state this and suggest an alternative in the 'notes' of that ingredient or in the main recipe 'description' or 'substitutionSuggestions'.
-- All string values within the JSON must be properly escaped.`;
+- All string values within the JSON must be properly escaped.
+- ABSOLUTELY DO NOT include ingredients that match the user's dietary restrictions/preferences to avoid: ${activeExclusionLabels || 'None specified'}. Completely remove these ingredients and find suitable alternatives.`;
         return recipePrompt;
     };
 
@@ -714,6 +716,82 @@ IMPORTANT:
                                 className="pillSearchInput"
                                 disabled={isLoading}
                             />
+                            
+                            {/* Recipe options now inside search container */}
+                            <div className="recipeOptionsCompact">
+                                <div className="optionsSection">
+                                    <h4>Difficulty:</h4>
+                                    <div className="optionButtons">
+                                        {activeTool.difficultyOptions.map(opt => (
+                                            <button
+                                                type="button"
+                                                key={opt.value}
+                                                className={`optionPill ${selectedDifficulty === opt.value ? "optionPillSelected" : ''}`}
+                                                onClick={() => setSelectedDifficulty(opt.value)}
+                                                disabled={isLoading}
+                                            >
+                                                <span className="optionEmoji">{opt.emoji}</span> {opt.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                                
+                                <div className="optionsSection">
+                                    <h4>Cook Time:</h4>
+                                    <div className="optionButtons">
+                                        {activeTool.cookTimeOptions.map(opt => (
+                                            <button
+                                                type="button"
+                                                key={opt.value}
+                                                className={`optionPill ${selectedCookTime === opt.value ? "optionPillSelected" : ''}`}
+                                                onClick={() => setSelectedCookTime(opt.value)}
+                                                disabled={isLoading}
+                                            >
+                                                <span className="optionEmoji">{opt.emoji}</span> {opt.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                                
+                                <div className="optionsSection">
+                                    <h4>Equipment:</h4>
+                                    <div className="optionButtons">
+                                        {activeTool.equipmentOptions.map(opt => (
+                                            <button
+                                                type="button"
+                                                key={opt.value}
+                                                className={`optionPill ${selectedEquipment[opt.value] ? "optionPillSelected" : ''}`}
+                                                onClick={() => handleEquipmentToggle(opt.value)}
+                                                disabled={isLoading}
+                                            >
+                                                <span className="optionEmoji">{opt.emoji}</span> {opt.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                                
+                                {/* New section for exclusions */}
+                                <div className="optionsSection">
+                                    <h4>Exclude Ingredients:</h4>
+                                    <div className="optionButtons">
+                                        {commonExclusions.map(exclusion => (
+                                            <button
+                                                type="button"
+                                                key={exclusion.id}
+                                                className={`optionPill ${selectedExclusions[exclusion.id] ? "optionPillExcluded" : ''}`}
+                                                onClick={() => handleExclusionToggle(exclusion.id)}
+                                                disabled={isLoading}
+                                            >
+                                                <span className="optionEmoji">{exclusion.emoji}</span> 
+                                                <span className={selectedExclusions[exclusion.id] ? "excludedText" : ""}>
+                                                    {exclusion.label}
+                                                </span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                            
                             <button
                                 type="submit"
                                 className="pillSearchButton"
@@ -722,7 +800,6 @@ IMPORTANT:
                                 {isLoading ? 'Creating Recipe...' : '✨ Create Healthy Recipe'}
                             </button>
                         </form>
-                        {/* Removed Random Ideas Button */}
                     </div>
                 </div>
                 
@@ -732,65 +809,12 @@ IMPORTANT:
             {activeTool && ( // activeTool will always be recipeGenerator
                 <section className="toolDisplaySection">
                     <div className="toolContainer">
-                        {/* Title for non-recipe tools removed as only recipe tool remains and its title is in hero */}
+                        {/* Form for recipe generator options is now removed - options are in hero section */}
                         
-                        {/* Form for recipe generator options (difficulty, equipment, etc.) */}
-                        <form onSubmit={handleSubmit} className="toolForm"> {/* This form won't submit itself, but groups options */}
-                            <div className="recipeOptionsRow"> {/* Ensure .recipeOptionsRow is defined in CSS if used, or remove if not needed */}
-                                <div className="recipeOptionsGroup">
-                                    <label>Difficulty:</label>
-                                    <div className="radioButtonsContainer">
-                                        {activeTool.difficultyOptions.map(opt => (
-                                            <button
-                                                type="button"
-                                                key={opt.value}
-                                                className={`radioButton ${selectedDifficulty === opt.value ? "radioButtonSelected" : ''}`}
-                                                onClick={() => setSelectedDifficulty(opt.value)}
-                                                disabled={isLoading}
-                                            >
-                                                <span className="radioButtonEmoji">{opt.emoji}</span> {opt.label} {/* Ensure .radioButtonEmoji is defined or remove if not needed */}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                                <div className="recipeOptionsGroup">
-                                    <label>Cook Time:</label>
-                                    <div className="radioButtonsContainer">
-                                        {activeTool.cookTimeOptions.map(opt => (
-                                            <button
-                                                type="button"
-                                                key={opt.value}
-                                                className={`radioButton ${selectedCookTime === opt.value ? "radioButtonSelected" : ''}`}
-                                                onClick={() => setSelectedCookTime(opt.value)}
-                                                disabled={isLoading}
-                                            >
-                                                <span className="radioButtonEmoji">{opt.emoji}</span> {opt.label}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="recipeOptionsGroup">
-                                <label>Available Equipment (select all that apply):</label>
-                                <div className="radioButtonsContainer">
-                                    {activeTool.equipmentOptions.map(opt => (
-                                        <button
-                                            type="button"
-                                            key={opt.value}
-                                            className={`radioButton ${selectedEquipment[opt.value] ? "radioButtonSelected" : ''}`}
-                                            onClick={() => handleEquipmentToggle(opt.value)}
-                                            disabled={isLoading}
-                                        >
-                                            {opt.emoji && <span className="radioButtonEmoji">{opt.emoji}</span>} {opt.label}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        </form>
                         {isLoading && <div className="loadingSpinner"></div>}
                         {error && <p className="errorMessage">{error}</p>}
                         
-                        {results && ( // Results are always for recipeGenerator now
+                        {results && (
                             <div className="resultsContainer">
                                 {renderRecipeResults(results)}
                             </div>

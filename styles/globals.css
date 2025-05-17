@@ -949,4 +949,125 @@ img {
 .secondaryButton
 {
   display: none !important;
+}
+
+/* New compact recipe options styling */
+.recipeOptionsCompact {
+  margin: 0.8rem 0;
+  width: 100%;
+}
+
+.optionsSection {
+  margin-bottom: 0.8rem;
+}
+
+.optionsSection h4 {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 0.4rem;
+  text-align: left;
+}
+
+.optionButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.optionPill {
+  background-color: var(--background-card-subtle);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  white-space: nowrap;
+}
+
+.optionPill:hover:not(:disabled) {
+  border-color: var(--accent-secondary);
+  color: var(--text-primary);
+}
+
+.optionPillSelected {
+  background: var(--accent-primary);
+  color: var(--button-text-light);
+  border-color: var(--accent-primary);
+}
+
+.optionPillSelected:hover:not(:disabled) {
+  background: var(--accent-primary-hover);
+  border-color: var(--accent-primary-hover);
+}
+
+.optionPillExcluded {
+  background: var(--text-secondary);
+  color: var(--button-text-light);
+  border-color: var(--text-secondary);
+}
+
+.excludedText {
+  text-decoration: line-through;
+}
+
+.optionEmoji {
+  font-size: 1.1em;
+}
+
+/* Adjust the search container to accommodate options */
+.pillSearchBar {
+  flex-direction: column;
+  padding: 1rem;
+}
+
+.pillSearchButton {
+  margin-top: 0.8rem;
+}
+
+/* Make responsive for mobile */
+@media (max-width: 480px) {
+  .optionPill {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.75rem;
+  }
+  
+  .optionsSection h4 {
+    font-size: 0.8rem;
+  }
+}
+
+/* Updated header nav styling */
+.headerNavPill {
+  display: flex;
+  gap: 1.2rem;
+  background-color: var(--background-card-subtle);
+  border-radius: 24px;
+  padding: 0.4rem;
+}
+
+.navPillLink {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  transition: all 0.2s ease;
+}
+
+.navPillLink:hover {
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.navPillLinkActive {
+  background-color: var(--background-card);
+  color: var(--accent-primary);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
 } 
