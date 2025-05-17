@@ -121,13 +121,17 @@ img {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.2rem 5%; /* Slightly reduced padding */
-  width: 100%;
+  padding: 0.8rem 1.5rem; /* Adjust padding for pill look */
+  width: calc(100% - 40px); /* Adjust width to give some space from viewport edges */
+  max-width: 1200px; /* Max width for the header */
+  margin: 1rem auto; /* Center the header */
   background-color: var(--background-card); /* White background for header */
-  box-shadow: 0 1px 3px var(--shadow-color-soft); /* Softer shadow */
+  box-shadow: 0 2px 8px var(--shadow-color-medium); /* Softer shadow */
+  border-radius: 50px; /* Pill shape */
   position: sticky;
-  top: 0;
+  top: 1rem; /* Stick with some space from top */
   z-index: 1000;
+  border: 1px solid var(--border-color);
 }
 
 .logoArea {
@@ -140,7 +144,7 @@ img {
   font-size: 2rem; /* Slightly smaller */
   font-weight: 700; /* Bold but not extra bold */
   letter-spacing: -0.25px;
-  color: var(--accent-primary); /* Use accent color */
+  color: var(--text-primary); /* Updated to primary text color (like black/dark brown) */
   position: relative;
   display: flex;
   align-items: center;
@@ -148,14 +152,7 @@ img {
 }
 
 .logoText::after {
-  content: "";
-  position: absolute;
-  bottom: -2px; /* Closer to text */
-  left: 0;
-  width: 70%; /* Shorter underline */
-  height: 3px; /* Thinner */
-  background-color: var(--accent-secondary); /* Lighter accent for underline */
-  border-radius: 1.5px;
+  content: none; /* Remove underline */
 }
 
 .headerNav {
@@ -234,6 +231,11 @@ img {
   position: relative;
 }
 
+.heroTitle strong { /* Style for the bold "Healthy" */
+  font-weight: 800; /* Extra bold if needed, or inherit */
+  /* color: var(--accent-primary); You could also accent it */
+}
+
 .heroTitle::after { /* More subtle underline or remove if too much */
   content: "";
   position: absolute;
@@ -294,7 +296,7 @@ img {
   color: var(--text-primary);
   padding: 0.8rem 1.2rem; /* Good padding inside input */
   font-size: 1rem;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Manrope', sans-serif; /* Changed font */
   width: 100%; /* Take full width within padded container */
   margin-bottom: 0.5rem; /* Space if button is below */
 }
@@ -320,7 +322,8 @@ img {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  width: 100%; /* Full width button */
+  flex-grow: 1; /* Allow buttons to share space */
+  /* width: 100%; Full width button - removed to allow side-by-side */
 }
 
 .pillSearchButton:hover:not(:disabled) {
@@ -331,6 +334,24 @@ img {
   background-color: #E0E0E0;
   color: #A0A0A0;
   cursor: not-allowed;
+}
+
+/* Container for the two main action buttons in the hero section */
+.heroActionButtons {
+  display: flex;
+  gap: 0.8rem; /* Space between the two buttons */
+  width: 100%;
+  margin-top: 0.8rem; /* Space above the buttons */
+}
+
+.randomRecipeButton {
+  background: var(--accent-secondary); /* Different color for distinction */
+  color: var(--button-text-dark); /* Darker text for lighter background */
+}
+
+.randomRecipeButton:hover:not(:disabled) {
+  background: #FFCA8A; /* Slightly darker shade of accent-secondary */
+  transform: translateY(-1px);
 }
 
 .randomIdeasButton {
@@ -860,16 +881,12 @@ img {
 }
 
 @media (max-width: 768px) {
-  .heroTitle {
-    font-size: 2.2rem;
-  }
-  .heroSubtitle {
-    font-size: 1rem;
-  }
   .mainHeader {
-    flex-direction: column;
+    flex-direction: row; /* Keep horizontal on tablet */
     gap: 1rem;
-    padding: 1rem 5%;
+    padding: 0.8rem 1rem;
+    width: calc(100% - 20px);
+    top: 0.5rem;
   }
   .headerNav {
     flex-wrap: wrap;
@@ -906,20 +923,39 @@ img {
   .recipeOptionsGroup {
     max-width: 100%;
   }
+  .headerNavPill {
+    gap: 0.5rem; /* Reduce gap for smaller screens */
+    padding: 0.3rem;
+  }
+  .navPillLink {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+  }
+  .heroActionButtons {
+    flex-direction: column; /* Stack buttons on smaller screens */
+  }
+  .pillSearchButton {
+    width: 100%; /* Make buttons full width when stacked */
+  }
 }
 
 @media (max-width: 480px) {
-  .heroTitle {
-    font-size: 1.9rem;
-  }
-  .heroSubtitle {
-    font-size: 0.9rem;
+  .mainHeader {
+    flex-direction: column; /* Stack header items on very small screens */
+    gap: 0.5rem;
+    padding: 0.8rem;
+    border-radius: 30px; /* Adjust radius if needed */
   }
   .logoText {
-    font-size: 1.7rem;
+    font-size: 1.5rem;
   }
-  .navLink {
-    font-size: 0.8rem;
+  .headerNavPill {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+   .navPillLink {
+    font-size: 0.75rem;
+    padding: 0.3rem 0.6rem;
   }
   .toolContainer {
     padding: 1.2rem;
@@ -1019,28 +1055,6 @@ img {
 
 .optionEmoji {
   font-size: 1.1em;
-}
-
-/* Adjust the search container to accommodate options */
-.pillSearchBar {
-  flex-direction: column;
-  padding: 1rem;
-}
-
-.pillSearchButton {
-  margin-top: 0.8rem;
-}
-
-/* Make responsive for mobile */
-@media (max-width: 480px) {
-  .optionPill {
-    padding: 0.3rem 0.6rem;
-    font-size: 0.75rem;
-  }
-  
-  .optionsSection h4 {
-    font-size: 0.8rem;
-  }
 }
 
 /* Updated header nav styling */

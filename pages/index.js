@@ -66,6 +66,7 @@ export default function HomePage() {
     const [inputValue, setInputValue] = useState('');
     const [results, setResults] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [isRandomLoading, setIsRandomLoading] = useState(false); // New state for random button
     const [error, setError] = useState('');
 
     const [selectedDifficulty, setSelectedDifficulty] = useState(tools[0].difficultyOptions[0].value);
@@ -359,17 +360,25 @@ IMPORTANT:
         return recipePrompt;
     };
 
-    const handleSubmit = async (event) => {
-        event.preventDefault();
+    const handleSubmit = async (event, isRandom = false) => {
+        if (event) event.preventDefault(); // Prevent default if called from form submit
         if (!activeTool) return; // activeTool will always be recipeGenerator
 
-        const promptText = getPromptForTool(activeTool, inputValue);
+        const currentInput = isRandom ? "Surprise me with a random healthy recipe." : inputValue;
+        const promptText = getPromptForTool(activeTool, currentInput);
 
         if (!promptText) { // This check is mainly for empty inputValue for recipeGenerator
+            if (!isRandom) { // Only show error if it's not a random request and input is empty
+                 setError("Please describe the type of healthy recipe you'd like, or list some ingredients you have.");
+            }
             return;
         }
 
-        setIsLoading(true);
+        if (isRandom) {
+            setIsRandomLoading(true);
+        } else {
+            setIsLoading(true);
+        }
         setResults('');
         setError('');
 
@@ -409,8 +418,16 @@ IMPORTANT:
             console.error("API Call Error:", err);
             setError(err.message || 'Failed to fetch response from AI.');
         } finally {
-            setIsLoading(false);
+            if (isRandom) {
+                setIsRandomLoading(false);
+            } else {
+                setIsLoading(false);
+            }
         }
+    };
+
+    const handleRandomRecipeSubmit = () => {
+        handleSubmit(null, true); // Pass null for event, and true for isRandom
     };
 
     const handleInstructionToggle = (toggledIndex) => {
@@ -699,7 +716,7 @@ IMPORTANT:
             {/* Replace the separate food showcase with an integrated hero section */}
             <section className="enhancedHeroSection">
                 <div className="heroContent">
-                    <h2 className="heroTitle">Free Healthy Recipes</h2>
+                    <h2 className="heroTitle">Free <strong>Healthy</strong> Recipes</h2>
                     <p className="heroSubtitle">
                         Craving something delicious and nutritious? Tell us your ideas, 
                         and we&apos;ll whip up a custom recipe, just for you.
@@ -792,13 +809,23 @@ IMPORTANT:
                                 </div>
                             </div>
                             
-                            <button
-                                type="submit"
-                                className="pillSearchButton"
-                                disabled={isLoading || !inputValue}
-                            >
-                                {isLoading ? 'Creating Recipe...' : '✨ Create Healthy Recipe'}
-                            </button>
+                            <div className="heroActionButtons">
+                                <button
+                                    type="submit"
+                                    className="pillSearchButton"
+                                    disabled={isLoading || isRandomLoading || !inputValue}
+                                >
+                                    {isLoading ? 'Creating...' : '✨ Create Healthy Recipe'}
+                                </button>
+                                <button
+                                    type="button"
+                                    className="pillSearchButton randomRecipeButton"
+                                    onClick={handleRandomRecipeSubmit}
+                                    disabled={isLoading || isRandomLoading}
+                                >
+                                    {isRandomLoading ? 'Mixing...' : '🎲 Surprise Me!'}
+                                </button>
+                            </div>
                         </form>
                     </div>
                 </div>
