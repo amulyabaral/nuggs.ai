@@ -20,50 +20,44 @@ export function AuthProvider({ children }) {
   const [isPremium, setIsPremium] = useState(false);
 
   useEffect(() => {
-    // Get initial auth state
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+    // setLoading(true) is already set initially for the component.
+    // onAuthStateChange will fire once with the initial session or null.
+    const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        setLoading(true);
-        
-        try {
-          if (session?.user) {
-            setUser(session.user);
-            await fetchProfile(session.user.id);
-          } else {
-            setUser(null);
-            setProfile(null);
-            setUsageRemaining(0);
-            setIsPremium(false);
-          }
-        } catch (error) {
-            console.error("Error in onAuthStateChange handler:", error);
-            // Ensure a clean state on error during auth change
-            setUser(null);
-            setProfile(null);
-            setUsageRemaining(0);
-            setIsPremium(false);
-        } finally {
-            setLoading(false); // Always set loading to false after processing
+        const authUser = session?.user ?? null;
+        setUser(authUser); // Set user (or null)
+
+        if (authUser) {
+          // If user exists, fetch/refresh profile.
+          // fetchProfile itself doesn't set the main loading state; this block's finally does.
+          await fetchProfile(authUser.id);
+        } else {
+          // No user, clear profile related states
+          setProfile(null);
+          setUsageRemaining(0);
+          setIsPremium(false);
         }
+        setLoading(false); // Done processing this auth state change, or initial state.
       }
     );
-    
-    // Initial check for existing session
-    const performInitialCheck = async () => {
-        await checkUser();
-    };
-    performInitialCheck();
-    
+
+    // Initial check for existing session is handled by the first fire of onAuthStateChange
+    // const performInitialCheck = async () => {
+    //     await checkUser();
+    // };
+    // performInitialCheck(); // This call is no longer needed
+
     return () => {
-      subscription?.unsubscribe();
+      // Make sure to access the subscription property of the authListener object
+      authListener?.subscription?.unsubscribe();
     };
-  }, []);
+  }, []); // Empty dependency array ensures this runs only once on mount
   
   async function checkUser() {
     try {
       setLoading(true);
-      const { data: { user: authUser } } = await supabase.auth.getUser(); // Renamed to authUser to avoid conflict
-      
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+
       if (authUser) {
         setUser(authUser);
         await fetchProfile(authUser.id);
