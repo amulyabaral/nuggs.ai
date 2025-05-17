@@ -22,39 +22,67 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     console.log('[AuthContext] useEffect triggered. Supabase client:', supabase); // Check if supabase object is valid
 
-    // setLoading(true) is already set initially for the component.
-    // onAuthStateChange will fire once with the initial session or null.
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('[AuthContext] onAuthStateChange event:', event, 'session:', session);
-        const authUser = session?.user ?? null;
-        setUser(authUser); // Set user (or null)
-
-        if (authUser) {
-          // If user exists, fetch/refresh profile.
-          // fetchProfile itself doesn't set the main loading state; this block's finally does.
-          await fetchProfile(authUser.id);
+    const handleAuthChange = async (event, session) => {
+      console.log('[AuthContext] Auth state changed:', event, session);
+      
+      try {
+        // Update user state
+        const currentUser = session?.user || null;
+        setUser(currentUser);
+        
+        if (currentUser) {
+          // We have a user, try to fetch profile
+          try {
+            await fetchProfile(currentUser.id);
+          } catch (err) {
+            console.error('Error fetching profile during auth change:', err);
+            setProfile(null);
+          }
         } else {
-          // No user, clear profile related states
+          // No user, reset all related states
           setProfile(null);
           setUsageRemaining(0);
           setIsPremium(false);
         }
-        setLoading(false); // Done processing this auth state change, or initial state.
+      } catch (err) {
+        console.error('Error handling auth change:', err);
+        // Reset to safe defaults
+        setUser(null);
+        setProfile(null);
+        setUsageRemaining(0);
+        setIsPremium(false);
+      } finally {
+        setLoading(false);
       }
-    );
-
-    // Initial check for existing session is handled by the first fire of onAuthStateChange
-    // const performInitialCheck = async () => {
-    //     await checkUser();
-    // };
-    // performInitialCheck(); // This call is no longer needed
-
-    return () => {
-      // Make sure to access the subscription property of the authListener object
-      authListener?.subscription?.unsubscribe();
     };
-  }, []); // Empty dependency array ensures this runs only once on mount
+
+    // Check initial session
+    const checkInitialSession = async () => {
+      try {
+        setLoading(true);
+        
+        // Get current session
+        const { data: { session } } = await supabase.auth.getSession();
+        await handleAuthChange('INITIAL_SESSION', session);
+      } catch (err) {
+        console.error('Error checking initial session:', err);
+        setLoading(false);
+      }
+    };
+
+    // Run initial session check
+    checkInitialSession();
+
+    // Subscribe to auth changes
+    const { data: authListener } = supabase.auth.onAuthStateChange(handleAuthChange);
+
+    // Cleanup
+    return () => {
+      if (authListener?.subscription?.unsubscribe) {
+        authListener.subscription.unsubscribe();
+      }
+    };
+  }, []);
   
   async function checkUser() {
     try {
@@ -84,8 +112,12 @@ export function AuthProvider({ children }) {
   }
   
   async function fetchProfile(userId) {
-    // Remove this commented-out delay if it exists
-    // await new Promise(resolve => setTimeout(resolve, 7000)); // REMOVE FOR PRODUCTION
+    console.log('Fetching profile for user ID:', userId);
+    
+    if (!userId) {
+      console.error('Cannot fetch profile: userId is missing');
+      return null;
+    }
 
     try {
       const { data, error: profileError } = await supabase
@@ -93,10 +125,15 @@ export function AuthProvider({ children }) {
         .select('*')
         .eq('id', userId)
         .single();
+      
+      if (profileError) {
+        console.error('Error fetching profile:', profileError);
         
-      if (profileError && profileError.code !== 'PGRST116') { // PGRST116: "Searched item was not found"
-        console.error('Supabase error fetching profile:', profileError.message);
-        // No need to throw here, let the function complete and set profile to null
+        if (profileError.code === 'PGRST116') {
+          console.log('Profile not found, may need to be created');
+        }
+        
+        // Don't throw - handle gracefully and set profile to null
       }
       
       if (!data) {
@@ -169,12 +206,14 @@ export function AuthProvider({ children }) {
         }
       }
     } catch (error) { 
-      console.error('Error in fetchProfile function:', error.message);
+      console.error('Exception in fetchProfile function:', error);
       setProfile(null);
       setIsPremium(false);
-      setUsageRemaining(0); // Default to 0 if profile fetching fails critically
-      // Do not re-throw here, allow AuthContext to handle the null profile
+      setUsageRemaining(0);
+      return null;
     }
+    
+    return data; // Return the profile data for optional chaining
   }
   
   async function signIn(email, password) {
@@ -198,8 +237,27 @@ export function AuthProvider({ children }) {
   }
   
   async function signOut() {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    try {
+      console.log('Attempting to sign out...');
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Error during sign out:', error);
+        throw error;
+      }
+      console.log('Sign out successful');
+      // Force clean state even if the auth listener is slow to respond
+      setUser(null);
+      setProfile(null);
+      setIsPremium(false);
+      setUsageRemaining(0);
+    } catch (error) {
+      console.error('Exception during sign out:', error);
+      // Still try to clean state even if there's an error
+      setUser(null);
+      setProfile(null);
+      setIsPremium(false);
+      setUsageRemaining(0);
+    }
   }
   
   // Update usage count when recipe is generated

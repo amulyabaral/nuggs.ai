@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '../contexts/AuthContext';
-import { supabase } from '../utils/supabaseClient';
+import { supabase, testSupabaseConnection } from '../utils/supabaseClient';
 
 export default function Dashboard() {
   const { user, profile, signOut, loading, usageRemaining, isPremium, refreshProfile } = useAuth();
@@ -59,6 +59,16 @@ export default function Dashboard() {
       }
     };
   }, [loading, user, profile, router, signOut, dashboardError]);
+  
+  useEffect(() => {
+    // Test Supabase connection on component mount
+    const testConnection = async () => {
+      const result = await testSupabaseConnection();
+      console.log('Supabase connection test result:', result);
+    };
+    
+    testConnection();
+  }, []);
   
   async function fetchSavedRecipes() {
     if (!user || !profile) {
@@ -211,9 +221,19 @@ export default function Dashboard() {
                             Retry Loading Profile
                         </button>
                         <button 
-                            onClick={signOut} 
-                            className="signOutButton"
-                            style={{padding: '0.7rem 1.3rem', fontSize: '0.9rem'}}
+                            onClick={async () => {
+                                try {
+                                    console.log('Sign out button clicked');
+                                    await signOut();
+                                    // Force navigation after sign out to ensure clean state
+                                    router.push('/');
+                                } catch (err) {
+                                    console.error('Error during sign out from dashboard:', err);
+                                    // Still try to navigate away
+                                    router.push('/');
+                                }
+                            }} 
+                            className="navLink authNavButton"
                         >
                             Sign Out
                         </button>
