@@ -508,39 +508,35 @@ IMPORTANT:
     };
 
     const handleRandomRecipeSubmit = () => {
-        // Define random options for variety
-        const mealTypes = [
-            "breakfast", "lunch", "dinner", "snack", "dessert", 
-            "appetizer", "smoothie", "salad", "soup", "stew"
-        ];
-        const cuisines = [
-            "Mediterranean", "Asian", "Mexican", "Italian", "Indian", 
-            "Thai", "Greek", "Japanese", "Korean", "Middle Eastern"
-        ];
-        const dietStyles = [
-            "high-protein", "low-carb", "plant-based", "vegetarian", 
-            "gluten-free", "dairy-free", "paleo-friendly"
-        ];
-        const descriptors = [
-            "quick", "easy", "nutritious", "colorful", "filling", 
-            "light", "hearty", "energizing", "comforting", "refreshing"
+        // Define 10+ pre-built diverse recipe prompts
+        const randomRecipePrompts = [
+            "Create a quick Mediterranean quinoa bowl with roasted vegetables",
+            "Make a spicy Thai coconut curry soup with vegetables",
+            "Generate a high-protein breakfast smoothie bowl recipe",
+            "Create a Mexican-inspired stuffed bell peppers recipe",
+            "Make a Japanese-style salmon poke bowl recipe",
+            "Generate a low-carb Italian zucchini pasta with pesto",
+            "Create a Middle Eastern chickpea and vegetable tagine",
+            "Make a fresh Vietnamese spring rolls recipe with dipping sauce",
+            "Generate a hearty Indian lentil curry with spinach",
+            "Create a Korean bibimbap-inspired grain bowl",
+            "Make a Moroccan-spiced chicken with couscous",
+            "Generate a Greek-style baked fish with lemon and herbs"
         ];
         
-        // Get random elements from each array
-        const randomMeal = mealTypes[Math.floor(Math.random() * mealTypes.length)];
-        const randomCuisine = cuisines[Math.floor(Math.random() * cuisines.length)];
-        const randomDiet = dietStyles[Math.floor(Math.random() * dietStyles.length)];
-        const randomDescriptor = descriptors[Math.floor(Math.random() * descriptors.length)];
+        // Select a random prompt from the array
+        const randomIndex = Math.floor(Math.random() * randomRecipePrompts.length);
+        const selectedPrompt = randomRecipePrompts[randomIndex];
         
-        // Generate a timestamp to ensure uniqueness
-        const timestamp = new Date().getTime() % 1000;
+        // Add a timestamp to ensure uniqueness
+        const timestamp = new Date().getTime();
+        const finalPrompt = `${selectedPrompt}. Timestamp: ${timestamp}`;
         
-        // Create a randomized prompt with these elements
-        const randomPrompt = `Create a ${randomDescriptor} ${randomDiet} ${randomCuisine} ${randomMeal} recipe. Include timestamp: ${timestamp}`;
-        
-        // Set the input but don't display it to the user (just for API call)
+        // Store original input value
         const originalInput = inputValue;
-        setInputValue(randomPrompt);
+        
+        // Set the prompt for API call but don't show it to user
+        setInputValue(finalPrompt);
         
         // Submit with the random prompt
         handleSubmit(null, true);
