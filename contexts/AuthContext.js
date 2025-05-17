@@ -141,68 +141,57 @@ export function AuthProvider({ children }) {
         console.warn(`Profile not found for user ${userId}. Setting default values. A profile should be created automatically on signup.`);
         setProfile(null); // Explicitly set profile to null if no data
         
-        // SPECIAL USER OVERRIDE (even if no profile data)
-        if (user && user.email === 'amulyabaral2@gmail.com') {
-          console.log('Applying special override for amulyabaral2@gmail.com (no profile found).');
-          setIsPremium(true);
-          setUsageRemaining(Infinity);
-        } else {
-          setIsPremium(false);
-          // For a new user without a profile, they should get the default free tier allowance.
-          setUsageRemaining(5); // UPDATED: Default free tier allowance to 5
-        }
+        // Get default free tries from environment variable, fallback to 5
+        const defaultFreeTries = parseInt(process.env.NEXT_PUBLIC_FREE_TRIES || '5', 10);
+        setIsPremium(false);
+        setUsageRemaining(defaultFreeTries); 
         return; 
       }
       
       setProfile(data);
       
-      // SPECIAL USER OVERRIDE
-      if (user && user.email === 'amulyabaral2@gmail.com') {
-        console.log('Applying special override for amulyabaral2@gmail.com.');
-        setIsPremium(true);
+      // Regular premium and usage calculation (no special overrides)
+      const premium = data.subscription_tier === 'premium' && 
+                     (data.subscription_expires_at ? new Date(data.subscription_expires_at) > new Date() : false);
+      setIsPremium(premium);
+      
+      if (premium) {
         setUsageRemaining(Infinity);
       } else {
-        // Regular premium and usage calculation
-        const premium = data.subscription_tier === 'premium' && 
-                       (data.subscription_expires_at ? new Date(data.subscription_expires_at) > new Date() : false);
-        setIsPremium(premium);
-        
-        if (premium) {
-          setUsageRemaining(Infinity);
-        } else {
-          const now = new Date();
-          // Ensure daily_usage_reset_at and daily_usage_count exist or have defaults from the DB.
-          const resetDate = data.daily_usage_reset_at ? new Date(data.daily_usage_reset_at) : new Date(0); 
-          const currentUsageCount = data.daily_usage_count || 0;
+        const now = new Date();
+        // Get default free tries from environment variable, fallback to 5
+        const defaultFreeTries = parseInt(process.env.NEXT_PUBLIC_FREE_TRIES || '5', 10);
+        // Ensure daily_usage_reset_at and daily_usage_count exist or have defaults from the DB.
+        const resetDate = data.daily_usage_reset_at ? new Date(data.daily_usage_reset_at) : new Date(0); 
+        const currentUsageCount = data.daily_usage_count || 0;
 
-          if (resetDate < now) {
-            // Reset the counter if it's a new day or reset_at is in the past/null
-            try {
-              const { data: updatedProfileData, error: updateError } = await supabase
-                .from('profiles')
-                .update({
-                  daily_usage_count: 0,
-                  daily_usage_reset_at: now.toISOString() 
-                })
-                .eq('id', userId)
-                .select()
-                .single();
+        if (resetDate < now) {
+          // Reset the counter if it's a new day or reset_at is in the past/null
+          try {
+            const { data: updatedProfileData, error: updateError } = await supabase
+              .from('profiles')
+              .update({
+                daily_usage_count: 0,
+                daily_usage_reset_at: now.toISOString() 
+              })
+              .eq('id', userId)
+              .select()
+              .single();
 
-              if (updateError) {
-                  console.error("Error updating daily usage in DB:", updateError);
-                  throw updateError;
-              }
-              
-              setProfile(updatedProfileData); 
-              setUsageRemaining(5); // UPDATED: Reset to 5 per day
-            } catch (e) {
-              console.error("Error during daily usage reset logic:", e);
-              // Fallback to existing count if update fails, to prevent locking user out
-              setUsageRemaining(Math.max(0, 5 - currentUsageCount)); // UPDATED
+            if (updateError) {
+                console.error("Error updating daily usage in DB:", updateError);
+                throw updateError;
             }
-          } else {
-            setUsageRemaining(Math.max(0, 5 - currentUsageCount)); // UPDATED
+            
+            setProfile(updatedProfileData); 
+            setUsageRemaining(defaultFreeTries);
+          } catch (e) {
+            console.error("Error during daily usage reset logic:", e);
+            // Fallback to existing count if update fails, to prevent locking user out
+            setUsageRemaining(Math.max(0, defaultFreeTries - currentUsageCount));
           }
+        } else {
+          setUsageRemaining(Math.max(0, defaultFreeTries - currentUsageCount));
         }
       }
     } catch (error) { 
@@ -319,9 +308,21 @@ export function AuthProvider({ children }) {
     refreshProfile: () => {
       if (user && !loading) {
         setLoading(true);
-        return fetchProfile(user.id).finally(() => setLoading(false));
+        console.log('Refreshing profile for user:', user.id);
+        return fetchProfile(user.id)
+          .then(() => {
+            console.log('Profile refreshed successfully');
+            return true;
+          })
+          .catch(err => {
+            console.error('Error refreshing profile:', err);
+            return false;
+          })
+          .finally(() => {
+            setLoading(false);
+          });
       }
-      return Promise.resolve();
+      return Promise.resolve(false);
     },
   };
   

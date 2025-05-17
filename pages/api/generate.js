@@ -62,6 +62,9 @@ export default async function handler(req, res) {
                 const resetDate = new Date(profile.daily_usage_reset_at);
                 const now = new Date();
                 
+                // Get default free tries from environment variable, fallback to 5
+                const defaultFreeTries = parseInt(process.env.FREE_TRIES || '5', 10);
+                
                 if (resetDate < now) {
                     // Reset the counter if it's a new day
                     await supabase
@@ -73,11 +76,11 @@ export default async function handler(req, res) {
                         .eq('id', userId);
                 } else {
                     // Check if user has reached their daily limit
-                    if (profile.daily_usage_count >= 5) {
+                    if (profile.daily_usage_count >= defaultFreeTries) {
                         return res.status(403).json({ 
                             error: 'Daily usage limit reached', 
                             limitReached: true,
-                            message: 'You have reached your daily limit of 5 recipe generations. Upgrade to premium for unlimited generations.'
+                            message: `You have reached your daily limit of ${defaultFreeTries} recipe generations. Upgrade to premium for unlimited generations.`
                         });
                     }
                     

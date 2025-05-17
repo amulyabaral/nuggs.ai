@@ -31,14 +31,14 @@ export default function Dashboard() {
 
     if (loading) {
       setDashboardError('');
-      // Set a longer timeout (10 seconds instead of 5)
+      // Set a longer timeout (15 seconds instead of 10)
       loadingTimeoutRef.current = setTimeout(() => {
         if (loading) {
           console.warn('Dashboard loading timeout: Profile loading took too long.');
           setDashboardError('Loading your profile took too long. You have been signed out. Please try logging in again.');
           signOut();
         }
-      }, 10000); // Extend to 10 seconds
+      }, 15000); // Extend to 15 seconds
     } else {
       if (!user) {
         router.push('/');
@@ -47,6 +47,10 @@ export default function Dashboard() {
       } else if (user && !profile) {
         if (!dashboardError) {
           setDashboardError("Your profile data could not be loaded. Please try refreshing or signing out and back in.");
+          // Automatically try to refresh profile once
+          refreshProfile().catch(err => {
+            console.error('Error refreshing profile:', err);
+          });
         }
       }
     }
@@ -58,7 +62,7 @@ export default function Dashboard() {
         loadingTimeoutRef.current = null;
       }
     };
-  }, [loading, user, profile, router, signOut, dashboardError]);
+  }, [loading, user, profile, router, signOut, dashboardError, refreshProfile]);
   
   useEffect(() => {
     // Test Supabase connection on component mount
