@@ -2,7 +2,6 @@ import Head from 'next/head';
 import Image from 'next/image'; // For optimized images
 import { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
-import styles from '../styles/Home.module.css';
 
 const AMAZON_AFFILIATE_TAG = 'nuggs00-20';
 
@@ -480,22 +479,22 @@ IMPORTANT:
             console.log("Successfully parsed healthy recipe JSON:", recipe);
 
             if (recipe.error) {
-                return <p className={styles.errorMessage}>Error from AI: {recipe.error}</p>;
+                return <p className="errorMessage">Error from AI: {recipe.error}</p>;
             }
 
             return (
-                <div className={styles.recipeOutputContainer}>
-                    <div className={styles.recipeNameCard}>
+                <div className="recipeOutputContainer">
+                    <div className="recipeNameCard">
                         <h2>{recipe.recipeName || 'Healthy Recipe'}</h2>
                         <p>{recipe.description || 'No description provided.'}</p>
-                        <div className={styles.recipeMeta}>
+                        <div className="recipeMeta">
                             <span><strong>Prep:</strong> {recipe.prepTime || 'N/A'}</span>
                             <span><strong>Cook:</strong> {recipe.cookTime || 'N/A'}</span>
                             <span><strong>Difficulty:</strong> {recipe.difficultyRating || 'N/A'}</span>
                             <span><strong>Servings:</strong> {recipe.servings || 'N/A'}</span>
                         </div>
                         {recipe.healthBenefits && recipe.healthBenefits.length > 0 && (
-                            <div className={styles.healthBenefitsSection}>
+                            <div className="healthBenefitsSection">
                                 <strong>Health Highlights:</strong>
                                 <ul>
                                     {recipe.healthBenefits.map((benefit, idx) => <li key={idx}>{benefit}</li>)}
@@ -504,28 +503,28 @@ IMPORTANT:
                         )}
                     </div>
 
-                    <div className={styles.recipeSection}>
+                    <div className="recipeSection">
                         <h3>Ingredients</h3>
-                        <div className={styles.ingredientsGrid}>
+                        <div className="ingredientsGrid">
                             {recipe.ingredients && recipe.ingredients.length > 0 ? recipe.ingredients.map((ing, index) => (
-                                <div 
-                                    key={index} 
-                                    className={styles.ingredientPill}
+                                <div
+                                    key={index}
+                                    className="ingredientPill"
                                     onClick={() => handleAmazonSearch(ing.name, 'ingredient')}
                                     title={`Click to search for ${ing.name} on Amazon`}
                                 >
-                                    <span className={styles.ingredientName}>{ing.name}</span>
-                                    <span className={styles.ingredientQuantity}>{`${ing.quantity || ''} ${ing.unit || ''}`}</span>
-                                    {ing.notes && <small className={styles.ingredientNotes}>({ing.notes})</small>}
+                                    <span className="ingredientName">{ing.name}</span>
+                                    <span className="ingredientQuantity">{`${ing.quantity || ''} ${ing.unit || ''}`}</span>
+                                    {ing.notes && <small className="ingredientNotes">({ing.notes})</small>}
                                 </div>
                             )) : <p>No ingredients listed.</p>}
                         </div>
                     </div>
 
-                    <div className={styles.recipeSection}>
+                    <div className="recipeSection">
                         <h3>Instructions</h3>
                         {recipe.instructions && recipe.instructions.length > 0 ? (
-                            <ul className={styles.instructionsList}>
+                            <ul className="instructionsList">
                                 {recipe.instructions.map((instr, index) => {
                                     const timerStepData = instructionTimersData[index] || {};
                                     const { checked, originalDuration, timeLeft, timerActive } = timerStepData;
@@ -534,25 +533,25 @@ IMPORTANT:
                                     return (
                                         <li
                                             key={instr.stepNumber || index}
-                                            className={`${styles.instructionStep} ${checked ? styles.checkedInstruction : ''} ${timerActive ? styles.activeTimerInstruction : ''}`}
+                                            className={`instructionStep ${checked ? "checkedInstruction" : ''} ${timerActive ? "activeTimerInstruction" : ''}`}
                                             onClick={() => handleInstructionToggle(index)}
                                         >
                                             <input
                                                 type="checkbox"
                                                 checked={!!checked}
                                                 readOnly
-                                                className={styles.instructionCheckbox}
+                                                className="instructionCheckbox"
                                             />
-                                            <span className={styles.stepNumber}>Step {instr.stepNumber}:</span>
-                                            <span className={styles.stepDescription}>{instr.description}</span>
+                                            <span className="stepNumber">Step {instr.stepNumber}:</span>
+                                            <span className="stepDescription">{instr.description}</span>
                                             {originalDuration !== null && (
-                                                <span className={styles.timerDisplay}>
+                                                <span className="timerDisplay">
                                                     {timerActive ? `⏳ ${displayTime}` : (checked && timeLeft === 0) ? `✅ Done` : (displayTime ? `⏱️ ${displayTime}` : '')}
                                                 </span>
                                             )}
                                             {!timerActive && !checked && originalDuration !== null && currentRunningTimer.stepIndex === null && (
                                                 <button
-                                                    className={styles.startTimerButton}
+                                                    className="startTimerButton"
                                                     onClick={(e) => {
                                                         e.stopPropagation(); // Prevent li onClick from firing
                                                         startTimerForStep(index);
@@ -569,11 +568,11 @@ IMPORTANT:
                     </div>
 
                     {recipe.substitutionSuggestions && recipe.substitutionSuggestions.length > 0 && (
-                        <div className={styles.recipeSection}>
+                        <div className="recipeSection">
                             <h3>Healthier Substitution Ideas</h3>
-                            <div className={styles.suggestionCardsContainer}>
+                            <div className="suggestionCardsContainer">
                                 {recipe.substitutionSuggestions.map((sub, index) => (
-                                    <div key={`sub-${index}`} className={styles.suggestionCard}>
+                                    <div key={`sub-${index}`} className="suggestionCard">
                                         <h4>{sub.healthierSubstitute}</h4>
                                         {sub.originalIngredient && <p><small>Instead of: {sub.originalIngredient}</small></p>}
                                         <p>{sub.reason}</p>
@@ -585,17 +584,17 @@ IMPORTANT:
                     )}
 
                     {recipe.pairingSuggestions && recipe.pairingSuggestions.length > 0 && (
-                        <div className={styles.recipeSection}>
+                        <div className="recipeSection">
                             <h3>Healthy Pairing Suggestions</h3>
-                            <div className={styles.suggestionCardsContainer}>
+                            <div className="suggestionCardsContainer">
                                 {recipe.pairingSuggestions.map((item, index) => (
-                                    <div 
-                                        key={`pairing-${index}`} 
-                                        className={styles.suggestionCard}
+                                    <div
+                                        key={`pairing-${index}`}
+                                        className="suggestionCard"
                                         onClick={() => handleAmazonSearch(item.amazonSearchKeywords || item.name, 'pairing_suggestion')}
                                         title={`Search for ${item.name} related items on Amazon`}
                                     >
-                                        <h4>{item.emoji && <span className={styles.suggestionEmoji}>{item.emoji}</span>} {item.name} <small>({item.type})</small></h4>
+                                        <h4>{item.emoji && <span className="suggestionEmoji">{item.emoji}</span>} {item.name} <small>({item.type})</small></h4>
                                         {item.description && <p>{item.description}</p>}
                                     </div>
                                 ))}
@@ -610,12 +609,12 @@ IMPORTANT:
             // Fallback to render as markdown if JSON parsing fails
             return (
                 <>
-                    <p className={styles.errorMessage}>
-                        Oops! We had trouble displaying this recipe in the structured format. 
-                        This can sometimes happen if the AI's response isn't perfect JSON. 
+                    <p className="errorMessage">
+                        Oops! We had trouble displaying this recipe in the structured format.
+                        This can sometimes happen if the AI's response isn't perfect JSON.
                         Here's the raw data from the AI:
                     </p>
-                    <div className={styles.resultsContent}>
+                    <div className="resultsContent">
                         <ReactMarkdown>{jsonData}</ReactMarkdown>
                     </div>
                 </>
@@ -624,7 +623,7 @@ IMPORTANT:
     };
 
     return (
-        <div className={styles.pageContainer}>
+        <div className="pageContainer">
             <Head>
                 <title>Nuggs.AI - Delicious Healthy Recipes & Smart Food Swaps</title>
                 <meta name="description" content="Discover tasty healthy recipes, find smart food substitutes, and get AI-powered nutrition advice with Nuggs.AI. Your free guide to healthier, delicious eating!" />
@@ -667,17 +666,17 @@ IMPORTANT:
                 </script>
             </Head>
 
-            <header className={styles.mainHeader}>
-                <div className={styles.logoArea}>
-                    <h1 className={styles.logoText}>NUGGS.AI</h1>
+            <header className="mainHeader">
+                <div className="logoArea">
+                    <h1 className="logoText">NUGGS.AI</h1>
                 </div>
-                <nav className={styles.headerNav}>
+                <nav className="headerNav">
                     {/* Navigation will now only show "Healthy Recipe Ideas" or be removed if only one tool */}
                     {/* For simplicity, if only one tool, we might not need nav items, but keeping structure for now */}
                     {tools.map(tool => (
                         <button
                             key={tool.id}
-                            className={`${styles.navLink} ${selectedToolId === tool.id ? styles.navLinkActive : ''}`}
+                            className={`navLink ${selectedToolId === tool.id ? "navLinkActive" : ''}`}
                             onClick={() => {
                                 // setSelectedToolId(tool.id); // Only one tool, so no change needed
                             }}
@@ -689,28 +688,28 @@ IMPORTANT:
             </header>
             
             {/* Replace the separate food showcase with an integrated hero section */}
-            <section className={styles.enhancedHeroSection}>
-                <div className={styles.heroContent}>
-                    <h2 className={styles.heroTitle}>Free Healthy Recipes</h2>
-                    <p className={styles.heroSubtitle}>
+            <section className="enhancedHeroSection">
+                <div className="heroContent">
+                    <h2 className="heroTitle">Free Healthy Recipes</h2>
+                    <p className="heroSubtitle">
                         Craving something delicious and nutritious? Tell us your ideas, 
                         and we&apos;ll whip up a custom recipe, just for you.
                     </p>
                     
                     {/* This form is always for recipeGenerator now */}
-                    <div className={styles.pillSearchContainer}>
-                        <form onSubmit={handleSubmit} className={styles.pillSearchBar}>
+                    <div className="pillSearchContainer">
+                        <form onSubmit={handleSubmit} className="pillSearchBar">
                             <input
                                 type="text"
                                 value={inputValue}
                                 onChange={(e) => setInputValue(e.target.value)}
                                 placeholder="E.g., 'Pasta without gluten' or 'High-protein breakfast bowl'"
-                                className={styles.pillSearchInput}
+                                className="pillSearchInput"
                                 disabled={isLoading}
                             />
-                            <button 
-                                type="submit" 
-                                className={styles.pillSearchButton}
+                            <button
+                                type="submit"
+                                className="pillSearchButton"
                                 disabled={isLoading || !inputValue}
                             >
                                 {isLoading ? 'Creating Recipe...' : '✨ Create Healthy Recipe'}
@@ -724,68 +723,68 @@ IMPORTANT:
             </section>
             
             {activeTool && ( // activeTool will always be recipeGenerator
-                <section className={styles.toolDisplaySection}>
-                    <div className={styles.toolContainer}>
+                <section className="toolDisplaySection">
+                    <div className="toolContainer">
                         {/* Title for non-recipe tools removed as only recipe tool remains and its title is in hero */}
                         
                         {/* Form for recipe generator options (difficulty, equipment, etc.) */}
-                        <form onSubmit={handleSubmit} className={styles.toolForm}> {/* This form won't submit itself, but groups options */}
-                            <div className={styles.recipeOptionsRow}>
-                                <div className={styles.recipeOptionsGroup}>
+                        <form onSubmit={handleSubmit} className="toolForm"> {/* This form won't submit itself, but groups options */}
+                            <div className="recipeOptionsRow"> {/* Ensure .recipeOptionsRow is defined in CSS if used, or remove if not needed */}
+                                <div className="recipeOptionsGroup">
                                     <label>Difficulty:</label>
-                                    <div className={styles.radioButtonsContainer}>
+                                    <div className="radioButtonsContainer">
                                         {activeTool.difficultyOptions.map(opt => (
                                             <button
                                                 type="button"
                                                 key={opt.value}
-                                                className={`${styles.radioButton} ${selectedDifficulty === opt.value ? styles.radioButtonSelected : ''}`}
+                                                className={`radioButton ${selectedDifficulty === opt.value ? "radioButtonSelected" : ''}`}
                                                 onClick={() => setSelectedDifficulty(opt.value)}
                                                 disabled={isLoading}
                                             >
-                                                <span className={styles.radioButtonEmoji}>{opt.emoji}</span> {opt.label}
+                                                <span className="radioButtonEmoji">{opt.emoji}</span> {opt.label} {/* Ensure .radioButtonEmoji is defined or remove if not needed */}
                                             </button>
                                         ))}
                                     </div>
                                 </div>
-                                <div className={styles.recipeOptionsGroup}>
+                                <div className="recipeOptionsGroup">
                                     <label>Cook Time:</label>
-                                    <div className={styles.radioButtonsContainer}>
+                                    <div className="radioButtonsContainer">
                                         {activeTool.cookTimeOptions.map(opt => (
                                             <button
                                                 type="button"
                                                 key={opt.value}
-                                                className={`${styles.radioButton} ${selectedCookTime === opt.value ? styles.radioButtonSelected : ''}`}
+                                                className={`radioButton ${selectedCookTime === opt.value ? "radioButtonSelected" : ''}`}
                                                 onClick={() => setSelectedCookTime(opt.value)}
                                                 disabled={isLoading}
                                             >
-                                                <span className={styles.radioButtonEmoji}>{opt.emoji}</span> {opt.label}
+                                                <span className="radioButtonEmoji">{opt.emoji}</span> {opt.label}
                                             </button>
                                         ))}
                                     </div>
                                 </div>
                             </div>
-                            <div className={styles.recipeOptionsGroup}>
+                            <div className="recipeOptionsGroup">
                                 <label>Available Equipment (select all that apply):</label>
-                                <div className={styles.radioButtonsContainer}>
+                                <div className="radioButtonsContainer">
                                     {activeTool.equipmentOptions.map(opt => (
                                         <button
                                             type="button"
                                             key={opt.value}
-                                            className={`${styles.radioButton} ${selectedEquipment[opt.value] ? styles.radioButtonSelected : ''}`}
+                                            className={`radioButton ${selectedEquipment[opt.value] ? "radioButtonSelected" : ''}`}
                                             onClick={() => handleEquipmentToggle(opt.value)}
                                             disabled={isLoading}
                                         >
-                                            {opt.emoji && <span className={styles.radioButtonEmoji}>{opt.emoji}</span>} {opt.label}
+                                            {opt.emoji && <span className="radioButtonEmoji">{opt.emoji}</span>} {opt.label}
                                         </button>
                                     ))}
                                 </div>
                             </div>
                         </form>
-                        {isLoading && <div className={styles.loadingSpinner}></div>}
-                        {error && <p className={styles.errorMessage}>{error}</p>}
+                        {isLoading && <div className="loadingSpinner"></div>}
+                        {error && <p className="errorMessage">{error}</p>}
                         
                         {results && ( // Results are always for recipeGenerator now
-                            <div className={styles.resultsContainer}>
+                            <div className="resultsContainer">
                                 {renderRecipeResults(results)}
                             </div>
                         )}

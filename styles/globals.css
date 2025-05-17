@@ -26,11 +26,10 @@ body {
   margin: 0;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
     Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
-  background-color: #FFFBF0; /* Warm off-white/light peach background */
-  color: #6B4F4B; /* Dark Warm Brown default text color */
+  background-color: var(--background-main); /* Use CSS variable */
+  color: var(--text-primary); /* Use CSS variable */
   line-height: 1.6;
   scroll-behavior: smooth;
-  /* position: relative; */ /* For grain pseudo-element - REMOVE */
 }
 
 /* REMOVE body::before noise filter */
@@ -94,7 +93,7 @@ html {
 }
 
 /* Add transition effects to elements */
-a, button, .toolCard {
+a, button {
   transition: all 0.2s ease-in-out;
 }
 
@@ -102,4 +101,849 @@ a, button, .toolCard {
 img {
   max-width: 100%;
   height: auto;
+}
+
+/* Styles moved from Home.module.css */
+
+/* Base Styles */
+.pageContainer {
+  width: 100%;
+  /* font-family: 'Inter', sans-serif; -- Removed, inherits from body */
+  /* color: var(--text-primary); -- Removed, inherits from body */
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  /* background-color: var(--background-main); -- Removed, inherits from body */
+}
+
+/* Header Styles - Lighter, more modern */
+.mainHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.2rem 5%; /* Slightly reduced padding */
+  width: 100%;
+  background-color: var(--background-card); /* White background for header */
+  box-shadow: 0 1px 3px var(--shadow-color-soft); /* Softer shadow */
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.logoArea {
+  display: flex;
+  align-items: center;
+}
+
+.logoText {
+  font-family: 'Montserrat', 'Helvetica Neue', sans-serif;
+  font-size: 2rem; /* Slightly smaller */
+  font-weight: 700; /* Bold but not extra bold */
+  letter-spacing: -0.25px;
+  color: var(--accent-primary); /* Use accent color */
+  position: relative;
+}
+
+.logoText::after {
+  content: "";
+  position: absolute;
+  bottom: -2px; /* Closer to text */
+  left: 0;
+  width: 70%; /* Shorter underline */
+  height: 3px; /* Thinner */
+  background-color: var(--accent-secondary); /* Lighter accent for underline */
+  border-radius: 1.5px;
+}
+
+.headerNav {
+  display: flex;
+  gap: 1.2rem; /* Slightly reduced gap */
+}
+
+.navLink {
+  color: var(--text-secondary); /* Softer text color */
+  font-size: 0.85rem; /* Slightly smaller */
+  font-weight: 500; /* Medium weight */
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: color 0.2s ease;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0.4rem 0;
+  font-family: inherit;
+  position: relative;
+}
+
+.navLink::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background-color: var(--accent-primary);
+  transition: all 0.3s ease;
+  transform: translateX(-50%);
+  border-radius: 1px;
+}
+
+.navLink:hover::after,
+.navLinkActive::after {
+  width: 100%;
+}
+
+.navLink:hover,
+.navLinkActive {
+  color: var(--accent-primary);
+}
+
+/* Integrated Hero Section with Food Images */
+.enhancedHeroSection {
+  display: flex; /* Changed to flex for centering */
+  flex-direction: column; /* Stack content vertically */
+  align-items: center; /* Center horizontally */
+  text-align: center; /* Center text */
+  padding: 3rem 5% 4rem; /* Adjusted padding */
+  position: relative;
+  min-height: auto; /* Adjust height as needed */
+  background: linear-gradient(180deg, var(--background-main) 0%, #FFF6E8 100%); /* Subtle gradient */
+}
+
+.heroContent {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Ensure content inside is centered */
+  justify-content: center;
+  padding-right: 0; /* Remove padding if centered */
+  max-width: 650px; /* Control max width of text content */
+  width: 100%;
+}
+
+.heroTitle {
+  font-size: 2.8rem; /* Adjusted size */
+  font-weight: 700;
+  margin-bottom: 1rem;
+  line-height: 1.2;
+  color: var(--text-primary); /* Primary text color */
+  position: relative;
+}
+
+.heroTitle::after { /* More subtle underline or remove if too much */
+  content: "";
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 3px;
+  background-color: var(--accent-secondary);
+  border-radius: 1.5px;
+}
+
+.heroSubtitle {
+  font-size: 1.1rem; /* Adjusted size */
+  color: var(--text-secondary);
+  margin-bottom: 2.5rem; /* More space before search */
+  line-height: 1.6;
+  max-width: 550px;
+}
+
+/* Decorative elements - simplify or remove if too cluttered */
+.imageDot1, .imageDot2, .imageDot3, .leafDecoration {
+ display: none; /* Hidden for a cleaner look, can be re-added subtly */
+}
+
+/* Search container styling - Centered and prominent */
+.pillSearchContainer {
+  width: 100%;
+  max-width: 550px; /* Control width */
+  margin-top: 1rem; /* Space from subtitle */
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center buttons below search bar */
+  gap: 0.8rem;
+}
+
+.pillSearchBar {
+  display: flex; /* Keep as flex for input + button if on same line */
+  flex-direction: column; /* Stack input and button for now */
+  background-color: var(--background-card);
+  border: 1px solid var(--border-color); /* Softer border */
+  border-radius: 24px; /* Pill shape / highly rounded */
+  padding: 0.6rem; /* Padding around input/button */
+  box-shadow: 0 4px 12px var(--shadow-color-soft);
+  overflow: hidden;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.pillSearchBar:focus-within {
+  border-color: var(--accent-primary);
+  box-shadow: 0 5px 15px rgba(255, 154, 139, 0.2); /* Shadow with accent color */
+}
+
+.pillSearchInput {
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  padding: 0.8rem 1.2rem; /* Good padding inside input */
+  font-size: 1rem;
+  font-family: 'Inter', sans-serif;
+  width: 100%; /* Take full width within padded container */
+  margin-bottom: 0.5rem; /* Space if button is below */
+}
+.pillSearchInput::placeholder {
+  color: var(--text-placeholder);
+}
+
+.pillSearchInput:focus {
+  outline: none;
+}
+
+.pillSearchButton {
+  background: var(--accent-primary);
+  color: var(--button-text-light);
+  border: none;
+  border-radius: 20px; /* Highly rounded */
+  padding: 0.8rem 1.5rem; /* Generous padding */
+  font-size: 1rem;
+  font-weight: 500; /* Medium weight */
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%; /* Full width button */
+}
+
+.pillSearchButton:hover:not(:disabled) {
+  background: var(--accent-primary-hover);
+  transform: translateY(-1px); /* Subtle hover effect */
+}
+.pillSearchButton:disabled {
+  background-color: #E0E0E0;
+  color: #A0A0A0;
+  cursor: not-allowed;
+}
+
+.randomIdeasButton {
+  background: transparent;
+  color: var(--accent-primary);
+  border: 1px solid var(--accent-primary);
+  border-radius: 20px; /* Highly rounded */
+  padding: 0.7rem 1.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.randomIdeasButton:hover:not(:disabled) {
+  background-color: rgba(255, 154, 139, 0.1); /* Light accent background on hover */
+  border-color: var(--accent-primary-hover);
+}
+.randomIdeasButton:disabled {
+  color: #A0A0A0;
+  border-color: #E0E0E0;
+  cursor: not-allowed;
+}
+
+.recipeOptionsGroup {
+  margin-bottom: 1.5rem; /* Increased spacing */
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem; /* Space between label and buttons */
+  width: 100%;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.recipeOptionsGroup label {
+  font-weight: 500;
+  color: var(--text-primary); /* Use primary text color */
+  font-size: 1rem;
+  text-align: left;
+  margin-bottom: 0.2rem;
+}
+
+.radioButtonsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem; /* Space between buttons */
+}
+
+.radioButton {
+  background-color: var(--background-card-subtle); /* Light background */
+  color: var(--text-secondary); /* Softer text color */
+  border: 1px solid var(--border-color); /* Subtle border */
+  padding: 0.6rem 1.2rem;
+  border-radius: 20px; /* Rounded pill shape */
+  font-size: 0.9rem; /* Adjusted size */
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.radioButton:hover:not(:disabled) {
+  border-color: var(--accent-secondary); /* Accent border on hover */
+  color: var(--text-primary);
+}
+
+.radioButtonSelected {
+  background: var(--accent-primary);
+  color: var(--button-text-light);
+  border-color: var(--accent-primary);
+  box-shadow: 0 2px 6px rgba(255, 154, 139, 0.2);
+}
+
+.radioButtonSelected:hover:not(:disabled) {
+  background: var(--accent-primary-hover);
+  border-color: var(--accent-primary-hover);
+}
+
+.exclusionButtonSelected {
+  background-color: var(--text-secondary); /* A muted color for selected exclusion */
+  color: var(--button-text-light);
+  border-color: var(--text-secondary);
+}
+.exclusionButtonSelected:hover:not(:disabled) {
+  background-color: var(--text-primary);
+  border-color: var(--text-primary);
+}
+
+.toolDisplaySection {
+  padding: 2rem 5% 3rem; /* Adjusted padding */
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* Align to top */
+}
+
+.toolContainer {
+  max-width: 800px;
+  width: 100%;
+  background-color: var(--background-card); /* White card background */
+  border-radius: 16px; /* Rounded corners */
+  padding: 2rem; /* Adjusted padding */
+  box-shadow: 0 8px 25px var(--shadow-color-medium); /* Softer shadow */
+  border: 1px solid var(--border-color); /* Subtle border */
+}
+
+.toolHeader, .toolDescription {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+.toolDescription {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.toolForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem; /* Spacing between form elements */
+}
+
+.toolForm textarea,
+.toolForm input[type="text"] {
+  padding: 0.9rem 1.1rem;
+  border: 1px solid var(--border-color);
+  background-color: var(--background-card-subtle); /* Very light background for inputs */
+  color: var(--text-primary);
+  border-radius: 10px; /* Softer corners */
+  font-size: 0.95rem;
+  font-family: inherit;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.toolForm textarea:focus,
+.toolForm input[type="text"]:focus {
+  border-color: var(--accent-primary);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255, 154, 139, 0.2); /* Focus ring with accent color */
+}
+.toolForm textarea::placeholder,
+.toolForm input[type="text"]::placeholder {
+  color: var(--text-placeholder);
+}
+
+.inputHint {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: -0.5rem; /* Pull closer to input */
+  margin-bottom: 0.5rem;
+  padding: 0.6rem 0.8rem;
+  background-color: #FFF8F0; /* Very light accent background */
+  border-radius: 6px;
+  border-left: 3px solid var(--accent-secondary);
+  text-align: left;
+}
+
+.submitButton {
+  background: var(--accent-primary);
+  color: var(--button-text-light);
+  border: none;
+  padding: 0.9rem 1.8rem;
+  font-size: 1rem; /* Slightly smaller */
+  font-weight: 500;
+  border-radius: 10px; /* Rounded corners */
+  cursor: pointer;
+  transition: all 0.2s ease-out;
+  margin-top: 0.5rem; /* Reduced margin */
+  box-shadow: 0 3px 10px rgba(255, 154, 139, 0.2);
+}
+
+.submitButton:hover:not(:disabled) {
+  background: var(--accent-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 154, 139, 0.3);
+}
+.submitButton:disabled {
+  background: #E0E0E0; /* Light gray for disabled */
+  color: #A0A0A0; /* Muted text */
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.loadingSpinner {
+  border: 3px solid #F0F0F0; /* Lighter track */
+  border-top: 3px solid var(--accent-primary); /* Accent color for spinner */
+  margin: 1.5rem auto; /* Center spinner */
+  width: 30px;
+  height: 30px;
+  /* Copied animation from a typical spinner */
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.errorMessage {
+  color: var(--accent-negative); /* Soft red text */
+  padding: 0.8rem 1rem;
+  background-color: var(--accent-negative-bg); /* Very light red background */
+  border-radius: 8px;
+  font-size: 0.9rem;
+  border: 1px solid var(--accent-negative); /* Soft red border */
+  margin-top: 1rem;
+}
+
+.resultsContainer {
+  margin-top: 2rem; /* Space above results */
+  border-top: 1px solid var(--border-color); /* Subtle separator */
+  padding-top: 1.5rem;
+}
+
+.resultsContent { /* For markdown results */
+  background-color: var(--background-card-subtle);
+  padding: 1.2rem 1.5rem;
+  border-radius: 10px;
+  white-space: pre-wrap;
+  line-height: 1.6;
+  max-height: 600px;
+  overflow-y: auto;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+.resultsContent h1, .resultsContent h2, .resultsContent h3 { color: var(--text-primary); font-weight: 600; }
+.resultsContent a { color: var(--accent-primary); }
+.resultsContent code { background-color: #F0E5D8; color: var(--text-primary); padding: 0.2em 0.4em; border-radius: 4px;}
+.resultsContent pre { background-color: #F0E5D8; padding: 1em; border-radius: 6px; overflow-x: auto;}
+
+.recipeOutputContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1.8rem; /* Space between sections */
+  margin-top: 1rem;
+}
+
+.recipeNameCard {
+  background: var(--background-card); /* White card */
+  border-radius: 12px; /* Rounded corners */
+  padding: 1.8rem; /* Good padding */
+  box-shadow: 0 6px 18px var(--shadow-color-soft);
+  border: 1px solid var(--border-color);
+  margin-bottom: 1rem; /* Space below card */
+}
+
+.recipeNameCard h2 {
+  font-size: 1.6rem; /* Adjusted size */
+  color: var(--text-primary);
+  margin-bottom: 0.6rem;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+}
+.recipeNameCard p {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+.recipeMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem 1.2rem; /* Adjusted gap */
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  padding-top: 0.8rem;
+  border-top: 1px dashed var(--border-color); /* Softer separator */
+}
+.recipeMeta span strong {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.healthBenefitsSection {
+  margin-top: 1rem;
+  padding-top: 0.8rem;
+  border-top: 1px dashed var(--border-color);
+  font-size: 0.9rem;
+}
+.healthBenefitsSection strong {
+  color: var(--accent-positive-text); /* Green for health benefits */
+  display: block;
+  margin-bottom: 0.4rem;
+  font-weight: 500;
+}
+.healthBenefitsSection ul {
+  list-style: disc; /* Standard disc */
+  padding-left: 18px; /* Indent list */
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.recipeSection {
+  background-color: var(--background-card-subtle); /* Slightly off-white for sections */
+  border-radius: 10px;
+  padding: 1.5rem;
+  box-shadow: 0 3px 10px var(--shadow-color-soft);
+  border: 1px solid var(--border-color);
+}
+.recipeSection h3 {
+  font-size: 1.3rem; /* Adjusted size */
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--border-color);
+  font-weight: 600;
+}
+
+.ingredientsGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+}
+.ingredientPill {
+  background-color: #FFFFFF; /* White pills */
+  color: var(--text-secondary);
+  padding: 0.5rem 1rem;
+  border-radius: 16px; /* Pill shape */
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid var(--border-color);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+.ingredientPill:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px var(--shadow-color-soft);
+  border-color: var(--accent-secondary);
+  background-color: #FFFDF7;
+}
+.ingredientName {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+.ingredientQuantity {
+  color: var(--text-secondary);
+}
+.ingredientNotes {
+  font-size: 0.75rem;
+  color: #A0A0A0; /* Lighter gray for notes */
+  font-style: italic;
+}
+
+.instructionsList {
+  list-style: none;
+  padding-left: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem; /* Space between instructions */
+}
+.instructionStep {
+  background-color: #FFFFFF; /* White background for steps */
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1rem 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: flex-start; /* Align checkbox with text */
+  gap: 0.8rem;
+  transition: background-color 0.2s, border-color 0.2s;
+  position: relative;
+}
+.instructionStep:hover {
+  border-color: var(--accent-secondary);
+  background-color: var(--background-card-subtle);
+}
+.instructionCheckbox {
+  margin-top: 0.25rem; /* Align with text */
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent-primary); /* Use accent for checkbox */
+  cursor: pointer;
+  background-color: #FFFFFF;
+  border: 1.5px solid var(--border-color); /* Clearer border */
+  border-radius: 4px; /* Slightly rounded */
+  appearance: none;
+  position: relative; /* For custom checkmark */
+}
+.instructionCheckbox:checked {
+  background-color: var(--accent-primary);
+  border-color: var(--accent-primary);
+}
+.instructionCheckbox:checked::before {
+  content: '✔';
+  display: block;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.stepNumber {
+  font-weight: 600;
+  color: var(--accent-primary);
+  white-space: nowrap;
+  font-size: 0.95rem;
+}
+.stepDescription {
+  color: var(--text-primary);
+  line-height: 1.5;
+  font-size: 0.95rem;
+}
+.checkedInstruction {
+  background-color: #F0FFF5; /* Very light green for checked */
+  border-left: 3px solid var(--accent-positive); /* Green accent line */
+}
+.checkedInstruction .stepDescription {
+  text-decoration: line-through;
+  color: var(--text-secondary);
+}
+.checkedInstruction .stepNumber {
+  color: var(--accent-positive-text);
+}
+
+.timerDisplay {
+  margin-left: auto;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  padding: 0.2rem 0.6rem;
+  background-color: #F0F0F0; /* Light gray background for timer */
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.activeTimerInstruction {
+  border-left: 3px solid var(--accent-primary); /* Accent color for active timer */
+}
+.activeTimerInstruction .timerDisplay {
+  color: var(--accent-primary);
+  background-color: #FFEFEB; /* Light accent background */
+  font-weight: 600;
+}
+.startTimerButton {
+  margin-left: 10px;
+  padding: 0.4rem 0.8rem; /* Slightly larger */
+  font-size: 0.8rem;
+  background-color: var(--accent-positive);
+  color: var(--button-text-light);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.startTimerButton:hover {
+  background-color: #8BCDA4; /* Darker green on hover */
+}
+
+.suggestionCardsContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); /* Adjust minmax */
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.suggestionCard {
+  background: #FFFFFF; /* White card */
+  border-radius: 10px;
+  padding: 1.2rem;
+  box-shadow: 0 4px 12px var(--shadow-color-soft);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border: 1px solid var(--border-color);
+}
+
+.suggestionCard:hover {
+  transform: translateY(-3px); /* More subtle lift */
+  box-shadow: 0 6px 15px var(--shadow-color-medium);
+  border-color: var(--accent-secondary);
+}
+
+.suggestionCard h4 {
+  font-size: 1.1rem; /* Adjusted size */
+  color: var(--accent-primary);
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+}
+.suggestionCard p {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: 0.75rem;
+}
+.suggestionEmoji { /* Added for emoji in suggestion card if used */
+    margin-right: 0.5rem;
+    font-size: 1.2em;
+}
+
+.mainFooter {
+  text-align: center;
+  padding: 2.5rem 5%;
+  margin-top: auto; /* Push to bottom if content is short */
+  border-top: 1px solid var(--border-color);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  background-color: var(--background-card-subtle);
+}
+.mainFooter a {
+  color: var(--accent-primary);
+  font-weight: 500;
+}
+.mainFooter a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 992px) {
+  .enhancedHeroSection {
+    padding: 2.5rem 5% 3rem;
+  }
+  .heroTitle {
+    font-size: 2.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .heroTitle {
+    font-size: 2.2rem;
+  }
+  .heroSubtitle {
+    font-size: 1rem;
+  }
+  .mainHeader {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem 5%;
+  }
+  .headerNav {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.8rem 1rem;
+  }
+  .toolDisplaySection {
+    padding: 1.5rem 1rem 2rem;
+  }
+  .toolContainer {
+    padding: 1.5rem;
+  }
+  .pillSearchInput {
+    padding: 0.7rem 1rem;
+    font-size: 0.95rem;
+  }
+  .pillSearchButton, .randomIdeasButton {
+    padding: 0.7rem 1.2rem;
+    font-size: 0.95rem;
+  }
+  .radioButton {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+  }
+  .recipeNameCard h2 { font-size: 1.4rem; }
+  .recipeSection h3 { font-size: 1.1rem; }
+  .pillSearchContainer {
+    max-width: 100%;
+  }
+  .recipeOptionsRow { 
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .recipeOptionsGroup {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .heroTitle {
+    font-size: 1.9rem;
+  }
+  .heroSubtitle {
+    font-size: 0.9rem;
+  }
+  .logoText {
+    font-size: 1.7rem;
+  }
+  .navLink {
+    font-size: 0.8rem;
+  }
+  .toolContainer {
+    padding: 1.2rem;
+  }
+  .toolForm textarea, .toolForm input[type="text"] {
+    font-size: 0.9rem;
+    padding: 0.8rem;
+  }
+  .submitButton {
+    padding: 0.8rem;
+    font-size: 0.95rem;
+  }
+  .radioButton {
+    width: 100%; 
+    justify-content: center;
+    font-size: 0.85rem;
+  }
+  .recipeNameCard h2 { font-size: 1.3rem; }
+  .recipeSection h3 { font-size: 1.1rem; }
+  .pillSearchContainer {
+    max-width: 100%;
+  }
+}
+
+/* REMOVE OLD STYLES that are replaced or no longer needed */
+.mainHeaderPill, .toolPillNavigation, .toolPill, .activeToolPill, .comingSoonPill, .tagline,
+.secondaryButton
+{
+  display: none !important;
 } 
