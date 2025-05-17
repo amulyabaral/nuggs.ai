@@ -508,7 +508,7 @@ IMPORTANT:
     };
 
     const handleRandomRecipeSubmit = () => {
-        // Define 10+ pre-built diverse recipe prompts
+        // Define diverse recipe prompts with more variety
         const randomRecipePrompts = [
             "Create a quick Mediterranean quinoa bowl with roasted vegetables",
             "Make a spicy Thai coconut curry soup with vegetables",
@@ -521,16 +521,54 @@ IMPORTANT:
             "Generate a hearty Indian lentil curry with spinach",
             "Create a Korean bibimbap-inspired grain bowl",
             "Make a Moroccan-spiced chicken with couscous",
-            "Generate a Greek-style baked fish with lemon and herbs"
+            "Generate a Greek-style baked fish with lemon and herbs",
+            "Create a comforting butternut squash soup recipe",
+            "Make a fresh summer watermelon salad with feta",
+            "Generate a creative avocado toast recipe with toppings",
+            "Create a plant-based black bean burger recipe",
+            "Make a nutritious overnight oats with berries",
+            "Generate a hearty vegetable and barley stew recipe",
+            "Create a refreshing cucumber gazpacho for hot days",
+            "Make a protein-packed quinoa tabbouleh salad",
+            "Generate a Caribbean-inspired jerk chicken bowl recipe",
+            "Create a rustic French ratatouille with herbs",
+            "Make a healthy fish tacos recipe with cabbage slaw",
+            "Generate an Ethiopian-inspired lentil stew recipe"
         ];
         
-        // Select a random prompt from the array
-        const randomIndex = Math.floor(Math.random() * randomRecipePrompts.length);
-        const selectedPrompt = randomRecipePrompts[randomIndex];
+        // Define different cooking methods to increase variety
+        const cookingMethods = [
+            "baked", "grilled", "steamed", "stir-fried", "slow-cooked", 
+            "roasted", "sautéed", "air-fried", "braised", "poached"
+        ];
         
-        // Add a timestamp to ensure uniqueness
+        // Define diverse cuisines for even more variety
+        const cuisines = [
+            "Mediterranean", "Thai", "Mexican", "Japanese", "Italian", 
+            "Lebanese", "Vietnamese", "Indian", "Korean", "Moroccan",
+            "Greek", "American", "Chinese", "Brazilian", "Spanish"
+        ];
+        
+        // Select random elements from each array
+        const randomIndex = Math.floor(Math.random() * randomRecipePrompts.length);
+        const randomCookingMethodIndex = Math.floor(Math.random() * cookingMethods.length);
+        const randomCuisineIndex = Math.floor(Math.random() * cuisines.length);
+        
+        // Get the random selections
+        const selectedPrompt = randomRecipePrompts[randomIndex];
+        const selectedCookingMethod = cookingMethods[randomCookingMethodIndex];
+        const selectedCuisine = cuisines[randomCuisineIndex];
+        
+        // Add unique elements to ensure different recipes each time
+        // - Current timestamp (ensures different time values)
+        // - Random cooking method
+        // - Random additional cuisine influence
+        // - Random numeric seed
         const timestamp = new Date().getTime();
-        const finalPrompt = `${selectedPrompt}. Timestamp: ${timestamp}`;
+        const randomSeed = Math.floor(Math.random() * 10000);
+        
+        // Create final prompt with all the random elements
+        const finalPrompt = `${selectedPrompt}. Consider using ${selectedCookingMethod} as a cooking method, with some ${selectedCuisine} influences. Random seed: ${randomSeed}. Timestamp: ${timestamp}`;
         
         // Store original input value
         const originalInput = inputValue;
