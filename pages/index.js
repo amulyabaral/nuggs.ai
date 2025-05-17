@@ -508,7 +508,45 @@ IMPORTANT:
     };
 
     const handleRandomRecipeSubmit = () => {
-        handleSubmit(null, true); // Pass null for event, and true for isRandom
+        // Define random options for variety
+        const mealTypes = [
+            "breakfast", "lunch", "dinner", "snack", "dessert", 
+            "appetizer", "smoothie", "salad", "soup", "stew"
+        ];
+        const cuisines = [
+            "Mediterranean", "Asian", "Mexican", "Italian", "Indian", 
+            "Thai", "Greek", "Japanese", "Korean", "Middle Eastern"
+        ];
+        const dietStyles = [
+            "high-protein", "low-carb", "plant-based", "vegetarian", 
+            "gluten-free", "dairy-free", "paleo-friendly"
+        ];
+        const descriptors = [
+            "quick", "easy", "nutritious", "colorful", "filling", 
+            "light", "hearty", "energizing", "comforting", "refreshing"
+        ];
+        
+        // Get random elements from each array
+        const randomMeal = mealTypes[Math.floor(Math.random() * mealTypes.length)];
+        const randomCuisine = cuisines[Math.floor(Math.random() * cuisines.length)];
+        const randomDiet = dietStyles[Math.floor(Math.random() * dietStyles.length)];
+        const randomDescriptor = descriptors[Math.floor(Math.random() * descriptors.length)];
+        
+        // Generate a timestamp to ensure uniqueness
+        const timestamp = new Date().getTime() % 1000;
+        
+        // Create a randomized prompt with these elements
+        const randomPrompt = `Create a ${randomDescriptor} ${randomDiet} ${randomCuisine} ${randomMeal} recipe. Include timestamp: ${timestamp}`;
+        
+        // Set the input but don't display it to the user (just for API call)
+        const originalInput = inputValue;
+        setInputValue(randomPrompt);
+        
+        // Submit with the random prompt
+        handleSubmit(null, true);
+        
+        // Restore original input
+        setInputValue(originalInput);
     };
 
     const handleInstructionToggle = (toggledIndex) => {
