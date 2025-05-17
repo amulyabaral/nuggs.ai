@@ -24,7 +24,7 @@ export default function Pricing() {
     }
     
     if (canceled) {
-      alert("Payment was canceled. You can try again whenever you're ready.");
+      alert('Payment was canceled. You can try again whenever you\'re ready.');
       // Clean up the URL
       router.replace('/pricing', undefined, { shallow: true });
     }
