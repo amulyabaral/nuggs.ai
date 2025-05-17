@@ -65,46 +65,78 @@ export function AuthProvider({ children }) {
   
   async function fetchProfile(userId) {
     try {
-      const { data, error } = await supabase
+      const { data, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
         
-      if (error) throw error;
+      if (profileError && profileError.code !== 'PGRST116') { // PGRST116: "Searched item was not found"
+        console.error('Supabase error fetching profile:', profileError.message);
+        throw profileError;
+      }
+      
+      if (!data) {
+        // Profile does not exist for the user yet.
+        // This can happen if the user just signed up and the trigger to create the profile hasn't run yet,
+        // or if the trigger is missing/failed.
+        console.warn(`Profile not found for user ${userId}. Setting default values. A profile should be created automatically on signup.`);
+        setProfile(null);
+        setIsPremium(false);
+        // For a new user without a profile, they should get the default free tier allowance.
+        setUsageRemaining(5); // UPDATED: Default free tier allowance to 5
+        return; 
+      }
       
       setProfile(data);
       
-      // Check if user is premium
       const premium = data.subscription_tier === 'premium' && 
                      (data.subscription_expires_at ? new Date(data.subscription_expires_at) > new Date() : false);
       setIsPremium(premium);
       
-      // Calculate remaining daily usage
       if (premium) {
-        setUsageRemaining(Infinity); // Unlimited for premium users
+        setUsageRemaining(Infinity);
       } else {
-        // Check if we need to reset the daily counter
-        const resetDate = new Date(data.daily_usage_reset_at);
         const now = new Date();
-        
+        // Ensure daily_usage_reset_at and daily_usage_count exist or have defaults from the DB.
+        // The DB defaults should handle this, but good to be safe.
+        const resetDate = data.daily_usage_reset_at ? new Date(data.daily_usage_reset_at) : new Date(0); 
+        const currentUsageCount = data.daily_usage_count || 0;
+
         if (resetDate < now) {
-          // Reset the counter if it's a new day
-          await supabase
-            .from('profiles')
-            .update({
-              daily_usage_count: 0,
-              daily_usage_reset_at: now
-            })
-            .eq('id', userId);
-          
-          setUsageRemaining(3); // Reset to 3 per day
+          // Reset the counter if it's a new day or reset_at is in the past/null
+          try {
+            const { data: updatedProfileData, error: updateError } = await supabase
+              .from('profiles')
+              .update({
+                daily_usage_count: 0,
+                daily_usage_reset_at: now.toISOString() 
+              })
+              .eq('id', userId)
+              .select()
+              .single();
+
+            if (updateError) {
+                console.error("Error updating daily usage in DB:", updateError);
+                throw updateError;
+            }
+            
+            setProfile(updatedProfileData); 
+            setUsageRemaining(5); // UPDATED: Reset to 5 per day
+          } catch (e) {
+            console.error("Error during daily usage reset logic:", e);
+            // Fallback to existing count if update fails, to prevent locking user out
+            setUsageRemaining(Math.max(0, 5 - currentUsageCount)); // UPDATED
+          }
         } else {
-          setUsageRemaining(Math.max(0, 3 - data.daily_usage_count));
+          setUsageRemaining(Math.max(0, 5 - currentUsageCount)); // UPDATED
         }
       }
-    } catch (error) {
-      console.error('Error fetching profile:', error);
+    } catch (error) { 
+      console.error('Error in fetchProfile function:', error.message);
+      setProfile(null);
+      setIsPremium(false);
+      setUsageRemaining(0); // Default to 0 if profile fetching fails critically
     }
   }
   
@@ -139,13 +171,26 @@ export function AuthProvider({ children }) {
     
     if (isPremium) return true; // Premium users have unlimited usage
     
-    if (usageRemaining <= 0) return false; // No usage remaining
+    // Check against the state variable `usageRemaining` which should be up-to-date
+    if (usageRemaining <= 0) {
+        console.log("Increment usage check: No usage remaining based on state.");
+        return false; 
+    }
     
+    // It's also good to double-check the profile data directly if possible,
+    // though this might introduce slight delay or complexity if profile isn't fresh.
+    // For now, relying on `usageRemaining` state is okay if `fetchProfile` is robust.
+
     try {
+      // It's crucial that `profile.daily_usage_count` is the value *before* this increment.
+      // If `profile` state might be stale, re-fetch or be careful.
+      // Assuming `profile` state is reasonably up-to-date from `fetchProfile` or previous increments.
+      const newUsageCount = (profile?.daily_usage_count || 0) + 1;
+
       const { data, error } = await supabase
         .from('profiles')
         .update({
-          daily_usage_count: profile.daily_usage_count + 1
+          daily_usage_count: newUsageCount
         })
         .eq('id', user.id)
         .select()
@@ -153,12 +198,15 @@ export function AuthProvider({ children }) {
         
       if (error) throw error;
       
-      setProfile(data);
-      setUsageRemaining(Math.max(0, 3 - data.daily_usage_count));
+      setProfile(data); // Update profile state with the new count
+      setUsageRemaining(Math.max(0, 5 - data.daily_usage_count)); // UPDATED
       
       return true;
     } catch (error) {
       console.error('Error incrementing usage:', error);
+      // If increment fails, we probably shouldn't grant usage.
+      // Consider how to handle this - maybe refresh profile to get latest server state.
+      await fetchProfile(user.id); // Refresh profile to sync state
       return false;
     }
   }

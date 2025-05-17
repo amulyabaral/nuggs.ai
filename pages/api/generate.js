@@ -73,11 +73,11 @@ export default async function handler(req, res) {
                         .eq('id', userId);
                 } else {
                     // Check if user has reached their daily limit
-                    if (profile.daily_usage_count >= 3) {
+                    if (profile.daily_usage_count >= 5) {
                         return res.status(403).json({ 
                             error: 'Daily usage limit reached', 
                             limitReached: true,
-                            message: 'You have reached your daily limit of 3 recipe generations. Upgrade to premium for unlimited generations.'
+                            message: 'You have reached your daily limit of 5 recipe generations. Upgrade to premium for unlimited generations.'
                         });
                     }
                     
