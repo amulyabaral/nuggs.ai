@@ -95,6 +95,12 @@ export default function HomePage() {
     // Add serving size options to the recipe generator tool options
     const [selectedServingSize, setSelectedServingSize] = useState('3-4'); // Default to 3-4 servings
 
+    // Add state to track when results are shown
+    const [resultsShown, setResultsShown] = useState(false);
+
+    // Create a ref for scrolling to results
+    const recipeResultsRef = useRef(null);
+
     const router = useRouter();
 
     // Effect to update activeTool when selectedToolId changes
@@ -438,7 +444,17 @@ IMPORTANT:
                 aiResponseText = aiResponseText.trim();
                 
                 setResults(aiResponseText);
-                // instructionTimersData reset is handled by useEffect on results change
+                setResultsShown(true); // Set that results are now shown
+                
+                // Scroll to results after a short delay to ensure rendering
+                setTimeout(() => {
+                    if (recipeResultsRef.current) {
+                        recipeResultsRef.current.scrollIntoView({ 
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                }, 100);
             } else if (data.promptFeedback?.blockReason) {
                 setError(`Request blocked: ${data.promptFeedback.blockReason}. Try a different prompt.`);
             } else {
@@ -544,8 +560,8 @@ IMPORTANT:
 
             return (
                 <div className="recipeOutputContainer">
-                    <div className="recipeNameCard">
-                        <h2>{recipe.recipeName || 'Healthy Recipe'}</h2>
+                    <div className="recipeNameCard highlightedRecipeCard" ref={recipeResultsRef}>
+                        <h2 className="recipeTitlePill">{recipe.recipeName || 'Healthy Recipe'}</h2>
                         <p>{recipe.description || 'No description provided.'}</p>
                         <div className="recipeMeta">
                             <span><strong>Prep:</strong> {recipe.prepTime || 'N/A'}</span>
@@ -950,11 +966,9 @@ IMPORTANT:
                 {/* Removed heroImageLayout and Image components as per instruction */}
             </section>
             
-            {activeTool && ( // activeTool will always be recipeGenerator
-                <section className="toolDisplaySection">
+            {activeTool && (
+                <section className={`toolDisplaySection ${resultsShown ? 'resultsActive' : ''}`}>
                     <div className="toolContainer">
-                        {/* Form for recipe generator options is now removed - options are in hero section */}
-                        
                         {isLoading && <div className="loadingSpinner"></div>}
                         {error && <p className="errorMessage">{error}</p>}
                         

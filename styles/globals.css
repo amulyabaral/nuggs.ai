@@ -585,9 +585,9 @@ img {
 }
 
 .resultsContainer {
-  margin-top: 2rem; /* Space above results */
-  border-top: 1px solid var(--border-color); /* Subtle separator */
+  margin-top: 2rem;
   padding-top: 1.5rem;
+  /* Remove border-top as we'll no longer be inside the white card */
 }
 
 .resultsContent { /* For markdown results */
@@ -609,8 +609,8 @@ img {
 .recipeOutputContainer {
   display: flex;
   flex-direction: column;
-  gap: 1.8rem; /* Space between sections */
-  margin-top: 1rem;
+  gap: 1.8rem;
+  margin-top: 0; /* Remove top margin as we've removed the container padding */
 }
 
 .recipeNameCard {
@@ -623,12 +623,26 @@ img {
 }
 
 .recipeNameCard h2 {
-  font-size: 1.6rem; /* Adjusted size */
+  font-size: 1.6rem;
   color: var(--text-primary);
   margin-bottom: 0.6rem;
   font-family: 'Inter', sans-serif;
   font-weight: 600;
+  display: inline-block; /* Allow the pill background to fit the text */
 }
+
+/* Add highlight class that will be applied to the recipe title */
+.recipeTitlePill {
+  background-color: var(--accent-primary);
+  color: white;
+  padding: 0.3rem 1.2rem;
+  border-radius: 30px;
+  display: inline-block;
+  box-shadow: 0 2px 6px rgba(255, 154, 139, 0.3);
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
 .recipeNameCard p {
   font-size: 0.95rem;
   color: var(--text-secondary);
@@ -1526,4 +1540,37 @@ img {
   .blogCardImageWrapper {
     padding-top: 60%; /* Slightly taller on mobile */
   }
+}
+
+/* Style for the highlighted recipe card with animation */
+.highlightedRecipeCard {
+  animation: highlightFade 2s ease-out;
+  position: relative;
+}
+
+@keyframes highlightFade {
+  0% {
+    box-shadow: 0 0 20px 5px rgba(255, 154, 139, 0.4);
+  }
+  100% {
+    box-shadow: 0 6px 18px var(--shadow-color-soft);
+  }
+}
+
+/* Remove white background and extra padding when results are shown */
+.resultsActive .toolContainer {
+  background-color: transparent;
+  box-shadow: none;
+  border: none;
+  padding: 0;
+  max-width: 800px;
+  width: 100%;
+}
+
+/* Adjust recipe output container */
+.recipeOutputContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1.8rem;
+  margin-top: 0; /* Remove top margin as we've removed the container padding */
 } 
