@@ -79,6 +79,9 @@ export default function HomePage() {
     const [isRandomLoading, setIsRandomLoading] = useState(false); // New state for random button
     const [error, setError] = useState('');
 
+    // Add a new state variable to track whether the tool container should be shown
+    const [showToolContainer, setShowToolContainer] = useState(false);
+
     const [selectedDifficulty, setSelectedDifficulty] = useState(tools[0].difficultyOptions[0].value);
     const [selectedCookTime, setSelectedCookTime] = useState(tools[0].cookTimeOptions[0].value);
     const [selectedEquipment, setSelectedEquipment] = useState({});
@@ -434,6 +437,9 @@ IMPORTANT:
             }
             return;
         }
+
+        // Show the tool container when either button is clicked
+        setShowToolContainer(true);
 
         if (isRandom) {
             setIsRandomLoading(true);
@@ -1076,7 +1082,8 @@ IMPORTANT:
                 {/* Removed heroImageLayout and Image components as per instruction */}
             </section>
             
-            {activeTool && (
+            {/* Only show the tool container section if showToolContainer is true */}
+            {activeTool && showToolContainer && (
                 <section className={`toolDisplaySection ${resultsShown ? 'resultsActive' : ''}`}>
                     <div className="toolContainer">
                         {(isLoading || isRandomLoading) && (

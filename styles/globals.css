@@ -469,6 +469,7 @@ img {
   display: flex;
   justify-content: center;
   align-items: flex-start; /* Align to top */
+  background: linear-gradient(180deg, var(--background-main) 0%, #FFF6E8 100%); /* Same gradient as hero */
 }
 
 .toolContainer {
