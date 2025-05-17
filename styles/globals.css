@@ -1050,14 +1050,30 @@ img {
 
 @media (max-width: 480px) {
   .mainHeader {
-    flex-direction: column; /* Stack header items on very small screens */
     gap: 0.5rem;
-    padding: 0.8rem;
-    border-radius: 30px; /* Adjust radius if needed */
+    padding: 0.6rem 0.8rem;
+    border-radius: 30px;
+    justify-content: space-between;
+    align-items: center;
   }
+  
   .logoText {
-    font-size: 1.5rem;
+    font-size: 1.2rem;
   }
+  
+  .logoEmoji {
+    font-size: 0.9em;
+  }
+  
+  .mainHeader nav {
+    gap: 0.4rem;
+  }
+  
+  .navLink {
+    padding: 0.2rem 0.5rem;
+    font-size: 0.75rem;
+  }
+  
   .toolContainer {
     padding: 1.2rem;
   }

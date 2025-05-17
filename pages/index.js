@@ -790,7 +790,7 @@ IMPORTANT:
                     <h2 className="heroTitle">Delicious <strong>Healthy</strong> Recipes</h2>
                     <p className="heroSubtitle">
                         Craving something delicious and nutritious? Tell us your ideas, 
-                        and we&apos;ll whip up a custom recipe, just for you.
+                        and we&apos;ll whip up a custom recipe, just for you. Powered by AI.
                     </p>
                     
                     {/* This form is always for recipeGenerator now */}
