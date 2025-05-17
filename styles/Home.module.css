@@ -1,19 +1,19 @@
 /* CSS Variables for Theme Colors */
 /* :root { */
-/*   --background-main: #FFFBF0; /* Warm Off-White/Light Peach */ */
+/*   --background-main: #FFFBF0;    Warm Off-White/Light Peach   */
 /*   --background-card: #FFFFFF; */
 /*   --background-card-subtle: #FFFDF7; */
-/*   --text-primary: #6B4F4B; /* Dark Warm Brown */ */
-/*   --text-secondary: #8D7772; /* Medium Warm Brown */ */
+/*   --text-primary: #6B4F4B;    Dark Warm Brown   */
+/*   --text-secondary: #8D7772;    Medium Warm Brown   */
 /*   --text-placeholder: #B0A09A; */
-/*   --accent-primary: #FF9A8B; /* Soft Coral/Peach */ */
+/*   --accent-primary: #FF9A8B;    Soft Coral/Peach   */
 /*   --accent-primary-hover: #FF7F66; */
-/*   --accent-secondary: #FFD8A8; /* Light Peach/Apricot */ */
-/*   --accent-positive: #A8D8B9; /* Soft Mint Green */ */
+/*   --accent-secondary: #FFD8A8;    Light Peach/Apricot   */
+/*   --accent-positive: #A8D8B9;    Soft Mint Green   */
 /*   --accent-positive-text: #3A6B4A; */
-/*   --accent-negative: #FFB3B3; /* Soft Pink/Red */ */
+/*   --accent-negative: #FFB3B3;    Soft Pink/Red   */
 /*   --accent-negative-bg: #FFEBEB; */
-/*   --border-color: #F0E5D8; /* Light Warm Gray */ */
+/*   --border-color: #F0E5D8;    Light Warm Gray   */
 /*   --shadow-color-soft: rgba(107, 79, 75, 0.08); */
 /*   --shadow-color-medium: rgba(107, 79, 75, 0.12); */
 /*   --button-text-light: #FFFFFF; */
