@@ -9,20 +9,28 @@ export default function Dashboard() {
   const { user, profile, signOut, loading, usageRemaining, isPremium } = useAuth();
   const [savedRecipes, setSavedRecipes] = useState([]);
   const [loadingRecipes, setLoadingRecipes] = useState(true);
+  const [errorRecipes, setErrorRecipes] = useState('');
   const router = useRouter();
   
   useEffect(() => {
-    // Redirect if not logged in
-    if (!loading && !user) {
-      router.push('/');
-    } else if (user) {
-      fetchSavedRecipes();
+    if (!loading) {
+      if (!user) {
+        router.push('/');
+      } else if (user && profile) {
+        fetchSavedRecipes();
+      }
     }
-  }, [loading, user, router]);
+  }, [loading, user, profile, router]);
   
   async function fetchSavedRecipes() {
+    if (!user || !profile) {
+        setLoadingRecipes(false);
+        setErrorRecipes("Cannot load recipes: User or profile data is missing.");
+        return;
+    }
     try {
       setLoadingRecipes(true);
+      setErrorRecipes('');
       const { data, error } = await supabase
         .from('saved_recipes')
         .select('*')
@@ -34,6 +42,7 @@ export default function Dashboard() {
       setSavedRecipes(data || []);
     } catch (error) {
       console.error('Error fetching saved recipes:', error);
+      setErrorRecipes('Could not load your saved recipes. Please try again later.');
     } finally {
       setLoadingRecipes(false);
     }
@@ -79,6 +88,73 @@ export default function Dashboard() {
     return <div className="loadingSpinner">Loading your profile...</div>;
   }
   
+  if (!user) {
+    return (
+        <div className="pageContainer">
+            <header className="mainHeader">
+                <Link href="/" className="logoLink">
+                  <div className="logoArea">
+                    <h1 className="logoText"><span className="logoEmoji">🥦 </span> nuggs.ai</h1>
+                  </div>
+                </Link>
+                <nav>
+                  <Link href="/" className="navLink">Home</Link>
+                  <Link href="/blog" className="navLink">Blog</Link>
+                </nav>
+            </header>
+            <main className="dashboardContainer">
+                <div className="errorContainer" style={{textAlign: 'center', marginTop: '3rem'}}>
+                    <h1>Access Denied</h1>
+                    <p>You need to be logged in to view the dashboard.</p>
+                    <Link href="/" className="backButton" onClick={() => router.push('/')}>Go to Homepage</Link>
+                </div>
+            </main>
+        </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+        <div className="pageContainer">
+            <header className="mainHeader">
+                <Link href="/" className="logoLink">
+                    <div className="logoArea">
+                        <h1 className="logoText"><span className="logoEmoji">🥦 </span> nuggs.ai</h1>
+                    </div>
+                </Link>
+                <nav>
+                    <Link href="/" className="navLink">Home</Link>
+                    <Link href="/blog" className="navLink">Blog</Link>
+                    <button onClick={signOut} className="navLink authNavButton">Sign Out</button>
+                </nav>
+            </header>
+            <main className="dashboardContainer">
+                <div className="errorContainer" style={{textAlign: 'center', marginTop: '2rem'}}>
+                    <h1>Profile Data Error</h1>
+                    <p>We couldn't load your complete profile information. This might be a temporary issue, or your profile data is missing.</p>
+                    <p>Please try refreshing the page. If the problem persists, signing out and then back in might help. If the issue continues, please contact support.</p>
+                    <div style={{marginTop: '1.5rem'}}>
+                        <button 
+                            onClick={() => window.location.reload()} 
+                            className="primaryButton" 
+                            style={{marginRight: '10px', padding: '0.7rem 1.3rem', fontSize: '0.9rem'}}
+                        >
+                            Refresh Page
+                        </button>
+                        <button 
+                            onClick={signOut} 
+                            className="signOutButton"
+                            style={{padding: '0.7rem 1.3rem', fontSize: '0.9rem'}}
+                        >
+                            Sign Out
+                        </button>
+                    </div>
+                </div>
+            </main>
+        </div>
+    );
+  }
+  
   return (
     <div className="pageContainer">
       <Head>
@@ -113,7 +189,7 @@ export default function Dashboard() {
         
         <div className="userInfoCard">
           <div className="userEmail">
-            <strong>Email:</strong> {user?.email}
+            <strong>Email:</strong> {user?.email || profile?.email}
           </div>
           
           <div className="subscriptionInfo">
@@ -131,7 +207,7 @@ export default function Dashboard() {
               </div>
             )}
             
-            {!isPremium && (
+            {!isPremium && profile.subscription_tier !== 'premium' && (
               <Link href="/pricing" className="upgradeToPremiumLink">
                 Upgrade to Premium for Unlimited Recipes
               </Link>
@@ -144,6 +220,10 @@ export default function Dashboard() {
           
           {loadingRecipes ? (
             <div className="loadingSpinner">Loading your recipes...</div>
+          ) : errorRecipes ? (
+            <div className="errorMessage" style={{textAlign: 'center', padding: '1rem', backgroundColor: 'var(--accent-negative-bg)'}}>
+                {errorRecipes}
+            </div>
           ) : savedRecipes.length === 0 ? (
             <div className="emptyState">
               <p>You haven't saved any recipes yet.</p>

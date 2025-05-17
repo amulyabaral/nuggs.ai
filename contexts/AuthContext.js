@@ -25,22 +25,34 @@ export function AuthProvider({ children }) {
       async (event, session) => {
         setLoading(true);
         
-        if (session?.user) {
-          setUser(session.user);
-          await fetchProfile(session.user.id);
-        } else {
-          setUser(null);
-          setProfile(null);
-          setUsageRemaining(0);
-          setIsPremium(false);
+        try {
+          if (session?.user) {
+            setUser(session.user);
+            await fetchProfile(session.user.id);
+          } else {
+            setUser(null);
+            setProfile(null);
+            setUsageRemaining(0);
+            setIsPremium(false);
+          }
+        } catch (error) {
+            console.error("Error in onAuthStateChange handler:", error);
+            // Ensure a clean state on error during auth change
+            setUser(null);
+            setProfile(null);
+            setUsageRemaining(0);
+            setIsPremium(false);
+        } finally {
+            setLoading(false); // Always set loading to false after processing
         }
-        
-        setLoading(false);
       }
     );
     
     // Initial check for existing session
-    checkUser();
+    const performInitialCheck = async () => {
+        await checkUser();
+    };
+    performInitialCheck();
     
     return () => {
       subscription?.unsubscribe();
@@ -50,16 +62,27 @@ export function AuthProvider({ children }) {
   async function checkUser() {
     try {
       setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user: authUser } } = await supabase.auth.getUser(); // Renamed to authUser to avoid conflict
       
-      if (user) {
-        setUser(user);
-        await fetchProfile(user.id);
+      if (authUser) {
+        setUser(authUser);
+        await fetchProfile(authUser.id);
+      } else {
+        // No user initially, ensure states are reset
+        setUser(null);
+        setProfile(null);
+        setUsageRemaining(0);
+        setIsPremium(false);
       }
     } catch (error) {
       console.error('Error checking user:', error);
+      // Ensure clean state on error during initial check
+      setUser(null);
+      setProfile(null);
+      setUsageRemaining(0);
+      setIsPremium(false);
     } finally {
-      setLoading(false);
+      setLoading(false); // Always set loading to false after initial check
     }
   }
   
@@ -73,7 +96,7 @@ export function AuthProvider({ children }) {
         
       if (profileError && profileError.code !== 'PGRST116') { // PGRST116: "Searched item was not found"
         console.error('Supabase error fetching profile:', profileError.message);
-        throw profileError;
+        // No need to throw here, let the function complete and set profile to null
       }
       
       if (!data) {
@@ -81,7 +104,7 @@ export function AuthProvider({ children }) {
         // This can happen if the user just signed up and the trigger to create the profile hasn't run yet,
         // or if the trigger is missing/failed.
         console.warn(`Profile not found for user ${userId}. Setting default values. A profile should be created automatically on signup.`);
-        setProfile(null);
+        setProfile(null); // Explicitly set profile to null if no data
         setIsPremium(false);
         // For a new user without a profile, they should get the default free tier allowance.
         setUsageRemaining(5); // UPDATED: Default free tier allowance to 5
@@ -137,6 +160,7 @@ export function AuthProvider({ children }) {
       setProfile(null);
       setIsPremium(false);
       setUsageRemaining(0); // Default to 0 if profile fetching fails critically
+      // Do not re-throw here, allow AuthContext to handle the null profile
     }
   }
   
