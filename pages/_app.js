@@ -28,6 +28,43 @@ function MyApp({ Component, pageProps }) {
           `,
         }}
       />
+      <Script
+        id="firebase-init"
+        strategy="afterInteractive"
+        src="https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js"
+      />
+      <Script
+        id="firebase-analytics"
+        strategy="afterInteractive"
+        src="https://www.gstatic.com/firebasejs/11.7.3/firebase-analytics.js"
+      />
+      <Script
+        id="firebase-config"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{
+          __html: `
+            // Firebase configuration
+            const firebaseConfig = {
+              apiKey: "AIzaSyB11MaGF8rcAO00GRnniaB5bMDieIvQTFU",
+              authDomain: "nuggs-ai.firebaseapp.com",
+              projectId: "nuggs-ai",
+              storageBucket: "nuggs-ai.firebasestorage.app",
+              messagingSenderId: "1043197921764",
+              appId: "1:1043197921764:web:f7678089eef0b0f7f31ff1",
+              measurementId: "G-J3XE0M7E1T"
+            };
+
+            // Initialize Firebase
+            // Wait for the SDK to be available
+            window.addEventListener('load', function() {
+              if (typeof firebase !== 'undefined') {
+                const app = firebase.initializeApp(firebaseConfig);
+                const analytics = firebase.getAnalytics(app);
+              }
+            });
+          `,
+        }}
+      />
       <Component {...pageProps} />
     </>
   );
