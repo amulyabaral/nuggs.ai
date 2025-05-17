@@ -87,6 +87,9 @@ export function AuthProvider({ children }) {
   }
   
   async function fetchProfile(userId) {
+    // Add a small delay to simulate network latency for testing timeout
+    // await new Promise(resolve => setTimeout(resolve, 7000)); // REMOVE FOR PRODUCTION
+
     try {
       const { data, error: profileError } = await supabase
         .from('profiles')
@@ -245,7 +248,13 @@ export function AuthProvider({ children }) {
     usageRemaining,
     isPremium,
     incrementUsage,
-    refreshProfile: () => user && fetchProfile(user.id),
+    refreshProfile: () => {
+      if (user && !loading) {
+        setLoading(true);
+        return fetchProfile(user.id).finally(() => setLoading(false));
+      }
+      return Promise.resolve();
+    },
   };
   
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

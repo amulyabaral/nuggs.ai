@@ -1,26 +1,62 @@
 import Head from 'next/head';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../utils/supabaseClient';
 
 export default function Dashboard() {
-  const { user, profile, signOut, loading, usageRemaining, isPremium } = useAuth();
+  const { user, profile, signOut, loading, usageRemaining, isPremium, refreshProfile } = useAuth();
   const [savedRecipes, setSavedRecipes] = useState([]);
   const [loadingRecipes, setLoadingRecipes] = useState(true);
   const [errorRecipes, setErrorRecipes] = useState('');
+  const [dashboardError, setDashboardError] = useState('');
   const router = useRouter();
+  const loadingTimeoutRef = useRef(null);
   
   useEffect(() => {
-    if (!loading) {
+    return () => {
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+      }
+    };
+  }, []);
+  
+  useEffect(() => {
+    if (loading) {
+      setDashboardError('');
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+      }
+      loadingTimeoutRef.current = setTimeout(() => {
+        if (loading) {
+          console.warn('Dashboard loading timeout: Profile loading took too long. Signing out.');
+          setDashboardError('Loading your profile took too long. You have been signed out. Please try logging in again.');
+          signOut();
+        }
+      }, 5000);
+    } else {
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+        loadingTimeoutRef.current = null;
+      }
       if (!user) {
         router.push('/');
       } else if (user && profile) {
         fetchSavedRecipes();
+      } else if (user && !profile) {
+        if (!dashboardError) {
+            setDashboardError("Your profile data could not be loaded. Please try refreshing or signing out and back in.");
+        }
       }
     }
-  }, [loading, user, profile, router]);
+
+    return () => {
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+      }
+    };
+  }, [loading, user, profile, router, signOut, dashboardError]);
   
   async function fetchSavedRecipes() {
     if (!user || !profile) {
@@ -84,6 +120,34 @@ export default function Dashboard() {
     }
   }
   
+  if (dashboardError && !loading) {
+    return (
+        <div className="pageContainer">
+            <header className="mainHeader">
+                <Link href="/" className="logoLink">
+                    <div className="logoArea">
+                        <h1 className="logoText"><span className="logoEmoji">🥦 </span> nuggs.ai</h1>
+                    </div>
+                </Link>
+                <nav>
+                    <Link href="/" className="navLink">Home</Link>
+                    <Link href="/blog" className="navLink">Blog</Link>
+                    {user && <button onClick={signOut} className="navLink authNavButton">Sign Out</button>}
+                </nav>
+            </header>
+            <main className="dashboardContainer">
+                <div className="errorContainer" style={{textAlign: 'center', marginTop: '3rem'}}>
+                    <h1>Operation Timed Out</h1>
+                    <p>{dashboardError}</p>
+                    <Link href="/" className="backButton" onClick={() => router.push('/')}>
+                        Go to Homepage
+                    </Link>
+                </div>
+            </main>
+        </div>
+    );
+  }
+  
   if (loading) {
     return <div className="loadingSpinner">Loading your profile...</div>;
   }
@@ -133,13 +197,16 @@ export default function Dashboard() {
                     <h1>Profile Data Error</h1>
                     <p>We couldn't load your complete profile information. This might be a temporary issue, or your profile data is missing.</p>
                     <p>Please try refreshing the page. If the problem persists, signing out and then back in might help. If the issue continues, please contact support.</p>
-                    <div style={{marginTop: '1.5rem'}}>
+                    <div style={{marginTop: '1.5rem', display: 'flex', justifyContent: 'center', gap: '1rem'}}>
                         <button 
-                            onClick={() => window.location.reload()} 
+                            onClick={async () => {
+                                setDashboardError('');
+                                if (user) await refreshProfile();
+                            }}
                             className="primaryButton" 
-                            style={{marginRight: '10px', padding: '0.7rem 1.3rem', fontSize: '0.9rem'}}
+                            style={{padding: '0.7rem 1.3rem', fontSize: '0.9rem'}}
                         >
-                            Refresh Page
+                            Retry Loading Profile
                         </button>
                         <button 
                             onClick={signOut} 
