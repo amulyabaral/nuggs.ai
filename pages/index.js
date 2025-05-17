@@ -726,7 +726,7 @@ IMPORTANT:
             {/* Replace the separate food showcase with an integrated hero section */}
             <section className="enhancedHeroSection">
                 <div className="heroContent">
-                    <h2 className="heroTitle">Free <strong>Healthy</strong> Recipes</h2>
+                    <h2 className="heroTitle">Delicious <strong>Healthy</strong> Recipes</h2>
                     <p className="heroSubtitle">
                         Craving something delicious and nutritious? Tell us your ideas, 
                         and we&apos;ll whip up a custom recipe, just for you.
