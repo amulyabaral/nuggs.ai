@@ -579,30 +579,39 @@ IMPORTANT:
                                             className={`instructionStep ${checked ? "checkedInstruction" : ''} ${timerActive ? "activeTimerInstruction" : ''}`}
                                             onClick={() => handleInstructionToggle(index)}
                                         >
-                                            <input
-                                                type="checkbox"
-                                                checked={!!checked}
-                                                readOnly
-                                                className="instructionCheckbox"
-                                            />
-                                            <span className="stepNumber">Step {instr.stepNumber}:</span>
-                                            <span className="stepDescription">{instr.description}</span>
-                                            {originalDuration !== null && (
-                                                <span className="timerDisplay">
-                                                    {timerActive ? `⏳ ${displayTime}` : (checked && timeLeft === 0) ? `✅ Done` : (displayTime ? `⏱️ ${displayTime}` : '')}
-                                                </span>
-                                            )}
-                                            {!timerActive && !checked && originalDuration !== null && currentRunningTimer.stepIndex === null && (
-                                                <button
-                                                    className="startTimerButton"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation(); // Prevent li onClick from firing
-                                                        startTimerForStep(index);
-                                                    }}
-                                                >
-                                                    Start Timer
-                                                </button>
-                                            )}
+                                            <div className="instructionHeader">
+                                                <div className="instructionCheckboxWrapper">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={!!checked}
+                                                        readOnly
+                                                        className="instructionCheckbox"
+                                                    />
+                                                    <span className="stepNumber">Step {instr.stepNumber}:</span>
+                                                </div>
+                                                
+                                                <div className="instructionControls">
+                                                    {originalDuration !== null && (
+                                                        <span className="timerDisplay">
+                                                            {timerActive ? `⏳ ${displayTime}` : (checked && timeLeft === 0) ? `✅ Done` : (displayTime ? `⏱️ ${displayTime}` : '')}
+                                                        </span>
+                                                    )}
+                                                    {!timerActive && !checked && originalDuration !== null && currentRunningTimer.stepIndex === null && (
+                                                        <button
+                                                            className="startTimerButton"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation(); // Prevent li onClick from firing
+                                                                startTimerForStep(index);
+                                                            }}
+                                                        >
+                                                            Start Timer
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <div className="stepDescriptionWrapper">
+                                                <span className="stepDescription">{instr.description}</span>
+                                            </div>
                                         </li>
                                     );
                                 })}
