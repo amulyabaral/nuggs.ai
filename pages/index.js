@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import { useAuth } from '../contexts/AuthContext';
+import AuthModal from '../components/AuthModal';
 
 const AMAZON_AFFILIATE_TAG = 'nuggs00-20';
 
@@ -111,6 +113,14 @@ export default function HomePage() {
     const [loadingDots, setLoadingDots] = useState('');
 
     const router = useRouter();
+
+    // Add this to access auth context
+    const { user, usageRemaining, isPremium, incrementUsage } = useAuth();
+
+    // Add to your existing state variables
+    const [showAuthModal, setShowAuthModal] = useState(false);
+    const [authMode, setAuthMode] = useState('login');
+    const [usageLimitReached, setUsageLimitReached] = useState(false);
 
     // Effect to update activeTool when selectedToolId changes
     useEffect(() => {
@@ -438,6 +448,17 @@ IMPORTANT:
             return;
         }
 
+        // If user is not logged in, allow one anonymous generation
+        // Otherwise, check usage limits
+        if (user) {
+            const canProceed = await incrementUsage();
+            if (!canProceed) {
+                setError("You've reached your daily limit of 3 recipe generations. Upgrade to premium for unlimited recipes.");
+                setUsageLimitReached(true);
+                return;
+            }
+        }
+
         // Show the tool container when either button is clicked
         setShowToolContainer(true);
 
@@ -459,7 +480,11 @@ IMPORTANT:
             }
         }, 50);
 
-        let requestBody = { promptText };
+        let requestBody = { 
+            promptText,
+            userId: user?.id || null,
+            isAnonymous: !user
+        };
 
         try {
             const response = await fetch(PROXY_API_URL, {
@@ -869,6 +894,43 @@ IMPORTANT:
         }
     };
 
+    // Add save recipe function
+    const handleSaveRecipe = async () => {
+        if (!user) {
+            setAuthMode('login');
+            setShowAuthModal(true);
+            return;
+        }
+        
+        if (!results) return;
+        
+        try {
+            let recipeData;
+            try {
+                recipeData = JSON.parse(results);
+            } catch (e) {
+                console.error("Error parsing recipe JSON:", e);
+                setError("Failed to save recipe: Invalid recipe data");
+                return;
+            }
+            
+            const { error } = await supabase
+                .from('saved_recipes')
+                .insert({
+                    user_id: user.id,
+                    recipe_name: recipeData.recipeName || 'Untitled Recipe',
+                    recipe_data: recipeData,
+                });
+                
+            if (error) throw error;
+            
+            alert('Recipe saved successfully!');
+        } catch (error) {
+            console.error('Error saving recipe:', error);
+            setError('Failed to save recipe. Please try again.');
+        }
+    };
+
     return (
         <div className="pageContainer">
             <Head>
@@ -920,12 +982,27 @@ IMPORTANT:
                     </div>
                 </Link>
                 <nav>
-                    <Link href="/" className={`navLink ${router.pathname === '/' ? "navLinkActive" : ''}`}>
+                    <Link href="/" className="navLink navLinkActive">
                         Home
                     </Link>
-                    <Link href="/blog" className={`navLink ${router.pathname === '/blog' ? "navLinkActive" : ''}`}>
+                    <Link href="/blog" className="navLink">
                         Blog
                     </Link>
+                    {user ? (
+                        <Link href="/dashboard" className="navLink">
+                            Dashboard
+                        </Link>
+                    ) : (
+                        <button 
+                            onClick={() => {
+                                setAuthMode('login');
+                                setShowAuthModal(true);
+                            }}
+                            className="navLink authNavButton"
+                        >
+                            Log In
+                        </button>
+                    )}
                 </nav>
             </header>
             
@@ -1114,6 +1191,32 @@ IMPORTANT:
                     </div>
                 </section>
             )}
+
+            {results && (
+                <div className="saveRecipeContainer">
+                    <button onClick={handleSaveRecipe} className="saveRecipeButton">
+                        Save Recipe
+                    </button>
+                </div>
+            )}
+
+            {usageLimitReached && (
+                <div className="usageLimitAlert">
+                    <p>You've reached your daily limit of 3 recipe generations.</p>
+                    <Link href="/pricing" className="upgradeToPremiumButton">
+                        Upgrade to Premium
+                    </Link>
+                </div>
+            )}
+
+            <AuthModal 
+                isOpen={showAuthModal}
+                onClose={() => setShowAuthModal(false)}
+                authMode={authMode}
+                message={authMode === 'login' 
+                    ? "Log in to save recipes and track your usage"
+                    : "Create an account to save recipes and get 3 free generations daily"}
+            />
         </div>
     );
 } 

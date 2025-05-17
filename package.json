@@ -13,7 +13,13 @@
     "react-dom": "^18",
     "next": "14.2.3",
     "react-markdown": "^9.0.0",
-    "gray-matter": "^4.0.3"
+    "gray-matter": "^4.0.3",
+    "@supabase/supabase-js": "^2.38.3",
+    "@supabase/auth-helpers-nextjs": "^0.8.1",
+    "@supabase/auth-helpers-react": "^0.4.2",
+    "@stripe/stripe-js": "^2.2.0",
+    "stripe": "^14.4.0",
+    "micro": "^10.0.1"
   },
   "devDependencies": {
     "eslint": "^8",

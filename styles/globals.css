@@ -1629,4 +1629,703 @@ img {
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+/* Auth Modal Styles */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.authModal {
+  background-color: var(--background-card);
+  border-radius: 16px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 450px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  position: relative;
+}
+
+.modalCloseButton {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--text-secondary);
+}
+
+.authModalMessage {
+  margin-bottom: 1.5rem;
+  padding: 0.8rem 1rem;
+  background-color: #F0F7FF;
+  border-radius: 8px;
+  border-left: 4px solid var(--accent-primary);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.authFormContainer h2 {
+  margin-bottom: 1.5rem;
+  color: var(--text-primary);
+  font-size: 1.5rem;
+}
+
+.authForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.formGroup label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.formGroup input {
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  background-color: var(--background-card-subtle);
+}
+
+.formGroup input:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px rgba(255, 154, 139, 0.2);
+}
+
+.formGroup small {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.authButton {
+  background-color: var(--accent-primary);
+  color: var(--button-text-light);
+  border: none;
+  border-radius: 8px;
+  padding: 0.9rem 1rem;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 0.5rem;
+}
+
+.authButton:hover:not(:disabled) {
+  background-color: var(--accent-primary-hover);
+}
+
+.authButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.authToggle {
+  margin-top: 1.5rem;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.authToggleButton {
+  background: none;
+  border: none;
+  color: var(--accent-primary);
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  font-size: inherit;
+}
+
+.authToggleButton:hover {
+  text-decoration: underline;
+}
+
+/* Nav Button Auth Styling */
+.authNavButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+  display: inline-block;
+}
+
+/* Dashboard Styles */
+.dashboardContainer {
+  max-width: 1000px;
+  margin: 2rem auto;
+  padding: 0 1.5rem;
+}
+
+.dashboardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.dashboardHeader h1 {
+  font-size: 2rem;
+  color: var(--text-primary);
+}
+
+.signOutButton {
+  background-color: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.signOutButton:hover {
+  border-color: var(--text-primary);
+  color: var(--text-primary);
+}
+
+.userInfoCard {
+  background-color: var(--background-card);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 15px var(--shadow-color-soft);
+  border: 1px solid var(--border-color);
+}
+
+.userEmail {
+  margin-bottom: 1rem;
+  color: var(--text-primary);
+}
+
+.subscriptionInfo {
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.subscriptionTier {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-bottom: 0.8rem;
+}
+
+.tierBadge {
+  padding: 0.3rem 0.8rem;
+  border-radius: 50px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.freeBadge {
+  background-color: #F0F0F0;
+  color: var(--text-secondary);
+}
+
+.premiumBadge {
+  background-color: #FFD700;
+  color: #7A6200;
+}
+
+.usageLimits {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-bottom: 1rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.upgradeToPremiumLink {
+  display: inline-block;
+  margin-top: 0.5rem;
+  padding: 0.6rem 1.2rem;
+  background-color: var(--accent-primary);
+  color: var(--button-text-light);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.upgradeToPremiumLink:hover {
+  background-color: var(--accent-primary-hover);
+  text-decoration: none;
+}
+
+.savedRecipesSection {
+  margin-top: 2.5rem;
+}
+
+.savedRecipesSection h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  color: var(--text-primary);
+}
+
+.emptyState {
+  background-color: var(--background-card-subtle);
+  border-radius: 12px;
+  padding: 2rem;
+  text-align: center;
+  border: 1px dashed var(--border-color);
+}
+
+.emptyState p {
+  margin-bottom: 1.5rem;
+  color: var(--text-secondary);
+}
+
+.createRecipeButton {
+  display: inline-block;
+  padding: 0.7rem 1.5rem;
+  background-color: var(--accent-primary);
+  color: var(--button-text-light);
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.createRecipeButton:hover {
+  background-color: var(--accent-primary-hover);
+  text-decoration: none;
+}
+
+.savedRecipesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.savedRecipeCard {
+  background-color: var(--background-card);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 15px var(--shadow-color-soft);
+  border: 1px solid var(--border-color);
+  transition: all 0.2s;
+}
+
+.savedRecipeCard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px var(--shadow-color-medium);
+}
+
+.savedRecipeHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.savedRecipeHeader h3 {
+  font-size: 1.2rem;
+  color: var(--text-primary);
+  margin-right: 1rem;
+}
+
+.recipeActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.favoriteButton, .deleteRecipeButton {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.3rem;
+}
+
+.favoriteButton {
+  color: #FFB800;
+}
+
+.favorited {
+  color: #FFB800;
+}
+
+.deleteRecipeButton {
+  color: #FF6B6B;
+}
+
+.savedRecipeDate {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 1.2rem;
+}
+
+.viewRecipeButton {
+  display: inline-block;
+  width: 100%;
+  padding: 0.7rem 0;
+  background-color: var(--accent-secondary);
+  color: var(--text-primary);
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.viewRecipeButton:hover {
+  background-color: #FFCA8A;
+  text-decoration: none;
+}
+
+/* Recipe Detail Page Styles */
+.recipeDetailContainer {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 0 1.5rem;
+}
+
+.recipeDetailHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.backLink {
+  color: var(--accent-primary);
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.backLink:hover {
+  color: var(--accent-primary-hover);
+}
+
+/* Pricing Page Styles */
+.pricingContainer {
+  max-width: 1000px;
+  margin: 3rem auto;
+  padding: 0 1.5rem;
+}
+
+.pricingTitle {
+  font-size: 2.5rem;
+  text-align: center;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+}
+
+.pricingSubtitle {
+  text-align: center;
+  color: var(--text-secondary);
+  margin-bottom: 3rem;
+  font-size: 1.1rem;
+}
+
+.pricingTiersContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+
+.pricingTierCard {
+  background-color: var(--background-card);
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 8px 20px var(--shadow-color-medium);
+  border: 1px solid var(--border-color);
+  position: relative;
+}
+
+.premiumTierCard {
+  border: 2px solid #FFD700;
+  transform: scale(1.03);
+}
+
+.popularBadge {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #FFD700;
+  color: #7A6200;
+  padding: 0.3rem 1rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.tierHeader {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.tierHeader h2 {
+  font-size: 1.8rem;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.tierPrice {
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--accent-primary);
+  margin-bottom: 0;
+}
+
+.tierBilling {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.tierFeatures {
+  margin-bottom: 2rem;
+}
+
+.tierFeatures ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.tierFeatures li {
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.tierFeatures li:last-child {
+  border-bottom: none;
+}
+
+.tierCTA {
+  text-align: center;
+}
+
+.tierButton {
+  width: 100%;
+  padding: 0.9rem 0;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.primaryButton {
+  background-color: var(--accent-primary);
+  color: var(--button-text-light);
+}
+
+.primaryButton:hover:not(:disabled) {
+  background-color: var(--accent-primary-hover);
+}
+
+.secondaryButton {
+  background-color: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.secondaryButton:hover:not(:disabled) {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
+.tierButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.currentPlanBadge {
+  display: inline-block;
+  padding: 0.6rem 1.2rem;
+  background-color: #E8F5E9;
+  color: #2E7D32;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.pricingFAQ {
+  margin-top: 4rem;
+}
+
+.pricingFAQ h2 {
+  text-align: center;
+  margin-bottom: 2rem;
+  font-size: 1.8rem;
+  color: var(--text-primary);
+}
+
+.faqItem {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.faqItem:last-child {
+  border-bottom: none;
+}
+
+.faqItem h3 {
+  font-size: 1.2rem;
+  margin-bottom: 0.8rem;
+  color: var(--text-primary);
+}
+
+.faqItem p {
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+/* Home Page Auth-Related Styles */
+.saveRecipeContainer {
+  display: flex;
+  justify-content: center;
+  margin: 2rem 0;
+}
+
+.saveRecipeButton {
+  padding: 0.8rem 1.5rem;
+  background-color: var(--accent-primary);
+  color: var(--button-text-light);
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.saveRecipeButton:hover {
+  background-color: var(--accent-primary-hover);
+}
+
+.usageLimitAlert {
+  background-color: #FFF8E1;
+  border: 1px solid #FFECB3;
+  border-radius: 8px;
+  padding: 1.2rem;
+  margin: 2rem auto;
+  max-width: 600px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.usageLimitAlert p {
+  color: #F57C00;
+  margin: 0;
+}
+
+.upgradeToPremiumButton {
+  display: inline-block;
+  padding: 0.7rem 1.5rem;
+  background-color: #F57C00;
+  color: white;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.upgradeToPremiumButton:hover {
+  background-color: #EF6C00;
+  text-decoration: none;
+}
+
+/* Error Container */
+.errorContainer {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background-color: var(--background-card);
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 4px 15px var(--shadow-color-soft);
+}
+
+.errorContainer h1 {
+  font-size: 1.8rem;
+  color: var(--accent-negative);
+  margin-bottom: 1rem;
+}
+
+.errorContainer p {
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+}
+
+.backButton {
+  display: inline-block;
+  padding: 0.7rem 1.5rem;
+  background-color: var(--accent-primary);
+  color: var(--button-text-light);
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.backButton:hover {
+  background-color: var(--accent-primary-hover);
+  text-decoration: none;
+}
+
+/* Responsive styles for auth components */
+@media (max-width: 768px) {
+  .authModal {
+    width: 90%;
+    padding: 1.5rem;
+  }
+  
+  .pricingTiersContainer {
+    grid-template-columns: 1fr;
+  }
+  
+  .premiumTierCard {
+    transform: none;
+    margin-top: 2rem;
+  }
+  
+  .dashboardHeader {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .tierPrice {
+    font-size: 2.5rem;
+  }
+  
+  .usageLimitAlert {
+    padding: 1rem;
+  }
 } 
