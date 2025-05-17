@@ -18,6 +18,10 @@ const commonExclusions = [
     { id: 'soy', label: 'Soy', emoji: '🌱' },
     { id: 'eggs', label: 'Eggs', emoji: '🥚' },
     { id: 'fish', label: 'Fish', emoji: '🐟' },
+];
+
+// Define dietary preferences
+const dietaryPreferences = [
     { id: 'vegan', label: 'Vegan (Strict Plant-Based)', emoji: '🌿' },
     { id: 'vegetarian', label: 'Vegetarian (No Meat/Fish)', emoji: '🥕' },
     { id: 'lowcarb', label: 'Low Carb', emoji: '📉' },
@@ -75,6 +79,7 @@ export default function HomePage() {
 
     // New state for recipe tool inputs
     const [selectedExclusions, setSelectedExclusions] = useState({});
+    const [selectedPreferences, setSelectedPreferences] = useState({}); // New state for preferences
 
     // New state for instruction timers
     const [instructionTimersData, setInstructionTimersData] = useState({});
@@ -96,6 +101,7 @@ export default function HomePage() {
             setSelectedCookTime(tool.cookTimeOptions?.[0]?.value || '< 20 min');
             setSelectedEquipment({});
             setSelectedExclusions({});
+            setSelectedPreferences({}); // Reset preferences
             // Clear timers when tool changes
             setInstructionTimersData({});
             if (currentRunningTimer.intervalId) {
@@ -316,13 +322,20 @@ export default function HomePage() {
             .map(([key]) => commonExclusions.find(ex => ex.id === key)?.label || key)
             .join(', ');
 
+        // Get active preferences as a formatted string with labels
+        const activePreferenceLabels = Object.entries(selectedPreferences)
+            .filter(([_, value]) => value)
+            .map(([key]) => dietaryPreferences.find(pref => pref.id === key)?.label || key)
+            .join(', ');
+
         let recipePrompt = `You are an AI chef specializing in creating healthy and delicious recipes.
 The user wants a recipe based on this core request: "${userInput}".
 Additionally, consider these user preferences:
 - Difficulty: ${selectedDifficulty}
 - Target Cook Time: ${selectedCookTime}
 - Available Equipment: ${equipmentInstructions}
-- Dietary Restrictions/Preferences to AVOID or ACCOMMODATE: "${activeExclusionLabels || 'None specified'}"
+- Positive Dietary Preferences (e.g., make the recipe align with these): "${activePreferenceLabels || 'None specified'}"
+- Ingredients/Categories to STRICTLY EXCLUDE: "${activeExclusionLabels || 'None specified'}"
 
 Please provide the response STRICTLY as a single, valid JSON object with the following structure:
 {
@@ -354,9 +367,9 @@ IMPORTANT:
 - For "instructions", "stepNumber" should be a number.
 - For "substitutionSuggestions" (0-3 suggestions): focus on common swaps to make the dish even healthier or cater to restrictions.
 - For "pairingSuggestions" (0-2 suggestions): suggest healthy side dishes, drinks, or garnishes.
-- If dietary restrictions are mentioned, try to create a recipe that meets them. If a core ingredient conflicts, clearly state this and suggest an alternative in the 'notes' of that ingredient or in the main recipe 'description' or 'substitutionSuggestions'.
-- All string values within the JSON must be properly escaped.
-- ABSOLUTELY DO NOT include ingredients that match the user's dietary restrictions/preferences to avoid: ${activeExclusionLabels || 'None specified'}. Completely remove these ingredients and find suitable alternatives.`;
+- If "Positive Dietary Preferences" are specified (e.g., Vegan, Low Carb), the recipe MUST adhere to these. Clearly state in the recipe 'description' how these preferences have been met.
+- ABSOLUTELY DO NOT include any ingredients that match the "Ingredients/Categories to STRICTLY EXCLUDE": ${activeExclusionLabels || 'None specified'}. Completely remove these ingredients and find suitable alternatives. If an exclusion makes a requested positive preference impossible (e.g., excluding all legumes for a vegan high-protein request), note this challenge in the recipe description and offer the best possible compliant recipe.
+- All string values within the JSON must be properly escaped.`;
         return recipePrompt;
     };
 
@@ -476,6 +489,13 @@ IMPORTANT:
         setSelectedExclusions(prev => ({
             ...prev,
             [exclusionId]: !prev[exclusionId]
+        }));
+    };
+
+    const handlePreferenceToggle = (preferenceId) => {
+        setSelectedPreferences(prev => ({
+            ...prev,
+            [preferenceId]: !prev[preferenceId]
         }));
     };
 
@@ -731,8 +751,17 @@ IMPORTANT:
                                 onChange={(e) => setInputValue(e.target.value)}
                                 placeholder="E.g., 'Pasta without gluten' or 'High-protein breakfast bowl'"
                                 className="pillSearchInput"
-                                disabled={isLoading}
+                                disabled={isLoading || isRandomLoading}
                             />
+                            <button
+                                type="button"
+                                className="inputRandomButton"
+                                onClick={handleRandomRecipeSubmit}
+                                disabled={isLoading || isRandomLoading}
+                                title="Generate a random recipe based on current selections"
+                            >
+                                🎲
+                            </button>
                             
                             {/* Recipe options now inside search container */}
                             <div className="recipeOptionsCompact">
@@ -799,10 +828,29 @@ IMPORTANT:
                                                 onClick={() => handleExclusionToggle(exclusion.id)}
                                                 disabled={isLoading}
                                             >
-                                                <span className="optionEmoji">{exclusion.emoji}</span> 
+                                                <span className="optionEmoji">{exclusion.emoji}</span>
                                                 <span className={selectedExclusions[exclusion.id] ? "excludedText" : ""}>
                                                     {exclusion.label}
                                                 </span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* New section for dietary preferences */}
+                                <div className="optionsSection">
+                                    <h4>Dietary Preferences:</h4>
+                                    <div className="optionButtons">
+                                        {dietaryPreferences.map(preference => (
+                                            <button
+                                                type="button"
+                                                key={preference.id}
+                                                className={`optionPill ${selectedPreferences[preference.id] ? "optionPillSelected" : ''}`}
+                                                onClick={() => handlePreferenceToggle(preference.id)}
+                                                disabled={isLoading}
+                                            >
+                                                <span className="optionEmoji">{preference.emoji}</span>
+                                                {preference.label}
                                             </button>
                                         ))}
                                     </div>

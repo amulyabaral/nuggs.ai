@@ -273,14 +273,15 @@ img {
 }
 
 .pillSearchBar {
-  display: flex; /* Keep as flex for input + button if on same line */
-  flex-direction: column; /* Stack input and button for now */
+  display: flex; /* Changed to flex for input + button on same line */
+  flex-direction: row; /* Ensure items are in a row */
+  align-items: center; /* Vertically align items in the search bar */
   background-color: var(--background-card);
   border: 1px solid var(--border-color); /* Softer border */
-  border-radius: 24px; /* Pill shape / highly rounded */
-  padding: 0.6rem; /* Padding around input/button */
+  border-radius: 24px; /* Pill shape / highly rounded for the container */
+  padding: 0.4rem 0.6rem; /* Adjusted padding for the container */
   box-shadow: 0 4px 12px var(--shadow-color-soft);
-  overflow: hidden;
+  overflow: hidden; /* Ensures children conform to border-radius */
   transition: all 0.3s ease;
   width: 100%;
 }
@@ -292,13 +293,15 @@ img {
 
 .pillSearchInput {
   background: transparent;
-  border: none;
+  border: 1px solid var(--border-color); /* Outline for the input itself */
   color: var(--text-primary);
-  padding: 0.8rem 1.2rem; /* Good padding inside input */
-  font-size: 1rem;
-  font-family: 'Manrope', sans-serif; /* Changed font */
-  width: 100%; /* Take full width within padded container */
-  margin-bottom: 0.5rem; /* Space if button is below */
+  padding: 0.7rem 1.1rem; /* Padding inside input */
+  font-size: 0.95rem; /* Adjusted font size */
+  font-family: 'Manrope', sans-serif;
+  flex-grow: 1; /* Allow input to take available space */
+  border-radius: 20px; /* Pill shape for the input */
+  /* margin-bottom: 0.5rem; -- Removed as it's now inline */
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 .pillSearchInput::placeholder {
   color: var(--text-placeholder);
@@ -306,6 +309,33 @@ img {
 
 .pillSearchInput:focus {
   outline: none;
+  border-color: var(--accent-primary); /* Highlight border on focus */
+  box-shadow: 0 0 0 2px rgba(255, 154, 139, 0.15); /* Subtle focus ring */
+}
+
+/* New style for the small random button inside the search bar */
+.inputRandomButton {
+  background: transparent;
+  border: 1px solid transparent; /* No border by default, or var(--border-color) for subtle */
+  color: var(--text-secondary);
+  font-size: 1.3rem; /* Adjust emoji size */
+  padding: 0.4rem 0.5rem; /* Small padding */
+  margin-left: 0.4rem; /* Space from input */
+  border-radius: 18px; /* Rounded to match pill theme */
+  cursor: pointer;
+  line-height: 1; /* Helps center emoji */
+  transition: all 0.2s ease;
+}
+
+.inputRandomButton:hover:not(:disabled) {
+  color: var(--accent-primary);
+  background-color: var(--background-card-subtle);
+  /* border-color: var(--accent-secondary); */ /* Optional: border on hover */
+}
+
+.inputRandomButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .pillSearchButton {
@@ -854,21 +884,103 @@ img {
     font-size: 1.2em;
 }
 
-.mainFooter {
-  text-align: center;
-  padding: 2.5rem 5%;
-  margin-top: auto; /* Push to bottom if content is short */
-  border-top: 1px solid var(--border-color);
-  font-size: 0.85rem;
-  color: var(--text-secondary);
+/* Updated header nav styling */
+.headerNavPill {
+  display: flex;
+  gap: 1.2rem;
   background-color: var(--background-card-subtle);
+  border-radius: 24px;
+  padding: 0.4rem;
 }
-.mainFooter a {
-  color: var(--accent-primary);
+
+.navPillLink {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
   font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  transition: all 0.2s ease;
 }
-.mainFooter a:hover {
-  text-decoration: underline;
+
+.navPillLink:hover {
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.navPillLinkActive {
+  background-color: var(--background-card);
+  color: var(--accent-primary);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+/* New compact recipe options styling */
+.recipeOptionsCompact {
+  margin: 0.8rem 0;
+  width: 100%;
+}
+
+.optionsSection {
+  margin-bottom: 0.8rem;
+}
+
+.optionsSection h4 {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 0.4rem;
+  text-align: left;
+}
+
+.optionButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.optionPill {
+  background-color: var(--background-card-subtle);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  white-space: nowrap;
+}
+
+.optionPill:hover:not(:disabled) {
+  border-color: var(--accent-secondary);
+  color: var(--text-primary);
+}
+
+.optionPillSelected {
+  background: var(--accent-primary);
+  color: var(--button-text-light);
+  border-color: var(--accent-primary);
+}
+
+.optionPillSelected:hover:not(:disabled) {
+  background: var(--accent-primary-hover);
+  border-color: var(--accent-primary-hover);
+}
+
+.optionPillExcluded {
+  background: var(--text-secondary);
+  color: var(--button-text-light);
+  border-color: var(--text-secondary);
+}
+
+.excludedText {
+  text-decoration: line-through;
+}
+
+.optionEmoji {
+  font-size: 1.1em;
 }
 
 @media (max-width: 992px) {
