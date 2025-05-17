@@ -2,6 +2,8 @@ import Head from 'next/head';
 import Image from 'next/image'; // For optimized images
 import { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
 
 const AMAZON_AFFILIATE_TAG = 'nuggs00-20';
 
@@ -77,6 +79,8 @@ export default function HomePage() {
     const [instructionTimersData, setInstructionTimersData] = useState({});
     // { index: { checked: boolean, originalDuration: number | null, timeLeft: number | null, timerActive: boolean }}
     const [currentRunningTimer, setCurrentRunningTimer] = useState({ intervalId: null, stepIndex: null });
+
+    const router = useRouter();
 
     // Effect to update activeTool when selectedToolId changes
     useEffect(() => {
@@ -625,20 +629,20 @@ IMPORTANT:
     return (
         <div className="pageContainer">
             <Head>
-                <title>Nuggs.AI - Delicious Healthy Recipes & Smart Food Swaps</title>
+                <title>nuggs.ai - Healthy Recipes with AI</title>
                 <meta name="description" content="Discover tasty healthy recipes, find smart food substitutes, and get AI-powered nutrition advice with Nuggs.AI. Your free guide to healthier, delicious eating!" />
                 <link rel="icon" href="/broccoli-logo.svg" />
 
                 {/* SEO / Open Graph / Twitter Card Meta Tags */}
-                <meta property="og:title" content="Nuggs.AI - Delicious Healthy Recipes & Smart Food Swaps" />
-                <meta property="og:description" content="Your AI companion for smarter, healthier eating choices. Find substitutes, generate recipes, analyze meals, and get nutrition facts." />
+                <meta property="og:title" content="nuggs.ai - Healthy Recipes with AI" />
+                <meta property="og:description" content="AI companion for smarter, healthier eating choices. Find substitutes, generate recipes, analyze meals, and get nutrition facts." />
                 <meta property="og:type" content="website" />
                 <meta property="og:url" content="https://nuggs.ai" />
-                <meta property="og:image" content="https://nuggs.ai/broccoli-logo.svg" />
-                <meta property="og:image:alt" content="Nuggs.AI Broccoli Logo" />
+                <meta property="og:image" content="https://nuggs.ai/public/broccoli-logo.svg" />
+                <meta property="og:image:alt" content="nuggs.ai Broccoli Logo" />
                 
                 <meta name="twitter:card" content="summary_large_image" />
-                <meta name="twitter:title" content="Nuggs.AI - Delicious Healthy Recipes & Smart Food Swaps" />
+                <meta name="twitter:title" content="nuggs.ai - Delicious Healthy Recipes & Smart Food Swaps" />
                 <meta name="twitter:description" content="Your AI companion for smarter, healthier eating choices. Find substitutes, generate recipes, analyze meals, and get nutrition facts." />
                 <meta name="twitter:image" content="https://nuggs.ai/broccoli-logo.svg" />
 
@@ -650,7 +654,7 @@ IMPORTANT:
                         {
                             "@context": "https://schema.org",
                             "@type": "WebSite",
-                            "name": "Nuggs.AI",
+                            "name": "nugss.ai",
                             "url": "https://nuggs.ai",
                             "description": "AI-powered tools for healthy food suggestions, recipes, meal analysis, and nutritional information.",
                             "potentialAction": {
@@ -668,22 +672,25 @@ IMPORTANT:
 
             <header className="mainHeader">
                 <div className="logoArea">
-                    <h1 className="logoText">NUGGS.AI</h1>
+                    <h1 className="logoText"><span className="logoEmoji">🥦</span> nuggs.ai</h1>
                 </div>
-                <nav className="headerNav">
-                    {/* Navigation will now only show "Healthy Recipe Ideas" or be removed if only one tool */}
-                    {/* For simplicity, if only one tool, we might not need nav items, but keeping structure for now */}
-                    {tools.map(tool => (
-                        <button
-                            key={tool.id}
-                            className={`navLink ${selectedToolId === tool.id ? "navLinkActive" : ''}`}
-                            onClick={() => {
-                                // setSelectedToolId(tool.id); // Only one tool, so no change needed
-                            }}
-                        >
-                            {tool.name}
-                        </button>
-                    ))}
+                <nav className="headerNavPill">
+                    <Link href="/" className={`navPillLink ${router.pathname === '/' ? "navPillLinkActive" : ''}`}>
+                        Home
+                    </Link>
+                    <Link 
+                        href="/#recipes" 
+                        className={`navPillLink ${selectedToolId === 'recipeGenerator' ? "navPillLinkActive" : ''}`}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            document.querySelector('.toolDisplaySection').scrollIntoView({ behavior: 'smooth' });
+                        }}
+                    >
+                        Healthy Recipe Ideas
+                    </Link>
+                    <Link href="/blog" className={`navPillLink ${router.pathname === '/blog' ? "navPillLinkActive" : ''}`}>
+                        Blog
+                    </Link>
                 </nav>
             </header>
             

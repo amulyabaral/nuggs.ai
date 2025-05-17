@@ -24,7 +24,7 @@ html,
 body {
   padding: 0;
   margin: 0;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
+  font-family: 'Manrope', -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
     Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
   background-color: var(--background-main); /* Use CSS variable */
   color: var(--text-primary); /* Use CSS variable */
@@ -136,12 +136,15 @@ img {
 }
 
 .logoText {
-  font-family: 'Montserrat', 'Helvetica Neue', sans-serif;
+  font-family: 'Manrope', 'Helvetica Neue', sans-serif;
   font-size: 2rem; /* Slightly smaller */
   font-weight: 700; /* Bold but not extra bold */
   letter-spacing: -0.25px;
   color: var(--accent-primary); /* Use accent color */
   position: relative;
+  display: flex;
+  align-items: center;
+  text-transform: lowercase; /* Make logo lowercase */
 }
 
 .logoText::after {
