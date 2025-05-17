@@ -23,37 +23,39 @@ export default function Dashboard() {
   }, []);
   
   useEffect(() => {
+    // Clear any existing timeout when the effect runs again
+    if (loadingTimeoutRef.current) {
+      clearTimeout(loadingTimeoutRef.current);
+      loadingTimeoutRef.current = null;
+    }
+
     if (loading) {
       setDashboardError('');
-      if (loadingTimeoutRef.current) {
-        clearTimeout(loadingTimeoutRef.current);
-      }
+      // Set a longer timeout (10 seconds instead of 5)
       loadingTimeoutRef.current = setTimeout(() => {
         if (loading) {
-          console.warn('Dashboard loading timeout: Profile loading took too long. Signing out.');
+          console.warn('Dashboard loading timeout: Profile loading took too long.');
           setDashboardError('Loading your profile took too long. You have been signed out. Please try logging in again.');
           signOut();
         }
-      }, 5000);
+      }, 10000); // Extend to 10 seconds
     } else {
-      if (loadingTimeoutRef.current) {
-        clearTimeout(loadingTimeoutRef.current);
-        loadingTimeoutRef.current = null;
-      }
       if (!user) {
         router.push('/');
       } else if (user && profile) {
         fetchSavedRecipes();
       } else if (user && !profile) {
         if (!dashboardError) {
-            setDashboardError("Your profile data could not be loaded. Please try refreshing or signing out and back in.");
+          setDashboardError("Your profile data could not be loaded. Please try refreshing or signing out and back in.");
         }
       }
     }
 
+    // Cleanup function
     return () => {
       if (loadingTimeoutRef.current) {
         clearTimeout(loadingTimeoutRef.current);
+        loadingTimeoutRef.current = null;
       }
     };
   }, [loading, user, profile, router, signOut, dashboardError]);
@@ -196,7 +198,7 @@ export default function Dashboard() {
                 <div className="errorContainer" style={{textAlign: 'center', marginTop: '2rem'}}>
                     <h1>Profile Data Error</h1>
                     <p>We couldn't load your complete profile information. This might be a temporary issue, or your profile data is missing.</p>
-                    <p>Please try refreshing the page. If the problem persists, signing out and then back in might help. If the issue continues, please contact support.</p>
+                    <p>Please try refreshing the page. If the problem persists, signing out and then back in might help.</p>
                     <div style={{marginTop: '1.5rem', display: 'flex', justifyContent: 'center', gap: '1rem'}}>
                         <button 
                             onClick={async () => {

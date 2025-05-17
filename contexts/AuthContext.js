@@ -84,7 +84,7 @@ export function AuthProvider({ children }) {
   }
   
   async function fetchProfile(userId) {
-    // Add a small delay to simulate network latency for testing timeout
+    // Remove this commented-out delay if it exists
     // await new Promise(resolve => setTimeout(resolve, 7000)); // REMOVE FOR PRODUCTION
 
     try {
