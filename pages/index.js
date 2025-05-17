@@ -104,6 +104,9 @@ export default function HomePage() {
     // Add a ref to the loading spinner
     const loadingRef = useRef(null);
 
+    // Add this new state for tracking loading dots
+    const [loadingDots, setLoadingDots] = useState('');
+
     const router = useRouter();
 
     // Effect to update activeTool when selectedToolId changes
@@ -175,6 +178,25 @@ export default function HomePage() {
             }
         };
     }, [currentRunningTimer.intervalId]);
+
+    // Add this effect to animate the dots when loading
+    useEffect(() => {
+        let dotsInterval;
+        if (isLoading || isRandomLoading) {
+            dotsInterval = setInterval(() => {
+                setLoadingDots(prev => {
+                    if (prev === '...') return '';
+                    return prev + '.';
+                });
+            }, 400); // Control the speed of the blinking
+        } else {
+            setLoadingDots('');
+        }
+        
+        return () => {
+            if (dotsInterval) clearInterval(dotsInterval);
+        };
+    }, [isLoading, isRandomLoading]);
 
     const parseTimeFromString = (text) => {
         if (!text || typeof text !== 'string') return null;
@@ -985,7 +1007,11 @@ IMPORTANT:
             {activeTool && (
                 <section className={`toolDisplaySection ${resultsShown ? 'resultsActive' : ''}`}>
                     <div className="toolContainer">
-                        {isLoading && <div className="loadingSpinner" ref={loadingRef}><p className="loadingText">Building your healthy recipe...</p></div>}
+                        {(isLoading || isRandomLoading) && (
+                            <div className="loadingSpinner" ref={loadingRef}>
+                                <p className="loadingText">Building your healthy recipe{loadingDots}</p>
+                            </div>
+                        )}
                         {error && <p className="errorMessage">{error}</p>}
                         
                         {results && (
