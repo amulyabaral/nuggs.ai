@@ -121,15 +121,15 @@ img {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.8rem 1.5rem; /* Adjust padding for pill look */
-  width: calc(100% - 40px); /* Adjust width to give some space from viewport edges */
-  max-width: 1200px; /* Max width for the header */
-  margin: 1rem auto; /* Center the header */
-  background-color: var(--background-card); /* White background for header */
-  box-shadow: 0 2px 8px var(--shadow-color-medium); /* Softer shadow */
-  border-radius: 50px; /* Pill shape */
+  padding: 0.5rem 1.5rem; /* Reduced padding for thinner header */
+  width: calc(100% - 40px);
+  max-width: 1200px;
+  margin: 0.5rem auto; /* Reduced margin */
+  background-color: var(--background-card);
+  box-shadow: 0 2px 8px var(--shadow-color-medium);
+  border-radius: 50px;
   position: sticky;
-  top: 1rem; /* Stick with some space from top */
+  top: 0.5rem; /* Reduced top spacing */
   z-index: 1000;
   border: 1px solid var(--border-color);
 }
@@ -140,60 +140,40 @@ img {
 }
 
 .logoText {
-  font-family: 'Manrope', 'Helvetica Neue', sans-serif;
-  font-size: 2rem; /* Slightly smaller */
-  font-weight: 700; /* Bold but not extra bold */
+  font-size: 1.5rem; /* Reduced font size */
+  font-weight: 700;
   letter-spacing: -0.25px;
-  color: var(--text-primary); /* Updated to primary text color (like black/dark brown) */
+  color: var(--text-primary);
   position: relative;
   display: flex;
   align-items: center;
-  text-transform: lowercase; /* Make logo lowercase */
+  text-transform: lowercase;
 }
 
 .logoText::after {
   content: none; /* Remove underline */
 }
 
-.headerNav {
+/* Updated nav styling - simpler with no pill background */
+.mainHeader nav {
   display: flex;
-  gap: 1.2rem; /* Slightly reduced gap */
+  gap: 1rem;
 }
 
 .navLink {
-  color: var(--text-secondary); /* Softer text color */
-  font-size: 0.85rem; /* Slightly smaller */
-  font-weight: 500; /* Medium weight */
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  transition: color 0.2s ease;
-  cursor: pointer;
-  background: none;
-  border: none;
-  padding: 0.4rem 0;
-  font-family: inherit;
-  position: relative;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
 }
 
-.navLink::after {
-  content: "";
-  position: absolute;
-  bottom: -2px;
-  left: 50%;
-  width: 0;
-  height: 2px;
-  background-color: var(--accent-primary);
-  transition: all 0.3s ease;
-  transform: translateX(-50%);
-  border-radius: 1px;
+.navLink:hover {
+  color: var(--accent-primary);
+  text-decoration: none;
 }
 
-.navLink:hover::after,
-.navLinkActive::after {
-  width: 100%;
-}
-
-.navLink:hover,
 .navLinkActive {
   color: var(--accent-primary);
 }
@@ -273,17 +253,17 @@ img {
 }
 
 .pillSearchBar {
-  display: flex; /* Changed to flex for input + button on same line */
-  flex-direction: row; /* Ensure items are in a row */
-  align-items: center; /* Vertically align items in the search bar */
+  display: flex;
+  align-items: center;
   background-color: var(--background-card);
-  border: 1px solid var(--border-color); /* Softer border */
-  border-radius: 24px; /* Pill shape / highly rounded for the container */
-  padding: 0.4rem 0.6rem; /* Adjusted padding for the container */
+  border: 1px solid var(--border-color);
+  border-radius: 24px;
+  padding: 0.4rem 0.6rem;
   box-shadow: 0 4px 12px var(--shadow-color-soft);
-  overflow: hidden; /* Ensures children conform to border-radius */
+  overflow: hidden;
   transition: all 0.3s ease;
   width: 100%;
+  margin-bottom: 1rem; /* Add space between the input and options */
 }
 
 .pillSearchBar:focus-within {
@@ -886,41 +866,19 @@ img {
 
 /* Updated header nav styling */
 .headerNavPill {
-  display: flex;
-  gap: 1.2rem;
-  background-color: var(--background-card-subtle);
-  border-radius: 24px;
-  padding: 0.4rem;
-}
-
-.navPillLink {
-  color: var(--text-secondary);
-  font-size: 0.85rem;
-  font-weight: 500;
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  transition: all 0.2s ease;
-}
-
-.navPillLink:hover {
-  color: var(--text-primary);
-  text-decoration: none;
-}
-
-.navPillLinkActive {
-  background-color: var(--background-card);
-  color: var(--accent-primary);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  display: none;
 }
 
 /* New compact recipe options styling */
 .recipeOptionsCompact {
   margin: 0.8rem 0;
   width: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .optionsSection {
-  margin-bottom: 0.8rem;
+  margin-bottom: 1.2rem; /* Increased spacing between option sections */
 }
 
 .optionsSection h4 {
@@ -994,16 +952,15 @@ img {
 
 @media (max-width: 768px) {
   .mainHeader {
-    flex-direction: row; /* Keep horizontal on tablet */
-    gap: 1rem;
-    padding: 0.8rem 1rem;
+    padding: 0.4rem 1rem;
     width: calc(100% - 20px);
-    top: 0.5rem;
   }
-  .headerNav {
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.8rem 1rem;
+  .logoText {
+    font-size: 1.4rem;
+  }
+  .navLink {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.8rem;
   }
   .toolDisplaySection {
     padding: 1.5rem 1rem 2rem;
@@ -1035,14 +992,6 @@ img {
   .recipeOptionsGroup {
     max-width: 100%;
   }
-  .headerNavPill {
-    gap: 0.5rem; /* Reduce gap for smaller screens */
-    padding: 0.3rem;
-  }
-  .navPillLink {
-    padding: 0.4rem 0.8rem;
-    font-size: 0.8rem;
-  }
   .heroActionButtons {
     flex-direction: column; /* Stack buttons on smaller screens */
   }
@@ -1060,14 +1009,6 @@ img {
   }
   .logoText {
     font-size: 1.5rem;
-  }
-  .headerNavPill {
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-   .navPillLink {
-    font-size: 0.75rem;
-    padding: 0.3rem 0.6rem;
   }
   .toolContainer {
     padding: 1.2rem;
@@ -1171,29 +1112,22 @@ img {
 
 /* Updated header nav styling */
 .headerNavPill {
+  display: none;
+}
+
+/* Create a new wrapper for the form */
+.pillSearchForm {
   display: flex;
-  gap: 1.2rem;
-  background-color: var(--background-card-subtle);
-  border-radius: 24px;
-  padding: 0.4rem;
+  flex-direction: column;
+  width: 100%;
 }
 
-.navPillLink {
-  color: var(--text-secondary);
-  font-size: 0.85rem;
-  font-weight: 500;
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  transition: all 0.2s ease;
+/* Remove any floating elements that might appear at the end */
+.toolDisplaySection::after {
+  content: none;
 }
 
-.navPillLink:hover {
-  color: var(--text-primary);
-  text-decoration: none;
-}
-
-.navPillLinkActive {
-  background-color: var(--background-card);
-  color: var(--accent-primary);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+/* Fix spacing for the recipe sections */
+.optionsSection {
+  margin-bottom: 1.2rem; /* Increased spacing between option sections */
 } 

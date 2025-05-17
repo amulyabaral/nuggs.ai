@@ -713,21 +713,11 @@ IMPORTANT:
                 <div className="logoArea">
                     <h1 className="logoText"><span className="logoEmoji">🥦</span> nuggs.ai</h1>
                 </div>
-                <nav className="headerNavPill">
-                    <Link href="/" className={`navPillLink ${router.pathname === '/' ? "navPillLinkActive" : ''}`}>
+                <nav>
+                    <Link href="/" className={`navLink ${router.pathname === '/' ? "navLinkActive" : ''}`}>
                         Home
                     </Link>
-                    <Link 
-                        href="/#recipes" 
-                        className={`navPillLink ${selectedToolId === 'recipeGenerator' ? "navPillLinkActive" : ''}`}
-                        onClick={(e) => {
-                            e.preventDefault();
-                            document.querySelector('.toolDisplaySection').scrollIntoView({ behavior: 'smooth' });
-                        }}
-                    >
-                        Healthy Recipe Ideas
-                    </Link>
-                    <Link href="/blog" className={`navPillLink ${router.pathname === '/blog' ? "navPillLinkActive" : ''}`}>
+                    <Link href="/blog" className={`navLink ${router.pathname === '/blog' ? "navLinkActive" : ''}`}>
                         Blog
                     </Link>
                 </nav>
@@ -744,26 +734,28 @@ IMPORTANT:
                     
                     {/* This form is always for recipeGenerator now */}
                     <div className="pillSearchContainer">
-                        <form onSubmit={handleSubmit} className="pillSearchBar">
-                            <input
-                                type="text"
-                                value={inputValue}
-                                onChange={(e) => setInputValue(e.target.value)}
-                                placeholder="E.g., 'Pasta without gluten' or 'High-protein breakfast bowl'"
-                                className="pillSearchInput"
-                                disabled={isLoading || isRandomLoading}
-                            />
-                            <button
-                                type="button"
-                                className="inputRandomButton"
-                                onClick={handleRandomRecipeSubmit}
-                                disabled={isLoading || isRandomLoading}
-                                title="Generate a random recipe based on current selections"
-                            >
-                                🎲
-                            </button>
+                        <form onSubmit={handleSubmit} className="pillSearchForm">
+                            <div className="pillSearchBar">
+                                <input
+                                    type="text"
+                                    value={inputValue}
+                                    onChange={(e) => setInputValue(e.target.value)}
+                                    placeholder="E.g., 'Pasta without gluten' or 'High-protein breakfast bowl'"
+                                    className="pillSearchInput"
+                                    disabled={isLoading || isRandomLoading}
+                                />
+                                <button
+                                    type="button"
+                                    className="inputRandomButton"
+                                    onClick={handleRandomRecipeSubmit}
+                                    disabled={isLoading || isRandomLoading}
+                                    title="Generate a random recipe based on current selections"
+                                >
+                                    🎲
+                                </button>
+                            </div>
                             
-                            {/* Recipe options now inside search container */}
+                            {/* Recipe options in a more vertical layout */}
                             <div className="recipeOptionsCompact">
                                 <div className="optionsSection">
                                     <h4>Difficulty:</h4>
