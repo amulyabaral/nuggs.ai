@@ -1113,10 +1113,10 @@ IMPORTANT:
             {/* Replace the separate food showcase with an integrated hero section */}
             <section className={styles.enhancedHeroSection}>
                 <div className={styles.heroContent}>
-                    <h2 className={styles.heroTitle}>Taste the Difference</h2>
+                    <h2 className={styles.heroTitle}>Free Healthy Recipes</h2>
                     <p className={styles.heroSubtitle}>
-                        Transform your favorite meals into healthier versions without sacrificing flavor. 
-                        Tell us what you're craving, and we'll create a delicious, nutritious recipe just for you.
+                        Craving something delicious and nutritious? Tell us your ideas, 
+                        and we&apos;ll whip up a custom recipe, just for you.
                     </p>
                     
                     {selectedToolId === 'recipeGenerator' && (

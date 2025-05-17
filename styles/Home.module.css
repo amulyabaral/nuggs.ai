@@ -1,23 +1,45 @@
+/* CSS Variables for Theme Colors */
+:root {
+  --background-main: #FFFBF0; /* Warm Off-White/Light Peach */
+  --background-card: #FFFFFF;
+  --background-card-subtle: #FFFDF7;
+  --text-primary: #6B4F4B; /* Dark Warm Brown */
+  --text-secondary: #8D7772; /* Medium Warm Brown */
+  --text-placeholder: #B0A09A;
+  --accent-primary: #FF9A8B; /* Soft Coral/Peach */
+  --accent-primary-hover: #FF7F66;
+  --accent-secondary: #FFD8A8; /* Light Peach/Apricot */
+  --accent-positive: #A8D8B9; /* Soft Mint Green */
+  --accent-positive-text: #3A6B4A;
+  --accent-negative: #FFB3B3; /* Soft Pink/Red */
+  --accent-negative-bg: #FFEBEB;
+  --border-color: #F0E5D8; /* Light Warm Gray */
+  --shadow-color-soft: rgba(107, 79, 75, 0.08);
+  --shadow-color-medium: rgba(107, 79, 75, 0.12);
+  --button-text-light: #FFFFFF;
+  --button-text-dark: var(--text-primary);
+}
+
 /* Base Styles */
 .pageContainer {
   width: 100%;
   font-family: 'Inter', sans-serif;
-  color: #5a3e36; /* Warm brown text */
+  color: var(--text-primary);
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background-color: #fffaf5; /* Warm off-white background */
+  background-color: var(--background-main);
 }
 
-/* Header Styles - More professional */
+/* Header Styles - Lighter, more modern */
 .mainHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.5rem 5%;
+  padding: 1.2rem 5%; /* Slightly reduced padding */
   width: 100%;
-  background-color: #fff;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  background-color: var(--background-card); /* White background for header */
+  box-shadow: 0 1px 3px var(--shadow-color-soft); /* Softer shadow */
   position: sticky;
   top: 0;
   z-index: 1000;
@@ -29,41 +51,41 @@
 }
 
 .logoText {
-  font-family: 'Montserrat', 'Helvetica Neue', sans-serif; /* More professional font */
-  font-size: 2.2rem;
-  font-weight: 800;
-  letter-spacing: -0.5px;
-  color: #FF6B6B;
+  font-family: 'Montserrat', 'Helvetica Neue', sans-serif;
+  font-size: 2rem; /* Slightly smaller */
+  font-weight: 700; /* Bold but not extra bold */
+  letter-spacing: -0.25px;
+  color: var(--accent-primary); /* Use accent color */
   position: relative;
 }
 
 .logoText::after {
   content: "";
   position: absolute;
-  bottom: 2px;
+  bottom: -2px; /* Closer to text */
   left: 0;
-  width: 100%;
-  height: 4px;
-  background-color: #FFD166;
-  border-radius: 2px;
+  width: 70%; /* Shorter underline */
+  height: 3px; /* Thinner */
+  background-color: var(--accent-secondary); /* Lighter accent for underline */
+  border-radius: 1.5px;
 }
 
 .headerNav {
   display: flex;
-  gap: 1.5rem;
+  gap: 1.2rem; /* Slightly reduced gap */
 }
 
 .navLink {
-  color: #5a3e36;
-  font-size: 0.9rem;
-  font-weight: 600;
+  color: var(--text-secondary); /* Softer text color */
+  font-size: 0.85rem; /* Slightly smaller */
+  font-weight: 500; /* Medium weight */
   text-transform: uppercase;
   letter-spacing: 0.5px;
   transition: color 0.2s ease;
   cursor: pointer;
   background: none;
   border: none;
-  padding: 0.5rem 0;
+  padding: 0.4rem 0;
   font-family: inherit;
   position: relative;
 }
@@ -71,13 +93,14 @@
 .navLink::after {
   content: "";
   position: absolute;
-  bottom: 0;
+  bottom: -2px;
   left: 50%;
   width: 0;
   height: 2px;
-  background-color: #FF6B6B;
+  background-color: var(--accent-primary);
   transition: all 0.3s ease;
   transform: translateX(-50%);
+  border-radius: 1px;
 }
 
 .navLink:hover::after,
@@ -87,66 +110,63 @@
 
 .navLink:hover,
 .navLinkActive {
-  color: #FF6B6B;
+  color: var(--accent-primary);
 }
 
 /* Integrated Hero Section with Food Images */
 .enhancedHeroSection {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-  padding: 3rem 5%;
+  display: flex; /* Changed to flex for centering */
+  flex-direction: column; /* Stack content vertically */
+  align-items: center; /* Center horizontally */
+  text-align: center; /* Center text */
+  padding: 3rem 5% 4rem; /* Adjusted padding */
   position: relative;
-  min-height: 500px;
-  background-color: #fff;
+  min-height: auto; /* Adjust height as needed */
+  background: linear-gradient(180deg, var(--background-main) 0%, #FFF6E8 100%); /* Subtle gradient */
 }
 
-.enhancedHeroSection::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 100%;
-  background: linear-gradient(135deg, rgba(255, 245, 230, 0.8) 0%, rgba(255, 255, 255, 0.4) 100%);
-  z-index: 0;
-}
+/* Remove ::before pseudo-element if not needed for complex background */
+/* .enhancedHeroSection::before { ... } */
 
 .heroContent {
   position: relative;
   z-index: 1;
   display: flex;
   flex-direction: column;
+  align-items: center; /* Ensure content inside is centered */
   justify-content: center;
-  padding-right: 2rem;
+  padding-right: 0; /* Remove padding if centered */
+  max-width: 650px; /* Control max width of text content */
+  width: 100%;
 }
 
 .heroTitle {
-  font-size: 3.5rem;
-  font-weight: 800;
-  margin-bottom: 1.2rem;
-  line-height: 1.1;
-  color: #FF6B6B;
+  font-size: 2.8rem; /* Adjusted size */
+  font-weight: 700;
+  margin-bottom: 1rem;
+  line-height: 1.2;
+  color: var(--text-primary); /* Primary text color */
   position: relative;
 }
 
-.heroTitle::after {
+.heroTitle::after { /* More subtle underline or remove if too much */
   content: "";
   position: absolute;
-  bottom: -10px;
-  left: 0;
-  width: 80px;
-  height: 4px;
-  background-color: #FFD166;
-  border-radius: 2px;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 3px;
+  background-color: var(--accent-secondary);
+  border-radius: 1.5px;
 }
 
 .heroSubtitle {
-  font-size: 1.2rem;
-  color: #7D5A50;
-  margin-bottom: 2rem;
+  font-size: 1.1rem; /* Adjusted size */
+  color: var(--text-secondary);
+  margin-bottom: 2.5rem; /* More space before search */
   line-height: 1.6;
-  max-width: 500px;
+  max-width: 550px;
 }
 
 .heroImageLayout {
@@ -154,30 +174,42 @@
   z-index: 1;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: center; /* Center images */
+  margin-top: 2rem; /* Space between text and images */
+  gap: 1.5rem; /* Gap between images if both shown */
+  max-width: 700px; /* Control width of image area */
+  width: 100%;
 }
 
-.foodImageCard {
-  border-radius: 20px;
-  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+.foodImageCard, .foodImageCard2 {
+  border-radius: 16px; /* Consistent rounded corners */
+  box-shadow: 0 8px 20px var(--shadow-color-medium); /* Softer, more modern shadow */
   overflow: hidden;
   position: relative;
-  max-width: 350px;
-  transform: rotate(-5deg) translateY(-20px);
+  max-width: 300px; /* Adjust size as needed */
+  /* transform: rotate(-5deg) translateY(-20px); */ /* Remove or simplify transform */
   z-index: 2;
+  background-color: var(--background-card);
 }
 
 .foodImageCard2 {
-  border-radius: 20px;
-  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  position: absolute;
-  max-width: 300px;
-  right: 30px;
-  bottom: 30px;
-  transform: rotate(3deg);
+  /* transform: rotate(3deg); */ /* Remove or simplify transform */
   z-index: 1;
+  max-width: 260px; /* Slightly smaller */
 }
+/* Hide second image on smaller screens or if layout is too busy */
+@media (max-width: 768px) {
+  .foodImageCard2 {
+    display: none;
+  }
+  .heroImageLayout {
+    justify-content: center;
+  }
+  .foodImageCard {
+    max-width: 280px;
+  }
+}
+
 
 .foodImage {
   display: block;
@@ -186,84 +218,52 @@
   object-fit: cover;
 }
 
-/* Decorative elements */
-.imageDot1, .imageDot2, .imageDot3 {
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background-color: #FFD166;
+/* Decorative elements - simplify or remove if too cluttered */
+.imageDot1, .imageDot2, .imageDot3, .leafDecoration {
+ display: none; /* Hidden for a cleaner look, can be re-added subtly */
 }
 
-.imageDot1 {
-  top: -15px;
-  left: 30px;
-}
-
-.imageDot2 {
-  top: -5px;
-  left: 50px;
-}
-
-.imageDot3 {
-  top: 5px;
-  left: 70px;
-}
-
-.leafDecoration {
-  position: absolute;
-  width: 40px;
-  height: 40px;
-  background-color: #8FC03A;
-  border-radius: 50% 0 50% 50%;
-  transform: rotate(45deg);
-  right: -15px;
-  top: -15px;
-}
-
-.leafDecoration::after {
-  content: "";
-  position: absolute;
-  width: 20px;
-  height: 20px;
-  background-color: #fffaf5;
-  border-radius: 50% 0 50% 50%;
-  top: 10px;
-  left: 10px;
-}
-
-/* Search container styling */
+/* Search container styling - Centered and prominent */
 .pillSearchContainer {
   width: 100%;
-  max-width: 500px;
-  margin-top: 1rem;
+  max-width: 550px; /* Control width */
+  margin-top: 1rem; /* Space from subtitle */
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center buttons below search bar */
+  gap: 0.8rem;
 }
 
 .pillSearchBar {
-  display: flex;
-  flex-direction: column;
-  background-color: #fff;
-  border: 2px solid #FFD166;
-  border-radius: 12px;
-  padding: 0.5rem;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  display: flex; /* Keep as flex for input + button if on same line */
+  flex-direction: column; /* Stack input and button for now */
+  background-color: var(--background-card);
+  border: 1px solid var(--border-color); /* Softer border */
+  border-radius: 24px; /* Pill shape / highly rounded */
+  padding: 0.6rem; /* Padding around input/button */
+  box-shadow: 0 4px 12px var(--shadow-color-soft);
   overflow: hidden;
   transition: all 0.3s ease;
+  width: 100%;
 }
 
 .pillSearchBar:focus-within {
-  border-color: #FF9E70;
-  box-shadow: 0 8px 25px rgba(255, 158, 112, 0.15);
+  border-color: var(--accent-primary);
+  box-shadow: 0 5px 15px rgba(255, 154, 139, 0.2); /* Shadow with accent color */
 }
 
 .pillSearchInput {
   background: transparent;
   border: none;
-  color: #5a3e36;
-  padding: 1rem 1rem;
+  color: var(--text-primary);
+  padding: 0.8rem 1.2rem; /* Good padding inside input */
   font-size: 1rem;
   font-family: 'Inter', sans-serif;
-  margin-bottom: 0.5rem;
+  width: 100%; /* Take full width within padded container */
+  margin-bottom: 0.5rem; /* Space if button is below */
+}
+.pillSearchInput::placeholder {
+  color: var(--text-placeholder);
 }
 
 .pillSearchInput:focus {
@@ -271,52 +271,65 @@
 }
 
 .pillSearchButton {
-  background: #FF6B6B;
-  color: white;
+  background: var(--accent-primary);
+  color: var(--button-text-light);
   border: none;
-  border-radius: 8px;
-  padding: 0.8rem 1rem;
+  border-radius: 20px; /* Highly rounded */
+  padding: 0.8rem 1.5rem; /* Generous padding */
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 500; /* Medium weight */
   cursor: pointer;
   transition: all 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  width: 100%; /* Full width button */
 }
 
-.pillSearchButton:hover {
-  background: #e45a5a;
-  transform: translateY(-2px);
+.pillSearchButton:hover:not(:disabled) {
+  background: var(--accent-primary-hover);
+  transform: translateY(-1px); /* Subtle hover effect */
+}
+.pillSearchButton:disabled {
+  background-color: #E0E0E0;
+  color: #A0A0A0;
+  cursor: not-allowed;
 }
 
 .randomIdeasButton {
   background: transparent;
-  color: #FF6B6B;
-  border: 1px solid #FF6B6B;
-  border-radius: 8px;
-  padding: 0.7rem 1rem;
+  color: var(--accent-primary);
+  border: 1px solid var(--accent-primary);
+  border-radius: 20px; /* Highly rounded */
+  padding: 0.7rem 1.5rem;
   font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
-  margin-top: 0.8rem;
+  /* margin-top: 0.8rem; */ /* Handled by gap in pillSearchContainer */
   transition: all 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.randomIdeasButton:hover {
-  background-color: rgba(255, 107, 107, 0.1);
+.randomIdeasButton:hover:not(:disabled) {
+  background-color: rgba(255, 154, 139, 0.1); /* Light accent background on hover */
+  border-color: var(--accent-primary-hover);
 }
+.randomIdeasButton:disabled {
+  color: #A0A0A0;
+  border-color: #E0E0E0;
+  cursor: not-allowed;
+}
+
 
 /* Updated recipe options styling */
 .recipeOptionsGroup {
-  margin-bottom: 1.2rem;
+  margin-bottom: 1.5rem; /* Increased spacing */
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.8rem; /* Space between label and buttons */
   width: 100%;
   max-width: 700px;
   margin-left: auto;
@@ -325,25 +338,25 @@
 
 .recipeOptionsGroup label {
   font-weight: 500;
-  color: #d0d0d0;
+  color: var(--text-primary); /* Use primary text color */
   font-size: 1rem;
   text-align: left;
-  margin-bottom: 0.3rem;
+  margin-bottom: 0.2rem;
 }
 
 .radioButtonsContainer {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: 0.8rem; /* Space between buttons */
 }
 
 .radioButton {
-  background-color: #2a2a2a;
-  color: #c0c0c0;
-  border: none;
+  background-color: var(--background-card-subtle); /* Light background */
+  color: var(--text-secondary); /* Softer text color */
+  border: 1px solid var(--border-color); /* Subtle border */
   padding: 0.6rem 1.2rem;
-  border-radius: 30px;
-  font-size: 0.95rem;
+  border-radius: 20px; /* Rounded pill shape */
+  font-size: 0.9rem; /* Adjusted size */
   font-weight: 500;
   cursor: pointer;
   transition: all 0.25s ease;
@@ -353,315 +366,297 @@
 }
 
 .radioButton:hover:not(:disabled) {
-  background-color: #333;
-  color: #fff;
-  transform: translateY(-2px);
+  border-color: var(--accent-secondary); /* Accent border on hover */
+  color: var(--text-primary);
+  /* transform: translateY(-1px); */ /* Optional: subtle lift */
 }
 
 .radioButtonSelected {
-  background: linear-gradient(90deg, #FF70A6, #FF9E70);
-  color: white;
-  box-shadow: 0 3px 8px rgba(255, 112, 166, 0.2);
+  background: var(--accent-primary);
+  color: var(--button-text-light);
+  border-color: var(--accent-primary);
+  box-shadow: 0 2px 6px rgba(255, 154, 139, 0.2);
 }
 
 .radioButtonSelected:hover:not(:disabled) {
-  background: linear-gradient(90deg, #FF70A6, #FF9E70);
-  opacity: 0.9;
+  background: var(--accent-primary-hover);
+  border-color: var(--accent-primary-hover);
 }
 
 .exclusionButton {
-  background-color: #2a2a2a;
-  color: #c0c0c0;
+  /* Inherits .radioButton styles, can add specifics if needed */
 }
 
 .exclusionButtonSelected {
-  background-color: #553030;
-  color: #ffc0c0;
-  text-decoration: line-through;
+  background-color: var(--text-secondary); /* A muted color for selected exclusion */
+  color: var(--button-text-light);
+  border-color: var(--text-secondary);
+  /* text-decoration: line-through; */ /* Optional: line-through */
+}
+.exclusionButtonSelected:hover:not(:disabled) {
+  background-color: var(--text-primary);
+  border-color: var(--text-primary);
 }
 
-/* Updated recipe output styling */
-.recipeNameCard {
-  background: linear-gradient(145deg, #222, #2a2a2a);
-  border-radius: 16px;
-  padding: 2rem;
-  box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-  border: 1px solid #333;
-  margin-bottom: 1.5rem;
-}
 
-.suggestionCard {
-  background: linear-gradient(145deg, #222, #2a2a2a);
-  border-radius: 12px;
-  padding: 1.2rem;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-  cursor: pointer;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-  border: 1px solid #333;
-}
-
-.suggestionCard:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-  border-color: #FF70A6;
-}
-
-/* Main Tool Display Area (Recipe Generator focus) */
+/* Main Tool Display Area */
 .toolDisplaySection {
-  padding: 0 5% 2rem; /* Reduced top padding as hero handles it */
+  padding: 2rem 5% 3rem; /* Adjusted padding */
   flex-grow: 1;
   display: flex;
   justify-content: center;
-  align-items: flex-start;
+  align-items: flex-start; /* Align to top */
 }
 
 .toolContainer {
   max-width: 800px;
   width: 100%;
-  background-color: #fff; /* Light card background */
-  border-radius: 16px;
-  padding: 2.5rem;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-  border: 1px solid #f5e8e0;
+  background-color: var(--background-card); /* White card background */
+  border-radius: 16px; /* Rounded corners */
+  padding: 2rem; /* Adjusted padding */
+  box-shadow: 0 8px 25px var(--shadow-color-medium); /* Softer shadow */
+  border: 1px solid var(--border-color); /* Subtle border */
 }
 
-.toolHeader { /* This might be less prominent if form is directly in hero */
-  display: none; /* Hide if recipe generator is the main focus */
+/* Hide toolHeader and toolDescription if form is in hero for recipeGenerator */
+.toolHeader, .toolDescription {
+  /* display: none; */ /* Uncomment if not needed for other tools */
+  text-align: center;
+  margin-bottom: 1.5rem;
 }
-.toolDescription { /* Also potentially less prominent */
-  color: #a0a0a0;
-  margin-bottom: 2rem;
+.toolDescription {
+  color: var(--text-secondary);
   font-size: 1rem;
   line-height: 1.6;
-  text-align: center; /* Center if used */
 }
+
 
 .toolForm {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem; /* Increased gap */
+  gap: 1.2rem; /* Spacing between form elements */
 }
 
 .toolForm textarea,
 .toolForm input[type="text"] {
-  padding: 1rem 1.2rem;
-  border: 1px solid #3a3a3a;
-  background-color: #252525; /* Dark input background */
-  color: #e0e0e0; /* Light text in input */
-  border-radius: 8px;
-  font-size: 1rem;
+  padding: 0.9rem 1.1rem;
+  border: 1px solid var(--border-color);
+  background-color: var(--background-card-subtle); /* Very light background for inputs */
+  color: var(--text-primary);
+  border-radius: 10px; /* Softer corners */
+  font-size: 0.95rem;
   font-family: inherit;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .toolForm textarea:focus,
 .toolForm input[type="text"]:focus {
-  border-color: #70C2FF; /* Blue focus */
+  border-color: var(--accent-primary);
   outline: none;
-  box-shadow: 0 0 0 3px rgba(112, 194, 255, 0.3);
+  box-shadow: 0 0 0 2px rgba(255, 154, 139, 0.2); /* Focus ring with accent color */
 }
 .toolForm textarea::placeholder,
 .toolForm input[type="text"]::placeholder {
-  color: #777;
+  color: var(--text-placeholder);
 }
 
 .inputHint {
   font-size: 0.85rem;
-  color: #888;
-  margin-top: 0rem;
+  color: var(--text-secondary);
+  margin-top: -0.5rem; /* Pull closer to input */
   margin-bottom: 0.5rem;
-  padding: 0.5rem;
-  background-color: #222;
-  border-radius: 4px;
-  border-left: 3px solid #FF9E70; /* Orange accent */
+  padding: 0.6rem 0.8rem;
+  background-color: #FFF8F0; /* Very light accent background */
+  border-radius: 6px;
+  border-left: 3px solid var(--accent-secondary);
   text-align: left;
 }
 
 .submitButton {
-  background: linear-gradient(90deg, #70C2FF, #A0E6FF);
-  color: #101010; /* Dark text on light gradient button */
+  background: var(--accent-primary);
+  color: var(--button-text-light);
   border: none;
   padding: 0.9rem 1.8rem;
-  font-size: 1.1rem;
-  font-weight: 600;
-  border-radius: 8px; /* Match image's button style */
+  font-size: 1rem; /* Slightly smaller */
+  font-weight: 500;
+  border-radius: 10px; /* Rounded corners */
   cursor: pointer;
   transition: all 0.2s ease-out;
-  margin-top: 1rem;
-  box-shadow: 0 4px 15px rgba(112, 194, 255, 0.2);
+  margin-top: 0.5rem; /* Reduced margin */
+  box-shadow: 0 3px 10px rgba(255, 154, 139, 0.2);
 }
 
 .submitButton:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(112, 194, 255, 0.3);
+  background: var(--accent-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 154, 139, 0.3);
 }
 .submitButton:disabled {
-  background: #333;
-  color: #777;
+  background: #E0E0E0; /* Light gray for disabled */
+  color: #A0A0A0; /* Muted text */
   cursor: not-allowed;
   box-shadow: none;
 }
 
-/* Alternative button style like image (dark with white border) */
-.secondaryButton {
-  background-color: transparent;
-  color: #e0e0e0;
-  border: 2px solid #e0e0e0;
-  padding: 0.8rem 1.5rem;
-  font-size: 1rem;
-  font-weight: 500;
-  border-radius: 25px; /* Rounded like image */
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-.secondaryButton:hover:not(:disabled) {
-  background-color: #e0e0e0;
-  color: #101010;
-}
-
 .loadingSpinner {
-  /* ... (keep existing, ensure colors fit dark theme if needed) ... */
-  border: 3px solid #2a2a2a;
-  border-top: 3px solid #70C2FF; /* Blue spinner */
+  border: 3px solid #F0F0F0; /* Lighter track */
+  border-top: 3px solid var(--accent-primary); /* Accent color for spinner */
+  margin: 1.5rem auto; /* Center spinner */
+  width: 30px;
+  height: 30px;
 }
 
 .errorMessage {
-  color: #ff8080; /* Lighter red for dark theme */
-  padding: 1rem;
-  background-color: #3D2020; /* Dark red background */
+  color: var(--accent-negative); /* Soft red text */
+  padding: 0.8rem 1rem;
+  background-color: var(--accent-negative-bg); /* Very light red background */
   border-radius: 8px;
   font-size: 0.9rem;
-  border: 1px solid #593030;
+  border: 1px solid var(--accent-negative); /* Soft red border */
+  margin-top: 1rem;
 }
 
 .resultsContainer {
-  margin-top: 2.5rem;
-  border-top: 1px solid #2a2a2a;
-  padding-top: 2rem;
+  margin-top: 2rem; /* Space above results */
+  border-top: 1px solid var(--border-color); /* Subtle separator */
+  padding-top: 1.5rem;
 }
 
 .resultsContent { /* For markdown results */
-  background-color: #1f1f1f;
-  padding: 1.5rem;
-  border-radius: 8px;
+  background-color: var(--background-card-subtle);
+  padding: 1.2rem 1.5rem;
+  border-radius: 10px;
   white-space: pre-wrap;
   line-height: 1.6;
   max-height: 600px;
   overflow-y: auto;
-  border: 1px solid #333;
-  color: #c0c0c0;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
 }
-.resultsContent h1, .resultsContent h2, .resultsContent h3 { color: #e0e0e0; }
-.resultsContent a { color: #70C2FF; }
-.resultsContent code { background-color: #2b2b2b; color: #d0d0d0; padding: 0.2em 0.4em; border-radius: 3px;}
-.resultsContent pre { background-color: #2b2b2b; padding: 1em; border-radius: 5px; overflow-x: auto;}
+.resultsContent h1, .resultsContent h2, .resultsContent h3 { color: var(--text-primary); font-weight: 600; }
+.resultsContent a { color: var(--accent-primary); }
+.resultsContent code { background-color: #F0E5D8; color: var(--text-primary); padding: 0.2em 0.4em; border-radius: 4px;}
+.resultsContent pre { background-color: #F0E5D8; padding: 1em; border-radius: 6px; overflow-x: auto;}
 
 
-/* Recipe Output Styles - Dark Theme */
+/* Recipe Output Styles - Light Theme */
 .recipeOutputContainer {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1.8rem; /* Space between sections */
   margin-top: 1rem;
 }
 
+.recipeNameCard {
+  background: var(--background-card); /* White card */
+  border-radius: 12px; /* Rounded corners */
+  padding: 1.8rem; /* Good padding */
+  box-shadow: 0 6px 18px var(--shadow-color-soft);
+  border: 1px solid var(--border-color);
+  margin-bottom: 1rem; /* Space below card */
+}
+
 .recipeNameCard h2 {
-  font-size: 1.8rem;
-  background: linear-gradient(90deg, #FF70A6, #FF9E70);
+  font-size: 1.6rem; /* Adjusted size */
+  color: var(--text-primary);
+  /* background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  text-fill-color: transparent;
-  margin-bottom: 0.5rem;
+  text-fill-color: transparent; */
+  margin-bottom: 0.6rem;
   font-family: 'Inter', sans-serif;
   font-weight: 600;
 }
 .recipeNameCard p {
-  font-size: 1rem;
-  color: #a0a0a0;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
   line-height: 1.6;
   margin-bottom: 1rem;
 }
 .recipeMeta {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem 1.5rem;
-  font-size: 0.9rem;
-  color: #888;
-  padding-top: 1rem;
-  border-top: 1px dashed #333;
+  gap: 0.8rem 1.2rem; /* Adjusted gap */
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  padding-top: 0.8rem;
+  border-top: 1px dashed var(--border-color); /* Softer separator */
 }
 .recipeMeta span strong {
-  color: #b0b0b0;
+  color: var(--text-primary);
+  font-weight: 500;
 }
 
 .healthBenefitsSection {
   margin-top: 1rem;
-  padding-top: 0.75rem;
-  border-top: 1px dashed #333;
+  padding-top: 0.8rem;
+  border-top: 1px dashed var(--border-color);
   font-size: 0.9rem;
 }
 .healthBenefitsSection strong {
-  color: #60d080; /* Green for health benefits */
+  color: var(--accent-positive-text); /* Green for health benefits */
   display: block;
-  margin-bottom: 0.3rem;
+  margin-bottom: 0.4rem;
+  font-weight: 500;
 }
 .healthBenefitsSection ul {
-  list-style: disc;
-  padding-left: 20px;
+  list-style: disc; /* Standard disc */
+  padding-left: 18px; /* Indent list */
   margin: 0;
-  color: #a0a0a0;
+  color: var(--text-secondary);
 }
 
 .recipeSection {
-  background-color: #1e1e1e; /* Slightly different dark for sections */
+  background-color: var(--background-card-subtle); /* Slightly off-white for sections */
   border-radius: 10px;
   padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-  border: 1px solid #2f2f2f;
+  box-shadow: 0 3px 10px var(--shadow-color-soft);
+  border: 1px solid var(--border-color);
 }
 .recipeSection h3 {
-  font-size: 1.4rem;
-  color: #d0d0d0;
+  font-size: 1.3rem; /* Adjusted size */
+  color: var(--text-primary);
   margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid #3a3a3a;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--border-color);
+  font-weight: 600;
 }
 
 .ingredientsGrid {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: 0.8rem;
 }
 .ingredientPill {
-  background-color: #2f2f2f;
-  color: #b0b0b0;
+  background-color: #FFFFFF; /* White pills */
+  color: var(--text-secondary);
   padding: 0.5rem 1rem;
-  border-radius: 15px;
+  border-radius: 16px; /* Pill shape */
   font-size: 0.85rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  border: 1px solid #444;
+  border: 1px solid var(--border-color);
   transition: all 0.2s ease;
   cursor: pointer;
 }
 .ingredientPill:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-  border-color: #FF9E70; /* Orange accent hover */
-  background-color: #3a3a3a;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px var(--shadow-color-soft);
+  border-color: var(--accent-secondary);
+  background-color: #FFFDF7;
 }
 .ingredientName {
   font-weight: 500;
-  color: #d0d0d0;
+  color: var(--text-primary);
 }
 .ingredientQuantity {
-  color: #888;
+  color: var(--text-secondary);
 }
 .ingredientNotes {
   font-size: 0.75rem;
-  color: #777;
+  color: #A0A0A0; /* Lighter gray for notes */
   font-style: italic;
 }
 
@@ -670,124 +665,149 @@
   padding-left: 0;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.8rem; /* Space between instructions */
 }
 .instructionStep {
-  background-color: #252525;
-  border: 1px solid #383838;
+  background-color: #FFFFFF; /* White background for steps */
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 1rem 1.2rem;
   cursor: pointer;
   display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
+  align-items: flex-start; /* Align checkbox with text */
+  gap: 0.8rem;
   transition: background-color 0.2s, border-color 0.2s;
   position: relative;
 }
 .instructionStep:hover {
-  border-color: #70C2FF; /* Blue accent hover */
-  background-color: #2d2d2d;
+  border-color: var(--accent-secondary);
+  background-color: var(--background-card-subtle);
 }
 .instructionCheckbox {
-  margin-top: 0.2rem;
+  margin-top: 0.25rem; /* Align with text */
   width: 18px;
   height: 18px;
-  accent-color: #FF9E70; /* Orange accent */
+  accent-color: var(--accent-primary); /* Use accent for checkbox */
   cursor: pointer;
-  background-color: #444; /* Background for unchecked state */
-  border: 1px solid #555;
-  border-radius: 3px;
-  appearance: none; /* For custom styling */
+  background-color: #FFFFFF;
+  border: 1.5px solid var(--border-color); /* Clearer border */
+  border-radius: 4px; /* Slightly rounded */
+  appearance: none;
+  position: relative; /* For custom checkmark */
 }
 .instructionCheckbox:checked {
-  background-color: #FF9E70;
-  border-color: #FF9E70;
+  background-color: var(--accent-primary);
+  border-color: var(--accent-primary);
 }
-.instructionCheckbox:checked::before { /* Custom checkmark */
+.instructionCheckbox:checked::before {
   content: '✔';
   display: block;
-  color: #1c1c1c;
-  text-align: center;
-  line-height: 16px; /* Adjust for checkbox size */
+  color: white;
   font-size: 12px;
+  font-weight: bold;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .stepNumber {
   font-weight: 600;
-  color: #FF9E70; /* Orange accent */
+  color: var(--accent-primary);
   white-space: nowrap;
+  font-size: 0.95rem;
 }
 .stepDescription {
-  color: #b0b0b0;
+  color: var(--text-primary);
   line-height: 1.5;
+  font-size: 0.95rem;
 }
 .checkedInstruction {
-  background-color: #2a3a2a; /* Dark green for checked */
-  border-left: 4px solid #60d080;
+  background-color: #F0FFF5; /* Very light green for checked */
+  border-left: 3px solid var(--accent-positive); /* Green accent line */
 }
 .checkedInstruction .stepDescription {
   text-decoration: line-through;
-  color: #777;
+  color: var(--text-secondary);
 }
 .checkedInstruction .stepNumber {
-  color: #60d080;
+  color: var(--accent-positive-text);
 }
 
 .timerDisplay {
   margin-left: auto;
-  font-size: 0.9rem;
-  color: #999;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
   font-weight: 500;
-  padding: 0.2rem 0.5rem;
-  background-color: #333;
+  padding: 0.2rem 0.6rem;
+  background-color: #F0F0F0; /* Light gray background for timer */
   border-radius: 4px;
   white-space: nowrap;
 }
 .activeTimerInstruction {
-  border-left: 4px solid #FF9E70;
+  border-left: 3px solid var(--accent-primary); /* Accent color for active timer */
 }
 .activeTimerInstruction .timerDisplay {
-  color: #FF9E70;
-  background-color: #4a3828;
+  color: var(--accent-primary);
+  background-color: #FFEFEB; /* Light accent background */
+  font-weight: 600;
 }
 .startTimerButton {
   margin-left: 10px;
-  padding: 0.3rem 0.6rem;
+  padding: 0.4rem 0.8rem; /* Slightly larger */
   font-size: 0.8rem;
-  background-color: #60d080;
-  color: #1c1c1c;
+  background-color: var(--accent-positive);
+  color: var(--button-text-light);
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
   transition: background-color 0.2s;
 }
 .startTimerButton:hover {
-  background-color: #50b070;
+  background-color: #8BCDA4; /* Darker green on hover */
 }
 
 /* Suggestion Cards (Dips & Drinks, etc.) */
 .suggestionCardsContainer {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); /* Adjust minmax */
   gap: 1rem;
   margin-top: 0.5rem;
 }
+
+.suggestionCard {
+  background: #FFFFFF; /* White card */
+  border-radius: 10px;
+  padding: 1.2rem;
+  box-shadow: 0 4px 12px var(--shadow-color-soft);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border: 1px solid var(--border-color);
+}
+
+.suggestionCard:hover {
+  transform: translateY(-3px); /* More subtle lift */
+  box-shadow: 0 6px 15px var(--shadow-color-medium);
+  border-color: var(--accent-secondary);
+}
+
 .suggestionCard h4 {
-  font-size: 1.15rem;
-  color: #FF70A6; /* Pink accent */
+  font-size: 1.1rem; /* Adjusted size */
+  color: var(--accent-primary);
   margin-top: 0;
   margin-bottom: 0.5rem;
   display: flex;
   align-items: center;
+  font-weight: 600;
 }
 .suggestionCard p {
   font-size: 0.9rem;
-  color: #a0a0a0;
+  color: var(--text-secondary);
   line-height: 1.5;
   margin-bottom: 0.75rem;
 }
 
-/* Critique Output Styles - Dark Theme */
+/* Critique Output Styles - Light Theme */
 .critiqueOutputContainer {
   display: flex;
   flex-direction: column;
@@ -795,330 +815,325 @@
   margin-top: 1rem;
 }
 .critiqueOverallTitle {
-  font-size: 1.7rem;
-  color: #e0e0e0;
+  font-size: 1.5rem; /* Adjusted size */
+  color: var(--text-primary);
   text-align: center;
   margin-bottom: 1rem;
   font-family: 'Inter', sans-serif;
   font-weight: 600;
 }
 .critiqueCard {
-  background-color: #222;
+  background-color: var(--background-card-subtle); /* Light card background */
   border-radius: 10px;
   padding: 1.5rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-  border: 1px solid #333;
+  box-shadow: 0 4px 12px var(--shadow-color-soft);
+  border: 1px solid var(--border-color);
 }
 .critiqueCardTitle {
-  font-size: 1.3rem;
-  color: #70C2FF; /* Blue accent */
+  font-size: 1.2rem; /* Adjusted size */
+  color: var(--accent-primary); /* Use accent color */
   margin-bottom: 1rem;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid #3a3a3a;
+  border-bottom: 1px solid var(--border-color);
+  font-weight: 600;
 }
 .critiqueCardContent p {
   font-size: 0.95rem;
-  color: #a0a0a0;
+  color: var(--text-secondary);
   line-height: 1.6;
   margin-bottom: 0.5rem;
 }
 .critiqueCardContent strong {
-  color: #c0c0c0;
-  font-weight: 600;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+.critiqueCardContent ul {
+  list-style-position: inside;
+  padding-left: 0;
+}
+.critiqueCardContent ul li {
+  margin-bottom: 0.3rem;
 }
 
-/* Suggestion Explorer Output - Dark Theme */
+
+/* Suggestion Explorer Output - Light Theme */
 .suggestionExplorerOutputContainer {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
   margin-top: 1rem;
 }
-.suggestionExplorerOutputContainer h3 {
-  font-size: 1.5rem;
-  color: #d0d0d0;
+.suggestionExplorerOutputContainer h3 { /* Title for "Alternatives for: ..." */
+  font-size: 1.4rem;
+  color: var(--text-primary);
   text-align: center;
   margin-bottom: 0.5rem;
+  font-weight: 600;
 }
 .suggestionAnalysis {
   font-style: italic;
-  color: #999;
-  background-color: #252525;
-  padding: 0.75rem;
-  border-radius: 6px;
+  color: var(--text-secondary);
+  background-color: #FFF8F0; /* Very light accent background */
+  padding: 0.8rem 1rem;
+  border-radius: 8px;
   text-align: center;
   margin-bottom: 1rem;
-  border: 1px solid #333;
+  border: 1px solid var(--border-color);
 }
-.suggestionList h4 {
-  font-size: 1.3rem;
-  color: #FF9E70; /* Orange accent */
+.suggestionList h4 { /* "Suggestions:" title */
+  font-size: 1.2rem;
+  color: var(--accent-primary);
   margin-bottom: 0.75rem;
-  border-bottom: 1px solid #3a3a3a;
+  border-bottom: 1px solid var(--border-color);
   padding-bottom: 0.5rem;
+  font-weight: 600;
 }
 .suggestionItemCard {
-  background-color: #252525;
-  border: 1px solid #383838;
-  border-radius: 8px;
+  background-color: #FFFFFF; /* White card */
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
   padding: 1.2rem;
   margin-bottom: 1rem;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  box-shadow: 0 3px 8px var(--shadow-color-soft);
 }
-.suggestionItemCard h5 {
-  font-size: 1.2rem;
-  color: #70C2FF; /* Blue accent */
+.suggestionItemCard h5 { /* Suggested item name */
+  font-size: 1.15rem;
+  color: var(--text-primary); /* Primary text for item name */
   margin-top: 0;
   margin-bottom: 0.5rem;
+  font-weight: 600;
 }
 .suggestionTypeTag {
-  font-size: 0.8rem;
-  font-weight: normal;
-  color: #888;
-  background-color: #333;
-  padding: 0.2rem 0.5rem;
-  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background-color: #F0F0F0; /* Light gray tag */
+  padding: 0.2rem 0.6rem;
+  border-radius: 10px; /* Pill tag */
   margin-left: 0.5rem;
+  display: inline-block; /* Ensure padding is applied correctly */
 }
 .suggestionItemCard p {
-  font-size: 0.95rem;
-  color: #a0a0a0;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
   line-height: 1.6;
   margin-bottom: 0.75rem;
 }
 .nutritionalComparison {
   margin-top: 1rem;
   margin-bottom: 1rem;
-  padding: 0.75rem;
-  background-color: #202020;
-  border-radius: 6px;
-  border: 1px solid #2f2f2f;
+  padding: 0.8rem 1rem;
+  background-color: var(--background-card-subtle);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
 }
 .nutritionalComparison h6 {
-  font-size: 1rem;
-  color: #c0c0c0;
-  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  margin-bottom: 0.6rem;
+  font-weight: 500;
 }
 .comparisonTable {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  grid-template-columns: 1fr; /* Stack on small screens */
+  gap: 0.8rem; /* Gap between original and suggested */
   font-size: 0.85rem;
+}
+@media (min-width: 500px) {
+  .comparisonTable {
+    grid-template-columns: 1fr 1fr; /* Side by side on larger screens */
+  }
 }
 .comparisonTable > div {
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
-  color: #999;
+  color: var(--text-secondary);
 }
 .comparisonTable strong {
-  font-weight: 600;
-  color: #80c0d0; /* Tealish accent */
+  font-weight: 500;
+  color: var(--text-primary);
 }
 .comparisonTable small {
-  color: #777;
+  color: #A0A0A0;
 }
 .recipeSnippet {
   font-size: 0.9rem;
-  background-color: #253025; /* Dark green for tips */
-  padding: 0.5rem;
-  border-radius: 4px;
-  border-left: 3px solid #60d080;
-  color: #a0c0a0;
-}
-.amazonSearchButtonSmall {
-  background-color: #FFD170; /* Yellow accent */
-  color: #111;
-  border: none;
-  padding: 0.4rem 0.8rem;
-  font-size: 0.8rem;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.2s;
+  background-color: #F0FFF5; /* Light green for tips */
+  padding: 0.6rem 0.8rem;
+  border-radius: 6px;
+  border-left: 3px solid var(--accent-positive);
+  color: var(--accent-positive-text);
   margin-top: 0.5rem;
 }
+.amazonSearchButtonSmall {
+  background-color: var(--accent-secondary);
+  color: var(--text-primary);
+  border: none;
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  border-radius: 16px; /* Pill shape */
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-top: 0.8rem;
+  display: inline-block;
+}
 .amazonSearchButtonSmall:hover {
-  background-color: #f0c060;
+  background-color: #FFCA90; /* Darker shade of accent-secondary */
 }
 .generalTipsSection {
   margin-top: 1rem;
-  padding: 1rem;
-  background-color: #202530; /* Dark blue for general tips */
-  border-radius: 6px;
-  border: 1px solid #2f3848;
+  padding: 1rem 1.2rem;
+  background-color: #F0F5FF; /* Light blue for general tips */
+  border-radius: 8px;
+  border: 1px solid #D8E0F0; /* Softer blue border */
 }
 .generalTipsSection h4 {
-  font-size: 1.2rem;
-  color: #80a0d0; /* Light blue */
-  margin-bottom: 0.5rem;
+  font-size: 1.15rem;
+  color: #5A70A0; /* Muted blue text */
+  margin-bottom: 0.6rem;
+  font-weight: 600;
 }
 .generalTipsSection ul {
   list-style: disc;
-  padding-left: 20px;
-  font-size: 0.95rem;
-  color: #a0a0a0;
+  padding-left: 18px;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
 }
 
 
-/* File Upload Area - Dark Theme */
+/* File Upload Area - Light Theme */
 .fileUpload { width: 100%; }
 .uploadAreaLabel { display: block; cursor: pointer; }
 .uploadArea {
-  border: 2px dashed #444;
-  border-radius: 8px;
-  padding: 2.5rem;
+  border: 2px dashed var(--border-color); /* Dashed border */
+  border-radius: 10px;
+  padding: 2rem; /* Adjusted padding */
   text-align: center;
   cursor: pointer;
   transition: border-color 0.2s, background-color 0.2s;
-  background-color: #252525;
+  background-color: var(--background-card-subtle);
 }
 .uploadArea:hover {
-  border-color: #70C2FF;
-  background-color: #2a2a2a;
+  border-color: var(--accent-primary);
+  background-color: #FFF8F0; /* Slightly warmer on hover */
 }
 .uploadIcon {
-  font-size: 2.5rem;
+  font-size: 2.2rem; /* Adjusted size */
   display: block;
-  margin-bottom: 1rem;
-  color: #70C2FF;
+  margin-bottom: 0.8rem;
+  color: var(--accent-primary);
 }
-.uploadArea p { color: #999; }
-.uploadAreaHint { font-size: 0.85rem; color: #777; margin-top: 0.5rem; }
-.selectedFile { display: flex; justify-content: space-between; align-items: center; color: #c0c0c0; }
+.uploadArea p { color: var(--text-secondary); }
+.uploadAreaHint { font-size: 0.8rem; color: #A0A0A0; margin-top: 0.5rem; }
+.selectedFile {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--text-primary);
+  background-color: #F0F0F0;
+  padding: 0.6rem 1rem;
+  border-radius: 6px;
+  margin-top: 1rem;
+}
 .selectedFile button {
-  background-color: #333;
-  color: #bbb;
-  border: 1px solid #444;
-  border-radius: 4px;
-  padding: 0.3rem 0.6rem;
+  background-color: transparent;
+  color: var(--accent-primary);
+  border: 1px solid var(--accent-primary);
+  border-radius: 12px;
+  padding: 0.3rem 0.8rem;
+  font-size: 0.8rem;
   cursor: pointer;
 }
-.selectedFile button:hover { background-color: #404040; color: #fff; }
+.selectedFile button:hover {
+  background-color: rgba(255, 154, 139, 0.1);
+}
 
 
 /* Footer (Optional - if you add one) */
 .mainFooter {
   text-align: center;
-  padding: 2rem 5%;
-  margin-top: 3rem;
-  border-top: 1px solid #2a2a2a;
-  font-size: 0.9rem;
-  color: #777;
+  padding: 2.5rem 5%;
+  margin-top: auto; /* Push to bottom if content is short */
+  border-top: 1px solid var(--border-color);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  background-color: var(--background-card-subtle);
 }
 .mainFooter a {
-  color: #999;
+  color: var(--accent-primary);
+  font-weight: 500;
+}
+.mainFooter a:hover {
+  text-decoration: underline;
 }
 
 
 /* Responsive Design Adjustments */
 @media (max-width: 992px) {
   .enhancedHeroSection {
-    grid-template-columns: 1fr;
-    padding: 2rem 5%;
+    padding: 2.5rem 5% 3rem;
   }
-  
-  .heroContent {
-    padding-right: 0;
-    text-align: center;
-    align-items: center;
-  }
-  
-  .heroTitle::after {
-    left: 50%;
-    transform: translateX(-50%);
-  }
-  
-  .heroImageLayout {
-    justify-content: center;
-    margin-top: 2rem;
-  }
-  
-  .foodImageCard, .foodImageCard2 {
-    position: relative;
-    transform: none;
-    right: auto;
-    bottom: auto;
-    top: auto;
-    margin: 0 auto;
-  }
-  
-  .foodImageCard2 {
-    display: none;
+  .heroTitle {
+    font-size: 2.5rem;
   }
 }
 
 @media (max-width: 768px) {
-  .heroSection {
-    padding: 3rem 5% 2rem;
-  }
-  .heroTitle {
-    font-size: 2.8rem;
-  }
-  .heroSubtitle {
-    font-size: 1.1rem;
-  }
-  .mainHeader {
-    flex-direction: column;
-    gap: 1rem;
-  }
-  .headerNav {
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-  .toolDisplaySection {
-    padding: 0 1rem 2rem;
-  }
-  .toolContainer {
-    padding: 1.5rem;
-  }
-  .toolForm textarea, .toolForm input[type="text"] {
-    padding: 0.9rem 1rem;
-    font-size: 0.95rem;
-  }
-  .submitButton {
-    padding: 0.8rem 1.5rem;
-    font-size: 1rem;
-  }
-  .radioButton {
-    padding: 0.5rem 1rem;
-    font-size: 0.85rem;
-  }
-  .recipeNameCard h2 { font-size: 1.6rem; }
-  .recipeSection h3 { font-size: 1.3rem; }
-  .pillSearchBar {
-    flex-direction: column;
-    border-radius: 20px;
-    padding: 0.5rem;
-  }
-  
-  .pillSearchInput {
-    width: 100%;
-    padding: 0.8rem 1rem;
-    font-size: 1rem;
-  }
-  
-  .pillSearchButton {
-    width: 100%;
-    margin-top: 0.5rem;
-    justify-content: center;
-  }
-}
-
-@media (max-width: 480px) {
   .heroTitle {
     font-size: 2.2rem;
   }
   .heroSubtitle {
     font-size: 1rem;
   }
+  .mainHeader {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem 5%;
+  }
+  .headerNav {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.8rem 1rem;
+  }
+  .toolDisplaySection {
+    padding: 1.5rem 1rem 2rem;
+  }
+  .toolContainer {
+    padding: 1.5rem;
+  }
+  .pillSearchInput {
+    padding: 0.7rem 1rem;
+    font-size: 0.95rem;
+  }
+  .pillSearchButton, .randomIdeasButton {
+    padding: 0.7rem 1.2rem;
+    font-size: 0.95rem;
+  }
+  .radioButton {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+  }
+  .recipeNameCard h2 { font-size: 1.4rem; }
+  .recipeSection h3 { font-size: 1.2rem; }
+}
+
+@media (max-width: 480px) {
+  .heroTitle {
+    font-size: 1.9rem;
+  }
+  .heroSubtitle {
+    font-size: 0.9rem;
+  }
   .logoText {
-    font-size: 1.8rem;
+    font-size: 1.7rem;
   }
   .navLink {
     font-size: 0.8rem;
   }
   .toolContainer {
-    padding: 1rem;
+    padding: 1.2rem;
   }
   .toolForm textarea, .toolForm input[type="text"] {
     font-size: 0.9rem;
@@ -1129,16 +1144,20 @@
     font-size: 0.95rem;
   }
   .radioButton {
-    width: calc(50% - 0.5rem); /* Two per row on small screens */
+    width: 100%; /* Full width on very small screens */
     justify-content: center;
-    font-size: 0.8rem;
-    padding: 0.5rem 0.8rem;
+    font-size: 0.85rem;
   }
-  .recipeNameCard h2 { font-size: 1.4rem; }
-  .recipeSection h3 { font-size: 1.2rem; }
+  .recipeNameCard h2 { font-size: 1.3rem; }
+  .recipeSection h3 { font-size: 1.1rem; }
+  .pillSearchContainer {
+    max-width: 100%;
+  }
 }
 
 /* REMOVE OLD STYLES that are replaced or no longer needed */
-.mainHeaderPill, .toolPillNavigation, .toolPill, .activeToolPill, .comingSoonPill, .tagline {
-  display: none !important; /* Or remove them completely */
+.mainHeaderPill, .toolPillNavigation, .toolPill, .activeToolPill, .comingSoonPill, .tagline,
+.secondaryButton /* If not used elsewhere */
+{
+  display: none !important;
 } 
