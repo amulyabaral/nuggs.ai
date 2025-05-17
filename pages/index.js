@@ -619,7 +619,7 @@ IMPORTANT:
 
                     <div className="recipeSection">
                         <h3>Ingredients</h3>
-                        <p className="amazonNote">👆 Click any ingredient to search for it on Amazon</p>
+                        <p className="amazonNote"> (You can click any ingredient to automatically search for it on Amazon!)</p>
                         <div className="ingredientsGrid">
                             {recipe.ingredients && recipe.ingredients.length > 0 ? recipe.ingredients.map((ing, index) => (
                                 <div
