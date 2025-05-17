@@ -6,7 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import AuthModal from '../components/AuthModal';
 
 export default function Pricing() {
-  const { user, isPremium, loading } = useAuth();
+  const { user, isPremium, loading, signOut } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState('login');
   const [checkoutLoading, setCheckoutLoading] = useState(false);
@@ -85,9 +85,14 @@ export default function Pricing() {
             Blog
           </Link>
           {user ? (
-            <Link href="/dashboard" className="navLink">
-              Dashboard
-            </Link>
+            <>
+              <Link href="/dashboard" className="navLink">
+                Dashboard
+              </Link>
+              <button onClick={signOut} className="navLink authNavButton">
+                Sign Out
+              </button>
+            </>
           ) : (
             <button 
               onClick={() => {

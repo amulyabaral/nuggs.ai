@@ -5,6 +5,7 @@ import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
 import Image from 'next/image';
+import { useAuth } from '../contexts/AuthContext';
 
 // This function runs at build time on the server
 export async function getStaticProps() {
@@ -56,6 +57,8 @@ export async function getStaticProps() {
 }
 
 export default function Blog({ posts }) {
+  const { user, signOut } = useAuth();
+
   return (
     <div className="pageContainer">
       <Head>
@@ -74,6 +77,25 @@ export default function Blog({ posts }) {
           <Link href="/blog" className="navLink navLinkActive">
             Blog
           </Link>
+          {user ? (
+            <>
+              <Link href="/dashboard" className="navLink">
+                Dashboard
+              </Link>
+              <button onClick={signOut} className="navLink authNavButton">
+                Sign Out
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={() => {
+                console.log('Login button clicked');
+              }}
+              className="navLink authNavButton"
+            >
+              Log In
+            </button>
+          )}
         </nav>
       </header>
       

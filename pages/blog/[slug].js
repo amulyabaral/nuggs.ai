@@ -5,6 +5,7 @@ import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
 import ReactMarkdown from 'react-markdown';
+import { useAuth } from '../contexts/AuthContext';
 
 // Get paths for all blog posts at build time
 export async function getStaticPaths() {
@@ -50,6 +51,7 @@ export async function getStaticProps({ params }) {
 
 export default function BlogPost({ title, content, date }) {
   const router = useRouter();
+  const { user, signOut } = useAuth();
   
   return (
     <div className="pageContainer">
@@ -69,6 +71,25 @@ export default function BlogPost({ title, content, date }) {
           <Link href="/blog" className="navLink navLinkActive">
             Blog
           </Link>
+          {user ? (
+            <>
+              <Link href="/dashboard" className="navLink">
+                Dashboard
+              </Link>
+              <button onClick={signOut} className="navLink authNavButton">
+                Sign Out
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={() => {
+                console.log('Login button clicked');
+              }}
+              className="navLink authNavButton"
+            >
+              Log In
+            </button>
+          )}
         </nav>
       </header>
       

@@ -245,6 +245,11 @@ export default function Dashboard() {
           <Link href="/dashboard" className="navLink navLinkActive">
             Dashboard
           </Link>
+          {user && (
+            <button onClick={signOut} className="navLink authNavButton">
+              Sign Out
+            </button>
+          )}
         </nav>
       </header>
       

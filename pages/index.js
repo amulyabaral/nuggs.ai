@@ -115,7 +115,7 @@ export default function HomePage() {
     const router = useRouter();
 
     // Add this to access auth context
-    const { user, usageRemaining, isPremium, incrementUsage } = useAuth();
+    const { user, usageRemaining, isPremium, incrementUsage, signOut } = useAuth();
 
     // Add to your existing state variables
     const [showAuthModal, setShowAuthModal] = useState(false);
@@ -989,9 +989,14 @@ IMPORTANT:
                         Blog
                     </Link>
                     {user ? (
-                        <Link href="/dashboard" className="navLink">
-                            Dashboard
-                        </Link>
+                        <>
+                          <Link href="/dashboard" className="navLink">
+                              Dashboard
+                          </Link>
+                          <button onClick={signOut} className="navLink authNavButton">
+                              Sign Out
+                          </button>
+                        </>
                     ) : (
                         <button 
                             onClick={() => {
