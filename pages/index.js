@@ -551,9 +551,9 @@ IMPORTANT:
                             <span><strong>Prep:</strong> {recipe.prepTime || 'N/A'}</span>
                             <span><strong>Cook:</strong> {recipe.cookTime || 'N/A'}</span>
                             <span><strong>Difficulty:</strong> {recipe.difficultyRating || 'N/A'}</span>
-                            <span><strong>Servings:</strong> {recipe.servings || 'N/A'}</span>
+                            <span><strong>Servings:</strong> <span style={{fontWeight: '600'}}>{recipe.servings || 'N/A'}</span></span>
                             {recipe.nutritionInfo && recipe.nutritionInfo.calories && (
-                                <span><strong>Calories:</strong> {recipe.nutritionInfo.calories}</span>
+                                <span><strong>Calories:</strong> <span style={{fontWeight: '600'}}>{recipe.nutritionInfo.calories}</span></span>
                             )}
                         </div>
                         {recipe.healthBenefits && recipe.healthBenefits.length > 0 && (
@@ -710,17 +710,17 @@ IMPORTANT:
         } catch (e) {
             console.error("Failed to parse healthy recipe JSON. Error:", e);
             console.error("Raw JSON data that failed to parse:", jsonData);
-            // Fallback to render as markdown if JSON parsing fails
+            // Improved error message for users
             return (
                 <>
                     <p className="errorMessage">
-                        Oops! We had trouble displaying this recipe in the structured format.
-                        This can sometimes happen if the AI's response isn't perfect JSON.
-                        Here's the raw data from the AI:
+                        We encountered an error processing your recipe. Please try again with a different request.
                     </p>
-                    <div className="resultsContent">
-                        <ReactMarkdown>{jsonData}</ReactMarkdown>
-                    </div>
+                    <details className="errorDetails">
+                        <summary>Technical details (click to expand)</summary>
+                        <pre>{e.message}</pre>
+                        <pre>{jsonData}</pre>
+                    </details>
                 </>
             );
         }

@@ -1255,4 +1255,27 @@ img {
   color: var(--text-primary);
   font-weight: 600;
   font-size: 0.85rem;
+}
+
+/* Add near the errorMessage class */
+.errorDetails {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.errorDetails summary {
+  font-weight: 500;
+  color: var(--accent-negative);
+}
+
+.errorDetails pre {
+  margin-top: 0.5rem;
+  padding: 0.8rem;
+  background-color: #f8f8f8;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-size: 0.8rem;
+  white-space: pre-wrap;
 } 
