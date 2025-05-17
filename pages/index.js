@@ -101,6 +101,9 @@ export default function HomePage() {
     // Create a ref for scrolling to results
     const recipeResultsRef = useRef(null);
 
+    // Add a ref to the loading spinner
+    const loadingRef = useRef(null);
+
     const router = useRouter();
 
     // Effect to update activeTool when selectedToolId changes
@@ -397,15 +400,15 @@ IMPORTANT:
     };
 
     const handleSubmit = async (event, isRandom = false) => {
-        if (event) event.preventDefault(); // Prevent default if called from form submit
-        if (!activeTool) return; // activeTool will always be recipeGenerator
+        if (event) event.preventDefault();
+        if (!activeTool) return;
 
         const currentInput = isRandom ? "Surprise me with a random healthy recipe." : inputValue;
         const promptText = getPromptForTool(activeTool, currentInput);
 
-        if (!promptText) { // This check is mainly for empty inputValue for recipeGenerator
-            if (!isRandom) { // Only show error if it's not a random request and input is empty
-                 setError("Please describe the type of healthy recipe you'd like, or list some ingredients you have.");
+        if (!promptText) {
+            if (!isRandom) {
+                setError("Please describe the type of healthy recipe you'd like, or list some ingredients you have.");
             }
             return;
         }
@@ -417,6 +420,16 @@ IMPORTANT:
         }
         setResults('');
         setError('');
+        
+        // Scroll to the loading spinner immediately
+        setTimeout(() => {
+            if (loadingRef.current) {
+                loadingRef.current.scrollIntoView({ 
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        }, 50);
 
         let requestBody = { promptText };
 
@@ -584,6 +597,7 @@ IMPORTANT:
 
                     <div className="recipeSection">
                         <h3>Ingredients</h3>
+                        <p className="amazonNote">👆 Click any ingredient to search for it on Amazon</p>
                         <div className="ingredientsGrid">
                             {recipe.ingredients && recipe.ingredients.length > 0 ? recipe.ingredients.map((ing, index) => (
                                 <div
@@ -758,7 +772,7 @@ IMPORTANT:
                 <meta property="og:image:alt" content="nuggs.ai Broccoli Logo" />
                 
                 <meta name="twitter:card" content="summary_large_image" />
-                <meta name="twitter:title" content="nuggs.ai - Delicious Healthy Recipes & Smart Food Swaps" />
+                <meta name="twitter:title" content="nuggs.ai - Delicious Healthy Recipes Powered by AI" />
                 <meta name="twitter:description" content="Your AI companion for smarter, healthier eating choices. Find substitutes, generate recipes, analyze meals, and get nutrition facts." />
                 <meta name="twitter:image" content="https://nuggs.ai/broccoli-logo.svg" />
 
@@ -787,9 +801,11 @@ IMPORTANT:
             </Head>
 
             <header className="mainHeader">
-                <div className="logoArea">
-                    <h1 className="logoText"><span className="logoEmoji">🥦 </span> nuggs.ai</h1>
-                </div>
+                <Link href="/" className="logoLink">
+                    <div className="logoArea">
+                        <h1 className="logoText"><span className="logoEmoji">🥦 </span> nuggs.ai</h1>
+                    </div>
+                </Link>
                 <nav>
                     <Link href="/" className={`navLink ${router.pathname === '/' ? "navLinkActive" : ''}`}>
                         Home
@@ -805,7 +821,7 @@ IMPORTANT:
                 <div className="heroContent">
                     <h2 className="heroTitle">Delicious <strong>Healthy</strong> Recipes</h2>
                     <p className="heroSubtitle">
-                        Craving something delicious and nutritious? Tell us your ideas, 
+                        Craving something delicious and nutritious? Tell us your what you want or what you have in your fridge,  
                         and we&apos;ll whip up a custom recipe, just for you. Powered by AI.
                     </p>
                     
@@ -948,7 +964,7 @@ IMPORTANT:
                                     className="pillSearchButton"
                                     disabled={isLoading || isRandomLoading || !inputValue}
                                 >
-                                    {isLoading ? 'Creating...' : '✨ Create Healthy Recipe'}
+                                    {isLoading ? 'Building your recipe...' : '✨ Create Healthy Recipe'}
                                 </button>
                                 <button
                                     type="button"
@@ -956,7 +972,7 @@ IMPORTANT:
                                     onClick={handleRandomRecipeSubmit}
                                     disabled={isLoading || isRandomLoading}
                                 >
-                                    {isRandomLoading ? 'Mixing...' : '🎲 Surprise Me!'}
+                                    {isRandomLoading ? 'Building your recipe...' : '🎲 Surprise Me!'}
                                 </button>
                             </div>
                         </form>
@@ -969,7 +985,7 @@ IMPORTANT:
             {activeTool && (
                 <section className={`toolDisplaySection ${resultsShown ? 'resultsActive' : ''}`}>
                     <div className="toolContainer">
-                        {isLoading && <div className="loadingSpinner"></div>}
+                        {isLoading && <div className="loadingSpinner" ref={loadingRef}><p className="loadingText">Building your healthy recipe...</p></div>}
                         {error && <p className="errorMessage">{error}</p>}
                         
                         {results && (

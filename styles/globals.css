@@ -559,19 +559,28 @@ img {
 }
 
 .loadingSpinner {
-  border: 3px solid #F0F0F0; /* Lighter track */
-  border-top: 3px solid var(--accent-primary); /* Accent color for spinner */
-  margin: 1.5rem auto; /* Center spinner */
-  width: 30px;
-  height: 30px;
-  /* Copied animation from a typical spinner */
+  text-align: center;
+  margin: 2.5rem auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.loadingSpinner:before {
+  content: "";
+  display: block;
+  width: 40px;
+  height: 40px;
+  border: 3px solid #F0F0F0;
+  border-top: 3px solid var(--accent-primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+.loadingText {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
 }
 
 .errorMessage {
@@ -635,12 +644,15 @@ img {
 .recipeTitlePill {
   background-color: var(--accent-primary);
   color: white;
-  padding: 0.3rem 1.2rem;
+  padding: 0.4rem 1.5rem;
   border-radius: 30px;
   display: inline-block;
   box-shadow: 0 2px 6px rgba(255, 154, 139, 0.3);
   font-weight: 700;
   margin-bottom: 1rem;
+  font-family: 'Satisfy', cursive; /* Apply the food-themed font */
+  font-size: 1.8rem; /* Slightly larger size to match the cursive style */
+  letter-spacing: 0.5px; /* Add slight letter spacing for better readability */
 }
 
 .recipeNameCard p {
@@ -1573,4 +1585,28 @@ img {
   flex-direction: column;
   gap: 1.8rem;
   margin-top: 0; /* Remove top margin as we've removed the container padding */
+}
+
+/* Add a custom food-themed font to the project */
+@import url('https://fonts.googleapis.com/css2?family=Satisfy&display=swap');
+
+/* Make logo clickable */
+.logoLink {
+  text-decoration: none;
+  color: inherit;
+}
+
+.logoLink:hover {
+  text-decoration: none;
+}
+
+/* Amazon note style */
+.amazonNote {
+  margin-bottom: 0.8rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-style: italic;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
 } 
