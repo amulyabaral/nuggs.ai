@@ -169,55 +169,6 @@
   max-width: 550px;
 }
 
-.heroImageLayout {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center; /* Center images */
-  margin-top: 2rem; /* Space between text and images */
-  gap: 1.5rem; /* Gap between images if both shown */
-  max-width: 700px; /* Control width of image area */
-  width: 100%;
-}
-
-.foodImageCard, .foodImageCard2 {
-  border-radius: 16px; /* Consistent rounded corners */
-  box-shadow: 0 8px 20px var(--shadow-color-medium); /* Softer, more modern shadow */
-  overflow: hidden;
-  position: relative;
-  max-width: 300px; /* Adjust size as needed */
-  /* transform: rotate(-5deg) translateY(-20px); */ /* Remove or simplify transform */
-  z-index: 2;
-  background-color: var(--background-card);
-}
-
-.foodImageCard2 {
-  /* transform: rotate(3deg); */ /* Remove or simplify transform */
-  z-index: 1;
-  max-width: 260px; /* Slightly smaller */
-}
-/* Hide second image on smaller screens or if layout is too busy */
-@media (max-width: 768px) {
-  .foodImageCard2 {
-    display: none;
-  }
-  .heroImageLayout {
-    justify-content: center;
-  }
-  .foodImageCard {
-    max-width: 280px;
-  }
-}
-
-
-.foodImage {
-  display: block;
-  width: 100%;
-  height: auto;
-  object-fit: cover;
-}
-
 /* Decorative elements - simplify or remove if too cluttered */
 .imageDot1, .imageDot2, .imageDot3, .leafDecoration {
  display: none; /* Hidden for a cleaner look, can be re-added subtly */
@@ -803,250 +754,6 @@
   margin-bottom: 0.75rem;
 }
 
-/* Critique Output Styles - Light Theme */
-.critiqueOutputContainer {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  margin-top: 1rem;
-}
-.critiqueOverallTitle {
-  font-size: 1.5rem; /* Adjusted size */
-  color: var(--text-primary);
-  text-align: center;
-  margin-bottom: 1rem;
-  font-family: 'Inter', sans-serif;
-  font-weight: 600;
-}
-.critiqueCard {
-  background-color: var(--background-card-subtle); /* Light card background */
-  border-radius: 10px;
-  padding: 1.5rem;
-  box-shadow: 0 4px 12px var(--shadow-color-soft);
-  border: 1px solid var(--border-color);
-}
-.critiqueCardTitle {
-  font-size: 1.2rem; /* Adjusted size */
-  color: var(--accent-primary); /* Use accent color */
-  margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--border-color);
-  font-weight: 600;
-}
-.critiqueCardContent p {
-  font-size: 0.95rem;
-  color: var(--text-secondary);
-  line-height: 1.6;
-  margin-bottom: 0.5rem;
-}
-.critiqueCardContent strong {
-  color: var(--text-primary);
-  font-weight: 500;
-}
-.critiqueCardContent ul {
-  list-style-position: inside;
-  padding-left: 0;
-}
-.critiqueCardContent ul li {
-  margin-bottom: 0.3rem;
-}
-
-
-/* Suggestion Explorer Output - Light Theme */
-.suggestionExplorerOutputContainer {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  margin-top: 1rem;
-}
-.suggestionExplorerOutputContainer h3 { /* Title for "Alternatives for: ..." */
-  font-size: 1.4rem;
-  color: var(--text-primary);
-  text-align: center;
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-}
-.suggestionAnalysis {
-  font-style: italic;
-  color: var(--text-secondary);
-  background-color: #FFF8F0; /* Very light accent background */
-  padding: 0.8rem 1rem;
-  border-radius: 8px;
-  text-align: center;
-  margin-bottom: 1rem;
-  border: 1px solid var(--border-color);
-}
-.suggestionList h4 { /* "Suggestions:" title */
-  font-size: 1.2rem;
-  color: var(--accent-primary);
-  margin-bottom: 0.75rem;
-  border-bottom: 1px solid var(--border-color);
-  padding-bottom: 0.5rem;
-  font-weight: 600;
-}
-.suggestionItemCard {
-  background-color: #FFFFFF; /* White card */
-  border: 1px solid var(--border-color);
-  border-radius: 10px;
-  padding: 1.2rem;
-  margin-bottom: 1rem;
-  box-shadow: 0 3px 8px var(--shadow-color-soft);
-}
-.suggestionItemCard h5 { /* Suggested item name */
-  font-size: 1.15rem;
-  color: var(--text-primary); /* Primary text for item name */
-  margin-top: 0;
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-}
-.suggestionTypeTag {
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--text-secondary);
-  background-color: #F0F0F0; /* Light gray tag */
-  padding: 0.2rem 0.6rem;
-  border-radius: 10px; /* Pill tag */
-  margin-left: 0.5rem;
-  display: inline-block; /* Ensure padding is applied correctly */
-}
-.suggestionItemCard p {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  line-height: 1.6;
-  margin-bottom: 0.75rem;
-}
-.nutritionalComparison {
-  margin-top: 1rem;
-  margin-bottom: 1rem;
-  padding: 0.8rem 1rem;
-  background-color: var(--background-card-subtle);
-  border-radius: 8px;
-  border: 1px solid var(--border-color);
-}
-.nutritionalComparison h6 {
-  font-size: 0.95rem;
-  color: var(--text-primary);
-  margin-bottom: 0.6rem;
-  font-weight: 500;
-}
-.comparisonTable {
-  display: grid;
-  grid-template-columns: 1fr; /* Stack on small screens */
-  gap: 0.8rem; /* Gap between original and suggested */
-  font-size: 0.85rem;
-}
-@media (min-width: 500px) {
-  .comparisonTable {
-    grid-template-columns: 1fr 1fr; /* Side by side on larger screens */
-  }
-}
-.comparisonTable > div {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-  color: var(--text-secondary);
-}
-.comparisonTable strong {
-  font-weight: 500;
-  color: var(--text-primary);
-}
-.comparisonTable small {
-  color: #A0A0A0;
-}
-.recipeSnippet {
-  font-size: 0.9rem;
-  background-color: #F0FFF5; /* Light green for tips */
-  padding: 0.6rem 0.8rem;
-  border-radius: 6px;
-  border-left: 3px solid var(--accent-positive);
-  color: var(--accent-positive-text);
-  margin-top: 0.5rem;
-}
-.amazonSearchButtonSmall {
-  background-color: var(--accent-secondary);
-  color: var(--text-primary);
-  border: none;
-  padding: 0.5rem 1rem;
-  font-size: 0.8rem;
-  font-weight: 500;
-  border-radius: 16px; /* Pill shape */
-  cursor: pointer;
-  transition: background-color 0.2s;
-  margin-top: 0.8rem;
-  display: inline-block;
-}
-.amazonSearchButtonSmall:hover {
-  background-color: #FFCA90; /* Darker shade of accent-secondary */
-}
-.generalTipsSection {
-  margin-top: 1rem;
-  padding: 1rem 1.2rem;
-  background-color: #F0F5FF; /* Light blue for general tips */
-  border-radius: 8px;
-  border: 1px solid #D8E0F0; /* Softer blue border */
-}
-.generalTipsSection h4 {
-  font-size: 1.15rem;
-  color: #5A70A0; /* Muted blue text */
-  margin-bottom: 0.6rem;
-  font-weight: 600;
-}
-.generalTipsSection ul {
-  list-style: disc;
-  padding-left: 18px;
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-}
-
-
-/* File Upload Area - Light Theme */
-.fileUpload { width: 100%; }
-.uploadAreaLabel { display: block; cursor: pointer; }
-.uploadArea {
-  border: 2px dashed var(--border-color); /* Dashed border */
-  border-radius: 10px;
-  padding: 2rem; /* Adjusted padding */
-  text-align: center;
-  cursor: pointer;
-  transition: border-color 0.2s, background-color 0.2s;
-  background-color: var(--background-card-subtle);
-}
-.uploadArea:hover {
-  border-color: var(--accent-primary);
-  background-color: #FFF8F0; /* Slightly warmer on hover */
-}
-.uploadIcon {
-  font-size: 2.2rem; /* Adjusted size */
-  display: block;
-  margin-bottom: 0.8rem;
-  color: var(--accent-primary);
-}
-.uploadArea p { color: var(--text-secondary); }
-.uploadAreaHint { font-size: 0.8rem; color: #A0A0A0; margin-top: 0.5rem; }
-.selectedFile {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  color: var(--text-primary);
-  background-color: #F0F0F0;
-  padding: 0.6rem 1rem;
-  border-radius: 6px;
-  margin-top: 1rem;
-}
-.selectedFile button {
-  background-color: transparent;
-  color: var(--accent-primary);
-  border: 1px solid var(--accent-primary);
-  border-radius: 12px;
-  padding: 0.3rem 0.8rem;
-  font-size: 0.8rem;
-  cursor: pointer;
-}
-.selectedFile button:hover {
-  background-color: rgba(255, 154, 139, 0.1);
-}
-
-
 /* Footer (Optional - if you add one) */
 .mainFooter {
   text-align: center;
@@ -1094,10 +801,10 @@
     gap: 0.8rem 1rem;
   }
   .toolDisplaySection {
-    padding: 1.5rem 1rem 2rem;
+    padding: 1.5rem 1rem 2rem; /* Keep this for the recipe options/results area */
   }
   .toolContainer {
-    padding: 1.5rem;
+    padding: 1.5rem; /* Keep this for the recipe options/results area */
   }
   .pillSearchInput {
     padding: 0.7rem 1rem;
@@ -1112,7 +819,17 @@
     font-size: 0.85rem;
   }
   .recipeNameCard h2 { font-size: 1.4rem; }
-  .recipeSection h3 { font-size: 1.2rem; }
+  .recipeSection h3 { font-size: 1.1rem; }
+  .pillSearchContainer {
+    max-width: 100%;
+  }
+  .recipeOptionsRow { /* Stack option groups on small screens */
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .recipeOptionsGroup {
+    max-width: 100%; /* Ensure groups take full width when stacked */
+  }
 }
 
 @media (max-width: 480px) {

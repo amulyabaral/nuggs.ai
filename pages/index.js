@@ -24,14 +24,14 @@ const commonExclusions = [
     { id: 'highprotein', label: 'High Protein', emoji: '💪' },
 ];
 
-// Updated Tools data
+// Updated Tools data - Only Recipe Generator remains
 const tools = [
     {
         id: 'recipeGenerator',
         name: 'Healthy Recipe Ideas',
         description: 'Get custom healthy recipes. Specify ingredients you have, dietary needs, preferred cuisine, cook time, and equipment.',
         icon: '🥗',
-        inputType: 'textarea',
+        inputType: 'textarea', // This might not be directly used if input is always in hero
         inputPlaceholder: "e.g., 'Quick vegan lunch with quinoa and avocado', 'Low-carb chicken dinner'",
         buttonText: 'Generate Healthy Recipe',
         difficultyOptions: [
@@ -53,90 +53,23 @@ const tools = [
             { label: 'Instant Pot / Pressure Cooker', value: 'pressurecooker', emoji: '🍲' },
         ],
     },
-    {
-        id: 'suggestionExplorer',
-        name: 'Find Healthy Alternatives',
-        description: 'Enter a food or ingredient, and get healthier suggestions, direct alternatives, or portion advice.',
-        icon: '🔄',
-        inputType: 'textarea',
-        inputPlaceholder: "e.g., 'Potato chips', 'White bread', 'Sour cream'",
-        buttonText: 'Get Suggestions',
-    },
-    {
-        id: 'mealAnalyzer',
-        name: 'Analyze Your Meal',
-        description: 'Upload a photo of your meal or describe it. Get feedback on its healthiness and suggestions for improvement.',
-        icon: '🍽️',
-        inputType: 'file',
-        inputPlaceholder: "Upload an image or describe your meal...",
-        buttonText: 'Analyze Meal',
-    },
-    {
-        id: 'nutritionFacts',
-        name: 'Nutrition Facts',
-        description: 'Ask questions about nutrition, food benefits, or get interesting facts about healthy eating.',
-        icon: '💡',
-        inputPlaceholder: "e.g., 'Benefits of broccoli?' or 'What are complete proteins?'",
-        buttonText: 'Get Facts',
-    },
-    // Add other tools back if they are still relevant and styled
-    // {
-    //     id: 'foodComparer',
-    //     name: 'Compare Foods',
-    //     description: 'Compare nutritional values of different food items.',
-    //     icon: '⚖️',
-    //     inputPlaceholder: "e.g., 'Compare almond milk vs oat milk'",
-    //     buttonText: 'Compare Foods',
-    //     comingSoon: true,
-    // },
-    // {
-    //     id: 'community',
-    //     name: 'Healthy Food Community',
-    //     description: 'Explore #HealthyEating on Instagram.',
-    //     icon: '🌐',
-    //     isLinkOut: true,
-    //     linkUrl: 'https://www.instagram.com/explore/tags/healthyeating/'
-    // },
-    // {
-    //     id: 'mealPlanner',
-    //     name: 'AI Meal Planner',
-    //     description: 'AI-suggested meal plans for your dietary goals. (Coming Soon)',
-    //     icon: '📅',
-    //     buttonText: 'Plan My Meals',
-    //     comingSoon: true,
-    // },
+    // Removed: suggestionExplorer, mealAnalyzer, nutritionFacts, community
 ];
 
 const PROXY_API_URL = '/api/generate';
 
-// Add these random recipe suggestion examples
-const randomRecipeIdeas = [
-  "Healthy Mediterranean bowl with grilled chicken, quinoa, and roasted vegetables",
-  "Quick vegan stir-fry with tofu and seasonal vegetables",
-  "Low-carb salmon with avocado salsa and roasted Brussels sprouts",
-  "One-pot vegetarian curry with chickpeas and sweet potato",
-  "High-protein breakfast bowl with Greek yogurt, berries, and homemade granola",
-  "Sheet pan dinner with chicken sausage and colorful bell peppers",
-  "Zucchini noodles with turkey meatballs and tomato sauce",
-  "Spicy black bean burgers with avocado slaw",
-  "Hearty vegetable soup with barley and lentils",
-  "Baked fish with lemon herb crust and steamed asparagus"
-];
-
 export default function HomePage() {
     // Set 'recipeGenerator' as the default selected tool
-    const [selectedToolId, setSelectedToolId] = useState(tools.find(t => t.id === 'recipeGenerator')?.id || tools[0].id);
-    const [activeTool, setActiveTool] = useState(tools.find(t => t.id === selectedToolId) || tools[0]);
+    const [selectedToolId, setSelectedToolId] = useState(tools[0].id);
+    const [activeTool, setActiveTool] = useState(tools[0]);
     const [inputValue, setInputValue] = useState('');
     const [results, setResults] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
-    const [selectedFile, setSelectedFile] = useState(null);
 
-    const [selectedDifficulty, setSelectedDifficulty] = useState(tools.find(t => t.id === 'recipeGenerator')?.difficultyOptions?.[0]?.value || 'Beginner');
-    const [selectedCookTime, setSelectedCookTime] = useState(tools.find(t => t.id === 'recipeGenerator')?.cookTimeOptions?.[0]?.value || '< 20 min');
+    const [selectedDifficulty, setSelectedDifficulty] = useState(tools[0].difficultyOptions[0].value);
+    const [selectedCookTime, setSelectedCookTime] = useState(tools[0].cookTimeOptions[0].value);
     const [selectedEquipment, setSelectedEquipment] = useState({});
-    const [currentMimeType, setCurrentMimeType] = useState('');
 
     // New state for recipe tool inputs
     const [selectedExclusions, setSelectedExclusions] = useState({});
@@ -146,9 +79,6 @@ export default function HomePage() {
     // { index: { checked: boolean, originalDuration: number | null, timeLeft: number | null, timerActive: boolean }}
     const [currentRunningTimer, setCurrentRunningTimer] = useState({ intervalId: null, stepIndex: null });
 
-    // Add new state for random ideas
-    const [isGeneratingRandom, setIsGeneratingRandom] = useState(false);
-
     // Effect to update activeTool when selectedToolId changes
     useEffect(() => {
         const tool = tools.find(t => t.id === selectedToolId);
@@ -157,14 +87,11 @@ export default function HomePage() {
             setInputValue('');
             setResults('');
             setError('');
-            setSelectedFile(null);
             // Reset recipe-specific options
-            if (tool.id === 'recipeGenerator') {
-                setSelectedDifficulty(tool.difficultyOptions?.[0]?.value || 'Beginner');
-                setSelectedCookTime(tool.cookTimeOptions?.[0]?.value || '< 20 min');
-                setSelectedEquipment({});
-                setSelectedExclusions({});
-            }
+            setSelectedDifficulty(tool.difficultyOptions?.[0]?.value || 'Beginner');
+            setSelectedCookTime(tool.cookTimeOptions?.[0]?.value || '< 20 min');
+            setSelectedEquipment({});
+            setSelectedExclusions({});
             // Clear timers when tool changes
             setInstructionTimersData({});
             if (currentRunningTimer.intervalId) {
@@ -359,38 +286,32 @@ export default function HomePage() {
     };
 
     const getPromptForTool = (tool, userInput) => {
-        let basePrompt = `You are an AI expert focused on healthy eating, nutrition, and food substitutions. Your goal is to provide helpful, actionable, and evidence-informed advice. `;
-        switch (tool.id) {
-            case 'nutritionFacts':
-                let triviaPrompt = basePrompt + "You are a knowledgeable and engaging AI expert on nutrition, healthy eating habits, food science, and the benefits of various foods. Format your response using Markdown. ";
-                if (userInput) {
-                    triviaPrompt += `Please answer the following question concisely and engagingly: "${userInput}"`;
-                } else {
-                    triviaPrompt += "Tell me an interesting and surprising fun fact or piece of information about healthy eating or nutrition.";
-                }
-                triviaPrompt += " Keep your response friendly, informative, and suitable for a general audience. If asked about non-food/nutrition topics, politely explain your specialization.";
-                return triviaPrompt;
+        // Simplified: only recipeGenerator is left
+        if (tool.id !== 'recipeGenerator') {
+            // This case should ideally not be reached if UI only allows recipeGenerator
+            setError("Invalid tool selected.");
+            return null;
+        }
 
-            case 'recipeGenerator':
-                if (!userInput) {
-                    setError("Please describe the type of healthy recipe you'd like, or list some ingredients you have.");
-                    return null;
-                }
-                const activeEquipment = Object.keys(selectedEquipment)
-                                            .filter(key => selectedEquipment[key] && tool.equipmentOptions.find(opt => opt.value === key))
-                                            .map(key => tool.equipmentOptions.find(opt => opt.value === key).label);
-                
-                let equipmentInstructions = "standard kitchen equipment (oven, stovetop)";
-                if (activeEquipment.length > 0) {
-                    equipmentInstructions = activeEquipment.join(', ');
-                }
+        if (!userInput) {
+            setError("Please describe the type of healthy recipe you'd like, or list some ingredients you have.");
+            return null;
+        }
+        const activeEquipment = Object.keys(selectedEquipment)
+                                    .filter(key => selectedEquipment[key] && tool.equipmentOptions.find(opt => opt.value === key))
+                                    .map(key => tool.equipmentOptions.find(opt => opt.value === key).label);
+        
+        let equipmentInstructions = "standard kitchen equipment (oven, stovetop)";
+        if (activeEquipment.length > 0) {
+            equipmentInstructions = activeEquipment.join(', ');
+        }
 
-                const activeExclusionLabels = Object.entries(selectedExclusions)
-                    .filter(([_, value]) => value)
-                    .map(([key]) => commonExclusions.find(ex => ex.id === key)?.label || key)
-                    .join(', ');
+        const activeExclusionLabels = Object.entries(selectedExclusions)
+            .filter(([_, value]) => value)
+            .map(([key]) => commonExclusions.find(ex => ex.id === key)?.label || key)
+            .join(', ');
 
-                let recipePrompt = `You are an AI chef specializing in creating healthy and delicious recipes.
+        let recipePrompt = `You are an AI chef specializing in creating healthy and delicious recipes.
 The user wants a recipe based on this core request: "${userInput}".
 Additionally, consider these user preferences:
 - Difficulty: ${selectedDifficulty}
@@ -430,131 +351,16 @@ IMPORTANT:
 - For "pairingSuggestions" (0-2 suggestions): suggest healthy side dishes, drinks, or garnishes.
 - If dietary restrictions are mentioned, try to create a recipe that meets them. If a core ingredient conflicts, clearly state this and suggest an alternative in the 'notes' of that ingredient or in the main recipe 'description' or 'substitutionSuggestions'.
 - All string values within the JSON must be properly escaped.`;
-                return recipePrompt;
-
-            case 'suggestionExplorer':
-                if (!userInput) {
-                    setError("Please enter a food or ingredient you'd like to find alternatives for.");
-                    return null;
-                }
-                return basePrompt + `The user is looking for healthy alternatives or advice regarding: "${userInput}".
-Provide the response STRICTLY as a single, valid JSON object with the following structure:
-{
-  "originalItem": "${userInput}",
-  "analysis": "Brief nutritional overview or common concerns associated with the original item (1-2 sentences).",
-  "suggestions": [
-    {
-      "type": "Direct Substitute | Healthier Version | Ingredient Swap | Portion Control | Recipe Idea",
-      "suggestedItem": "Name of the suggested food/ingredient/method",
-      "description": "Detailed explanation of the suggestion, why it's healthier, and how to use it (2-4 sentences). Include specific benefits like 'lower in sugar', 'higher in fiber', 'plant-based option'.",
-      "nutritionalComparison": { // Optional: if applicable and data is available
-        "original": { "calories": "X kcal", "fat": "Y g", "sugar": "Z g", "notes": "per serving/100g" },
-        "suggested": { "calories": "A kcal", "fat": "B g", "sugar": "C g", "notes": "per serving/100g" }
-      },
-      "recipeSnippet": "Optional: A very brief recipe idea or usage tip (e.g., 'Try using mashed avocado instead of mayonnaise in your next sandwich.')",
-      "amazonSearchKeywords": ["keyword1 for suggested item", "keyword2"]
-    }
-  ],
-  "generalTips": [
-    "Offer 1-2 general healthy eating tips related to the user's query."
-  ]
-}
-
-IMPORTANT:
-- Provide 2-4 diverse and actionable suggestions.
-- Focus on practical, easily accessible alternatives.
-- If the original item is already healthy, acknowledge that and perhaps offer tips on preparation or pairing.
-- Ensure the entire response is a single, valid JSON object. No text outside this structure.
-- All string values must be properly escaped.
-- If the query is unclear or not food-related, respond with JSON: {"error": "Please provide a specific food or ingredient for suggestions."}`;
-
-            case 'mealAnalyzer':
-                // For image analysis, the prompt is more about the output structure.
-                // The actual image data is sent separately.
-                // If userInput is present, it means the user described the meal.
-                let mealDescription = userInput ? `The user describes their meal as: "${userInput}".` : "The user has uploaded an image of their meal.";
-
-                return basePrompt + `You are "NutriVision AI", a sophisticated AI nutritionist specializing in analyzing meals (from images or descriptions) for their healthiness.
-${mealDescription}
-Based on the provided information (image and/or text), provide a constructive analysis and suggestions for improvement.
-
-Please provide the response STRICTLY as a single, valid JSON object with the following structure:
-{
-  "mealTitle": "string (e.g., 'NutriVision AI Meal Analysis')",
-  "overallAssessment": {
-    "healthScore": "number (A rating from 1-10, 10 being healthiest. Be critical but fair.)",
-    "summary": "string (A descriptive paragraph on the meal's apparent composition, potential nutritional balance (macros, micros), and overall health impression. 2-4 sentences.)",
-    "positiveAspects": ["string (List 1-3 positive aspects, e.g., 'Good source of vegetables', 'Includes lean protein')"],
-    "areasForImprovement": ["string (List 1-3 areas for improvement, e.g., 'High in saturated fat', 'Could include more fiber', 'Portion size appears large')"]
-  },
-  "detailedSuggestions": [
-    {
-      "suggestionType": "Ingredient Swap | Portion Adjustment | Cooking Method Change | Add Nutrient-Rich Food | Reduce Unhealthy Component",
-      "specificAdvice": "string (Actionable advice, e.g., 'Swap white rice for brown rice to increase fiber.', 'Consider reducing the cheese portion by half.')",
-      "reasoning": "string (Why this change would be beneficial, e.g., 'Brown rice has a lower glycemic index and more micronutrients.')"
-    }
-  ],
-  "healthierAlternativeMealIdea": { // Optional: Suggest a completely different healthier meal
-    "name": "string (e.g., 'Instead of creamy pasta, try a Zucchini Noodle Stir-fry with Tofu')",
-    "description": "string (Brief description of the alternative meal and its benefits)"
-  },
-  "estimatedNutrition": { // Optional: very rough estimate if possible
-    "calories": "string (e.g., 'Approx. 600-800 kcal')",
-    "protein": "string (e.g., 'Approx. 20-30g')",
-    "fat": "string (e.g., 'Approx. 30-40g')",
-    "carbs": "string (e.g., 'Approx. 50-70g')",
-    "notes": "string (e.g., 'This is a rough estimate. Actual values depend on specific ingredients and portions.')"
-  },
-  "error": "string (Optional: Use this field if the image is unclear, not of food, or if analysis is not possible, e.g., 'Cannot provide analysis: Image is unclear or not of food.')"
-}
-
-IMPORTANT:
-- Ensure the entire response is a single, valid JSON object. No text outside this structure.
-- All string values must be properly escaped.
-- Provide 1-3 "detailedSuggestions".
-- If the meal is already very healthy, acknowledge this and offer minor tips or affirmations.
-- If only a text description is provided (no image), base the analysis on that.
-- If the image/description is unsuitable, populate the main "error" field.`;
-            case 'community':
-                return null; // No AI prompt needed for this tool
-            default:
-                let defaultPrompt = basePrompt + `Format your response using Markdown. `;
-                if (userInput) {
-                     defaultPrompt += `Regarding the tool "${tool.name}", process the following input: "${userInput}". Provide a concise, helpful, nugget-related response.`;
-                } else {
-                    defaultPrompt += `You are an AI for "${tool.name}". Please provide information or perform the requested task related to nuggets.`;
-                }
-                return defaultPrompt;
-        }
+        return recipePrompt;
     };
-
-    const fileToBase64 = (file) => new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result.split(',')[1]); // Get base64 part
-        reader.onerror = error => reject(error);
-    });
 
     const handleSubmit = async (event) => {
         event.preventDefault();
-        if (!activeTool || activeTool.comingSoon) return;
-
-        // If it's a link-out tool, don't proceed with API call logic
-        if (activeTool.isLinkOut) {
-            if (activeTool.linkUrl) {
-                window.open(activeTool.linkUrl, '_blank', 'noopener,noreferrer');
-            }
-            return;
-        }
+        if (!activeTool) return; // activeTool will always be recipeGenerator
 
         const promptText = getPromptForTool(activeTool, inputValue);
 
-        if (activeTool.id === 'mealAnalyzer' && !selectedFile && !inputValue) {
-            setError('Please upload an image or describe your meal for analysis.');
-            return;
-        }
-
-        if (!promptText && activeTool.id !== 'nutritionFacts' && activeTool.id !== 'mealAnalyzer' && activeTool.id !== 'suggestionExplorer') {
+        if (!promptText) { // This check is mainly for empty inputValue for recipeGenerator
             return;
         }
 
@@ -565,15 +371,6 @@ IMPORTANT:
         let requestBody = { promptText };
 
         try {
-            if (activeTool.id === 'mealAnalyzer' && selectedFile) {
-                const imageData = await fileToBase64(selectedFile);
-                requestBody = {
-                    promptText, // This is the instructional prompt for the analyzer
-                    imageData,
-                    mimeType: currentMimeType || selectedFile.type // Use stored mimeType or derive from file
-                };
-            }
-
             const response = await fetch(PROXY_API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -589,20 +386,15 @@ IMPORTANT:
             if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
                 let aiResponseText = data.candidates[0].content.parts[0].text;
 
-                if (activeTool.id === 'recipeGenerator' || activeTool.id === 'mealAnalyzer' || activeTool.id === 'suggestionExplorer' ) {
-                    // Attempt to extract JSON string if wrapped in markdown code blocks
-                    // Handles ```json ... ``` or ``` ... ```
-                    const markdownMatch = aiResponseText.match(/^```(?:json)?\s*([\s\S]+?)\s*```$/);
-                    if (markdownMatch && markdownMatch[1]) {
-                        aiResponseText = markdownMatch[1];
-                    }
-                    aiResponseText = aiResponseText.trim();
+                // This logic is specific to recipeGenerator, which is the only tool left
+                const markdownMatch = aiResponseText.match(/^```(?:json)?\s*([\s\S]+?)\s*```$/);
+                if (markdownMatch && markdownMatch[1]) {
+                    aiResponseText = markdownMatch[1];
                 }
-
+                aiResponseText = aiResponseText.trim();
+                
                 setResults(aiResponseText);
-                if (activeTool.id === 'recipeGenerator') {
-                    // setCheckedInstructions({}); // This line is now handled by instructionTimersData reset
-                }
+                // instructionTimersData reset is handled by useEffect on results change
             } else if (data.promptFeedback?.blockReason) {
                 setError(`Request blocked: ${data.promptFeedback.blockReason}. Try a different prompt.`);
             } else {
@@ -613,18 +405,6 @@ IMPORTANT:
             setError(err.message || 'Failed to fetch response from AI.');
         } finally {
             setIsLoading(false);
-        }
-    };
-
-    const handleFileChange = (event) => {
-        const file = event.target.files[0];
-        if (file) {
-            setSelectedFile(file);
-            setCurrentMimeType(file.type); // Store mime type
-            setError(''); // Clear previous errors
-        } else {
-            setSelectedFile(null);
-            setCurrentMimeType('');
         }
     };
 
@@ -843,206 +623,6 @@ IMPORTANT:
         }
     };
 
-    // Helper function to render critique results
-    const renderCritiqueResults = (jsonData) => {
-        console.log("Attempting to parse meal analysis JSON. Raw data received:", jsonData);
-        try {
-            const analysis = JSON.parse(jsonData);
-            console.log("Successfully parsed meal analysis JSON:", analysis);
-
-            if (analysis.error && analysis.error.trim() !== "") {
-                return <p className={styles.errorMessage}>Error from AI: {analysis.error}</p>;
-            }
-
-            const {
-                mealTitle = "NutriVision AI Meal Analysis",
-                overallAssessment = {},
-                detailedSuggestions = [],
-                healthierAlternativeMealIdea,
-                estimatedNutrition
-            } = analysis;
-
-            const {
-                healthScore,
-                summary = "No overall summary provided.",
-                positiveAspects = [],
-                areasForImprovement = []
-            } = overallAssessment;
-
-            return (
-                <div className={styles.critiqueOutputContainer}>
-                    {mealTitle && <h3 className={styles.critiqueOverallTitle}>{mealTitle}</h3>}
-
-                    <div className={styles.critiqueCard}>
-                        <h4 className={styles.critiqueCardTitle}>Overall Assessment</h4>
-                        <div className={styles.critiqueCardContent}>
-                            {healthScore !== undefined && <p><strong>Health Score:</strong> {Number(healthScore).toFixed(1)} / 10</p>}
-                            <p>{summary}</p>
-                            {positiveAspects.length > 0 && (
-                                <>
-                                    <strong>Positive Aspects:</strong>
-                                    <ul>{positiveAspects.map((aspect, i) => <li key={`pos-${i}`}>{aspect}</li>)}</ul>
-                                </>
-                            )}
-                            {areasForImprovement.length > 0 && (
-                                <>
-                                    <strong>Areas for Improvement:</strong>
-                                    <ul>{areasForImprovement.map((area, i) => <li key={`imp-${i}`}>{area}</li>)}</ul>
-                                </>
-                            )}
-                        </div>
-                    </div>
-
-                    {detailedSuggestions.length > 0 && (
-                        <div className={styles.critiqueCard}>
-                            <h4 className={styles.critiqueCardTitle}>Detailed Suggestions</h4>
-                            {detailedSuggestions.map((sugg, index) => (
-                                <div key={`sugg-${index}`} className={styles.suggestionDetailItem}>
-                                    <h5>{sugg.suggestionType}</h5>
-                                    <p><strong>Advice:</strong> {sugg.specificAdvice}</p>
-                                    <p><em>Reasoning: {sugg.reasoning}</em></p>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-
-                    {healthierAlternativeMealIdea && healthierAlternativeMealIdea.name && (
-                         <div className={styles.critiqueCard}>
-                            <h4 className={styles.critiqueCardTitle}>Healthier Alternative Idea</h4>
-                            <div className={styles.critiqueCardContent}>
-                                <p><strong>Try:</strong> {healthierAlternativeMealIdea.name}</p>
-                                <p>{healthierAlternativeMealIdea.description}</p>
-                            </div>
-                        </div>
-                    )}
-                    
-                    {estimatedNutrition && (
-                         <div className={styles.critiqueCard}>
-                            <h4 className={styles.critiqueCardTitle}>Estimated Nutrition (Rough Guide)</h4>
-                            <div className={styles.critiqueCardContent}>
-                                {estimatedNutrition.calories && <p><strong>Calories:</strong> {estimatedNutrition.calories}</p>}
-                                {estimatedNutrition.protein && <p><strong>Protein:</strong> {estimatedNutrition.protein}</p>}
-                                {estimatedNutrition.fat && <p><strong>Fat:</strong> {estimatedNutrition.fat}</p>}
-                                {estimatedNutrition.carbs && <p><strong>Carbs:</strong> {estimatedNutrition.carbs}</p>}
-                                {estimatedNutrition.notes && <p><small><em>{estimatedNutrition.notes}</em></small></p>}
-                            </div>
-                        </div>
-                    )}
-                </div>
-            );
-        } catch (e) {
-            console.error("Failed to parse or render meal analysis JSON. Error:", e);
-            console.error("Raw JSON data that failed to parse:", jsonData);
-            return (
-                <>
-                    <p className={styles.errorMessage}>
-                        Oops! We had trouble displaying this meal analysis.
-                        This can sometimes happen if the AI's response isn't perfect JSON.
-                        Here's the raw data from the AI:
-                    </p>
-                    <div className={styles.resultsContent}>
-                        <ReactMarkdown>{jsonData}</ReactMarkdown>
-                    </div>
-                </>
-            );
-        }
-    };
-
-    // New helper function to render Suggestion Explorer results
-    const renderSuggestionExplorerResults = (jsonData) => {
-        console.log("Attempting to parse suggestion explorer JSON. Raw data received:", jsonData);
-        try {
-            const data = JSON.parse(jsonData);
-            console.log("Successfully parsed suggestion explorer JSON:", data);
-
-            if (data.error) {
-                return <p className={styles.errorMessage}>Error from AI: {data.error}</p>;
-            }
-
-            const { originalItem, analysis, suggestions = [], generalTips = [] } = data;
-
-            return (
-                <div className={styles.suggestionExplorerOutputContainer}>
-                    <h3>Alternatives for: {originalItem}</h3>
-                    {analysis && <p className={styles.suggestionAnalysis}>{analysis}</p>}
-
-                    {suggestions.length > 0 && (
-                        <div className={styles.suggestionList}>
-                            <h4>Suggestions:</h4>
-                            {suggestions.map((sugg, index) => (
-                                <div key={index} className={styles.suggestionItemCard}>
-                                    <h5>{sugg.suggestedItem} <span className={styles.suggestionTypeTag}>({sugg.type})</span></h5>
-                                    <p>{sugg.description}</p>
-                                    {sugg.nutritionalComparison && (
-                                        <div className={styles.nutritionalComparison}>
-                                            <h6>Nutritional Snapshot (Approx.):</h6>
-                                            <div className={styles.comparisonTable}>
-                                                <div>
-                                                    <strong>Original ({originalItem}):</strong>
-                                                    {sugg.nutritionalComparison.original && Object.entries(sugg.nutritionalComparison.original).map(([key, value]) => key !== 'notes' ? <span key={key}>{key}: {value}</span> : null)}
-                                                    {sugg.nutritionalComparison.original?.notes && <small><em>({sugg.nutritionalComparison.original.notes})</em></small>}
-                                                </div>
-                                                <div>
-                                                    <strong>Suggested ({sugg.suggestedItem}):</strong>
-                                                    {sugg.nutritionalComparison.suggested && Object.entries(sugg.nutritionalComparison.suggested).map(([key, value]) => key !== 'notes' ? <span key={key}>{key}: {value}</span> : null)}
-                                                    {sugg.nutritionalComparison.suggested?.notes && <small><em>({sugg.nutritionalComparison.suggested.notes})</em></small>}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-                                    {sugg.recipeSnippet && <p className={styles.recipeSnippet}><strong>Tip:</strong> {sugg.recipeSnippet}</p>}
-                                    {sugg.amazonSearchKeywords && sugg.amazonSearchKeywords.length > 0 && (
-                                        <button 
-                                            onClick={() => handleAmazonSearch(sugg.amazonSearchKeywords, 'suggestion_item')}
-                                            className={styles.amazonSearchButtonSmall}
-                                        >
-                                            Search for {sugg.suggestedItem} on Amazon
-                                        </button>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    )}
-
-                    {generalTips.length > 0 && (
-                        <div className={styles.generalTipsSection}>
-                            <h4>General Healthy Eating Tips:</h4>
-                            <ul>
-                                {generalTips.map((tip, index) => <li key={index}>{tip}</li>)}
-                            </ul>
-                        </div>
-                    )}
-                </div>
-            );
-        } catch (e) {
-            console.error("Failed to parse suggestion explorer JSON. Error:", e);
-            console.error("Raw JSON data that failed to parse:", jsonData);
-            return (
-                <>
-                    <p className={styles.errorMessage}>
-                        Oops! We had trouble displaying these suggestions.
-                        Here's the raw data from the AI:
-                    </p>
-                    <div className={styles.resultsContent}>
-                        <ReactMarkdown>{jsonData}</ReactMarkdown>
-                    </div>
-                </>
-            );
-        }
-    };
-
-    // New function to handle random recipe generation
-    const handleRandomRecipe = () => {
-        setIsGeneratingRandom(true);
-        const randomIdea = randomRecipeIdeas[Math.floor(Math.random() * randomRecipeIdeas.length)];
-        setInputValue(randomIdea);
-        // Wait briefly to simulate "thinking" then submit the form
-        setTimeout(() => {
-            setIsGeneratingRandom(false);
-            handleSubmit({ preventDefault: () => {} }); // Simulate form submission
-        }, 800);
-    };
-
     return (
         <div className={styles.pageContainer}>
             <Head>
@@ -1092,19 +672,17 @@ IMPORTANT:
                     <h1 className={styles.logoText}>NUGGS.AI</h1>
                 </div>
                 <nav className={styles.headerNav}>
+                    {/* Navigation will now only show "Healthy Recipe Ideas" or be removed if only one tool */}
+                    {/* For simplicity, if only one tool, we might not need nav items, but keeping structure for now */}
                     {tools.map(tool => (
                         <button
                             key={tool.id}
                             className={`${styles.navLink} ${selectedToolId === tool.id ? styles.navLinkActive : ''}`}
                             onClick={() => {
-                                if (!tool.comingSoon) {
-                                    setSelectedToolId(tool.id);
-                                }
+                                // setSelectedToolId(tool.id); // Only one tool, so no change needed
                             }}
-                            disabled={tool.comingSoon}
                         >
                             {tool.name}
-                            {tool.comingSoon && " (Soon)"}
                         </button>
                     ))}
                 </nav>
@@ -1119,193 +697,96 @@ IMPORTANT:
                         and we&apos;ll whip up a custom recipe, just for you.
                     </p>
                     
-                    {selectedToolId === 'recipeGenerator' && (
-                        <div className={styles.pillSearchContainer}>
-                            <form onSubmit={handleSubmit} className={styles.pillSearchBar}>
-                                <input
-                                    type="text"
-                                    value={inputValue}
-                                    onChange={(e) => setInputValue(e.target.value)}
-                                    placeholder="E.g., 'Pasta without gluten' or 'High-protein breakfast bowl'"
-                                    className={styles.pillSearchInput}
-                                    disabled={isLoading || isGeneratingRandom}
-                                />
-                                <button 
-                                    type="submit" 
-                                    className={styles.pillSearchButton}
-                                    disabled={isLoading || isGeneratingRandom || !inputValue}
-                                >
-                                    {isLoading ? 'Creating Recipe...' : '✨ Create Healthy Recipe'}
-                                </button>
-                            </form>
+                    {/* This form is always for recipeGenerator now */}
+                    <div className={styles.pillSearchContainer}>
+                        <form onSubmit={handleSubmit} className={styles.pillSearchBar}>
+                            <input
+                                type="text"
+                                value={inputValue}
+                                onChange={(e) => setInputValue(e.target.value)}
+                                placeholder="E.g., 'Pasta without gluten' or 'High-protein breakfast bowl'"
+                                className={styles.pillSearchInput}
+                                disabled={isLoading}
+                            />
                             <button 
-                                onClick={handleRandomRecipe} 
-                                className={styles.randomIdeasButton}
-                                disabled={isLoading || isGeneratingRandom}
+                                type="submit" 
+                                className={styles.pillSearchButton}
+                                disabled={isLoading || !inputValue}
                             >
-                                {isGeneratingRandom ? 'Finding Ideas...' : '🎲 Inspire Me With Healthy Options'}
+                                {isLoading ? 'Creating Recipe...' : '✨ Create Healthy Recipe'}
                             </button>
-                        </div>
-                    )}
+                        </form>
+                        {/* Removed Random Ideas Button */}
+                    </div>
                 </div>
                 
-                <div className={styles.heroImageLayout}>
-                    <div className={styles.foodImageCard}>
-                        <Image 
-                            src="/food_1.webp" 
-                            alt="Delicious healthy food" 
-                            width={400} 
-                            height={300} 
-                            className={styles.foodImage}
-                        />
-                        <div className={styles.imageDot1}></div>
-                        <div className={styles.imageDot2}></div>
-                        <div className={styles.imageDot3}></div>
-                    </div>
-                    <div className={styles.foodImageCard2}>
-                        <Image 
-                            src="/food_2.webp" 
-                            alt="Nutritious meal" 
-                            width={400} 
-                            height={300}
-                            className={styles.foodImage}
-                        />
-                        <div className={styles.leafDecoration}></div>
-                    </div>
-                </div>
+                {/* Removed heroImageLayout and Image components as per instruction */}
             </section>
             
-            {activeTool && (
+            {activeTool && ( // activeTool will always be recipeGenerator
                 <section className={styles.toolDisplaySection}>
                     <div className={styles.toolContainer}>
-                        {/* Show title only for non-recipe tools */}
-                        {selectedToolId !== 'recipeGenerator' && activeTool.name && (
-                            <div style={{textAlign: 'center', marginBottom: '2rem'}}>
-                                <h2 className={styles.heroTitle} style={{fontSize: '2.5rem'}}>{activeTool.name}</h2>
-                                {activeTool.description && <p className={styles.heroSubtitle} style={{fontSize: '1.2rem', color: '#999'}}>{activeTool.description}</p>}
-                            </div>
-                        )}
+                        {/* Title for non-recipe tools removed as only recipe tool remains and its title is in hero */}
                         
-                        {activeTool.comingSoon ? (
-                            <div className={styles.comingSoonMessage}>
-                                <h3>Coming Soon!</h3>
-                                <p>We're cooking up this feature. Check back soon!</p>
+                        {/* Form for recipe generator options (difficulty, equipment, etc.) */}
+                        <form onSubmit={handleSubmit} className={styles.toolForm}> {/* This form won't submit itself, but groups options */}
+                            <div className={styles.recipeOptionsRow}>
+                                <div className={styles.recipeOptionsGroup}>
+                                    <label>Difficulty:</label>
+                                    <div className={styles.radioButtonsContainer}>
+                                        {activeTool.difficultyOptions.map(opt => (
+                                            <button
+                                                type="button"
+                                                key={opt.value}
+                                                className={`${styles.radioButton} ${selectedDifficulty === opt.value ? styles.radioButtonSelected : ''}`}
+                                                onClick={() => setSelectedDifficulty(opt.value)}
+                                                disabled={isLoading}
+                                            >
+                                                <span className={styles.radioButtonEmoji}>{opt.emoji}</span> {opt.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className={styles.recipeOptionsGroup}>
+                                    <label>Cook Time:</label>
+                                    <div className={styles.radioButtonsContainer}>
+                                        {activeTool.cookTimeOptions.map(opt => (
+                                            <button
+                                                type="button"
+                                                key={opt.value}
+                                                className={`${styles.radioButton} ${selectedCookTime === opt.value ? styles.radioButtonSelected : ''}`}
+                                                onClick={() => setSelectedCookTime(opt.value)}
+                                                disabled={isLoading}
+                                            >
+                                                <span className={styles.radioButtonEmoji}>{opt.emoji}</span> {opt.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
-                        ) : activeTool.isLinkOut ? (
-                            <div className={styles.linkOutToolContainer}>
-                                <a
-                                    href={activeTool.linkUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className={`${styles.submitButton} ${styles.linkOutButton}`}
-                                >
-                                    {activeTool.icon} {activeTool.name === "Healthy Food Community" ? "Explore #HealthyEating on Instagram" : `View ${activeTool.name}`}
-                                </a>
-                                {activeTool.id === 'community' && (
-                                    <p className={styles.inputHint} style={{marginTop: '1rem', textAlign: 'center'}}>
-                                        Share your healthy creations with #HealthyEating or #HealthySubstitutes!
-                                    </p>
-                                )}
+                            <div className={styles.recipeOptionsGroup}>
+                                <label>Available Equipment (select all that apply):</label>
+                                <div className={styles.radioButtonsContainer}>
+                                    {activeTool.equipmentOptions.map(opt => (
+                                        <button
+                                            type="button"
+                                            key={opt.value}
+                                            className={`${styles.radioButton} ${selectedEquipment[opt.value] ? styles.radioButtonSelected : ''}`}
+                                            onClick={() => handleEquipmentToggle(opt.value)}
+                                            disabled={isLoading}
+                                        >
+                                            {opt.emoji && <span className={styles.radioButtonEmoji}>{opt.emoji}</span>} {opt.label}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
-                        ) : (
-                            <>
-                                {/* Only show form for non-recipe generator tools or below the hero */}
-                                {selectedToolId !== 'recipeGenerator' && (
-                                    <form onSubmit={handleSubmit} className={styles.toolForm}>
-                                        {/* Form contents for other tools */}
-                                        {/* ... keep existing code for other tool forms ... */}
-                                    </form>
-                                )}
-                                
-                                {/* For recipe generator, we need the options but not another search box */}
-                                {selectedToolId === 'recipeGenerator' && (
-                                    <form onSubmit={handleSubmit} className={styles.toolForm}>
-                                        {/* Recipe options (difficulty, equipment, etc.) */}
-                                        <div className={styles.recipeOptionsRow}>
-                                            <div className={styles.recipeOptionsGroup}>
-                                                <label>Difficulty:</label>
-                                                <div className={styles.radioButtonsContainer}>
-                                                    {activeTool.difficultyOptions.map(opt => (
-                                                        <button
-                                                            type="button"
-                                                            key={opt.value}
-                                                            className={`${styles.radioButton} ${selectedDifficulty === opt.value ? styles.radioButtonSelected : ''}`}
-                                                            onClick={() => setSelectedDifficulty(opt.value)}
-                                                            disabled={isLoading}
-                                                        >
-                                                            <span className={styles.radioButtonEmoji}>{opt.emoji}</span> {opt.label}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                            <div className={styles.recipeOptionsGroup}>
-                                                <label>Cook Time:</label>
-                                                <div className={styles.radioButtonsContainer}>
-                                                    {activeTool.cookTimeOptions.map(opt => (
-                                                        <button
-                                                            type="button"
-                                                            key={opt.value}
-                                                            className={`${styles.radioButton} ${selectedCookTime === opt.value ? styles.radioButtonSelected : ''}`}
-                                                            onClick={() => setSelectedCookTime(opt.value)}
-                                                            disabled={isLoading}
-                                                        >
-                                                            <span className={styles.radioButtonEmoji}>{opt.emoji}</span> {opt.label}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className={styles.recipeOptionsGroup}>
-                                            <label>Available Equipment (select all that apply):</label>
-                                            <div className={styles.radioButtonsContainer}>
-                                                {activeTool.equipmentOptions.map(opt => (
-                                                    <button
-                                                        type="button"
-                                                        key={opt.value}
-                                                        className={`${styles.radioButton} ${selectedEquipment[opt.value] ? styles.radioButtonSelected : ''}`}
-                                                        onClick={() => handleEquipmentToggle(opt.value)}
-                                                        disabled={isLoading}
-                                                    >
-                                                        {opt.emoji && <span className={styles.radioButtonEmoji}>{opt.emoji}</span>} {opt.label}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </div>
-                                        <div className={styles.recipeOptionsGroup}>
-                                            <label htmlFor="exclusions">Items to Exclude/Avoid (optional):</label>
-                                            <div className={styles.radioButtonsContainer} id="exclusions">
-                                                {commonExclusions.map(ex => (
-                                                    <button
-                                                        type="button"
-                                                        key={ex.id}
-                                                        className={`${styles.radioButton} ${styles.exclusionButton} ${selectedExclusions[ex.id] ? styles.exclusionButtonSelected : ''}`}
-                                                        onClick={() => handleExclusionToggle(ex.id)}
-                                                        disabled={isLoading}
-                                                        title={`Click to ${selectedExclusions[ex.id] ? 'include' : 'exclude'} ${ex.label}`}
-                                                    >
-                                                        {ex.emoji && <span className={styles.radioButtonEmoji}>{ex.emoji}</span>} {ex.label}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </form>
-                                )}
-                            </>
-                        )}
-                        
+                        </form>
                         {isLoading && <div className={styles.loadingSpinner}></div>}
                         {error && <p className={styles.errorMessage}>{error}</p>}
                         
-                        {results && !activeTool.comingSoon && !activeTool.isLinkOut && (
+                        {results && ( // Results are always for recipeGenerator now
                             <div className={styles.resultsContainer}>
-                                {activeTool.id === 'recipeGenerator' ? renderRecipeResults(results) : 
-                                 activeTool.id === 'mealAnalyzer' ? renderCritiqueResults(results) :
-                                 activeTool.id === 'suggestionExplorer' ? renderSuggestionExplorerResults(results) :
-                                 (
-                                    <div className={styles.resultsContent}>
-                                        <ReactMarkdown>{results}</ReactMarkdown>
-                                    </div>
-                                )}
+                                {renderRecipeResults(results)}
                             </div>
                         )}
                     </div>
