@@ -20,10 +20,13 @@ export function AuthProvider({ children }) {
   const [isPremium, setIsPremium] = useState(false);
 
   useEffect(() => {
+    console.log('[AuthContext] useEffect triggered. Supabase client:', supabase); // Check if supabase object is valid
+
     // setLoading(true) is already set initially for the component.
     // onAuthStateChange will fire once with the initial session or null.
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('[AuthContext] onAuthStateChange event:', event, 'session:', session);
         const authUser = session?.user ?? null;
         setUser(authUser); // Set user (or null)
 
