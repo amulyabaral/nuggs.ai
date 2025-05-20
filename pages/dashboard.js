@@ -52,7 +52,7 @@ export default function Dashboard() {
         console.warn('Dashboard: Auth loading timeout. AuthContext might be stuck. Forcing sign out.');
         setPageError('Loading your session took too long. You have been signed out. Please try logging in again.');
         signOut();
-      }, 20000);
+      }, 30000);
     } else {
       if (!user) {
         router.push('/');
@@ -64,26 +64,43 @@ export default function Dashboard() {
           // Try to create the profile if it's missing
           const createMissingProfile = async () => {
             try {
-              const { data, error } = await supabase
+              // Check if profile already exists first to avoid duplicate creation attempts
+              const { data: existingProfile, error: checkError } = await supabase
                 .from('profiles')
-                .insert({
-                  id: user.id,
-                  email: user.email,
-                  daily_usage_reset_at: new Date().toISOString(),
-                  daily_usage_count: 0,
-                  subscription_tier: 'free'
-                })
-                .select()
+                .select('id')
+                .eq('id', user.id)
                 .single();
                 
-              if (error) {
-                console.error("Failed to create missing profile:", error);
-                return false;
+              if (checkError && checkError.code === 'PGRST116') {
+                // Profile doesn't exist, create it
+                const { data, error } = await supabase
+                  .from('profiles')
+                  .insert({
+                    id: user.id,
+                    email: user.email,
+                    daily_usage_reset_at: new Date().toISOString(),
+                    daily_usage_count: 0,
+                    subscription_tier: 'free'
+                  })
+                  .select()
+                  .single();
+                  
+                if (error) {
+                  console.error("Failed to create missing profile:", error);
+                  return false;
+                }
+                
+                console.log("Successfully created missing profile");
+                await refreshProfile();
+                return true;
+              } else if (existingProfile) {
+                // Profile exists but wasn't loaded properly - force refresh
+                console.log("Profile exists but wasn't loaded. Forcing refresh...");
+                await refreshProfile();
+                return true;
               }
               
-              console.log("Successfully created missing profile");
-              await refreshProfile();
-              return true;
+              return false;
             } catch (e) {
               console.error("Error creating missing profile:", e);
               return false;
@@ -93,7 +110,7 @@ export default function Dashboard() {
           // Execute the profile creation
           createMissingProfile().then(success => {
             if (!success) {
-              setPageError("Your profile data could not be created. Please try refreshing your profile or sign out and log back in.");
+              setPageError("Your profile data could not be created or refreshed. Please try refreshing your profile or sign out and log back in.");
             }
           });
         } else {

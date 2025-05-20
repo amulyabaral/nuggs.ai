@@ -122,6 +122,10 @@ export default function HomePage() {
     const [authMode, setAuthMode] = useState('login');
     const [usageLimitReached, setUsageLimitReached] = useState(false);
 
+    // Add these new state variables near the other useState declarations
+    const [saveStatus, setSaveStatus] = useState(null); // 'success', 'error', or null
+    const [saveMessage, setSaveMessage] = useState('');
+
     // Effect to update activeTool when selectedToolId changes
     useEffect(() => {
         const tool = tools.find(t => t.id === selectedToolId);
@@ -894,7 +898,7 @@ IMPORTANT:
         }
     };
 
-    // Add save recipe function
+    // Update the handleSaveRecipe function
     const handleSaveRecipe = async () => {
         if (!user) {
             setAuthMode('login');
@@ -910,9 +914,13 @@ IMPORTANT:
                 recipeData = JSON.parse(results);
             } catch (e) {
                 console.error("Error parsing recipe JSON:", e);
-                setError("Failed to save recipe: Invalid recipe data");
+                setSaveStatus('error');
+                setSaveMessage("Failed to save recipe: Invalid recipe data");
                 return;
             }
+            
+            setSaveStatus('loading');
+            setSaveMessage('Saving recipe...');
             
             const { error } = await supabase
                 .from('saved_recipes')
@@ -924,10 +932,21 @@ IMPORTANT:
                 
             if (error) throw error;
             
-            alert('Recipe saved successfully!');
+            setSaveStatus('success');
+            setSaveMessage('Recipe saved successfully!');
+            
+            // Auto-clear success message after 3 seconds
+            setTimeout(() => {
+                if (setSaveStatus) { // Check if component is still mounted
+                    setSaveStatus(null);
+                    setSaveMessage('');
+                }
+            }, 3000);
         } catch (error) {
             console.error('Error saving recipe:', error);
-            setError('Failed to save recipe. Please try again.');
+            setSaveStatus('error');
+            setSaveMessage('Failed to save recipe. Please try again.');
+            // Don't use setError here, as it would show at the top
         }
     };
 
@@ -1197,6 +1216,12 @@ IMPORTANT:
                     <button onClick={handleSaveRecipe} className="saveRecipeButton">
                         Save Recipe
                     </button>
+                    
+                    {saveStatus && (
+                        <div className={`saveStatusMessage ${saveStatus === 'success' ? 'saveSuccess' : 'saveError'}`}>
+                            {saveMessage}
+                        </div>
+                    )}
                 </div>
             )}
 

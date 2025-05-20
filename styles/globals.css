@@ -2216,7 +2216,9 @@ img {
 .saveRecipeContainer {
   display: flex;
   justify-content: center;
+  align-items: center;
   margin: 2rem 0;
+  gap: 1rem;
 }
 
 .saveRecipeButton {
@@ -2233,6 +2235,31 @@ img {
 
 .saveRecipeButton:hover {
   background-color: var(--accent-primary-hover);
+}
+
+.saveStatusMessage {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.saveSuccess {
+  background-color: #E8F5E9;
+  color: #2E7D32;
+  border: 1px solid #C8E6C9;
+}
+
+.saveError {
+  background-color: #FFEBEE;
+  color: #C62828;
+  border: 1px solid #FFCDD2;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .usageLimitAlert {
