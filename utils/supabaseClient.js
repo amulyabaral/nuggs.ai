@@ -8,13 +8,12 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
-    storageKey: 'nuggs-auth-token',
-    storage: {
+// Create a custom storage object that works on both client and server
+const createCustomStorage = () => {
+  // Check if window is defined (client-side) or not (server-side)
+  if (typeof window !== 'undefined') {
+    // Client-side - use localStorage
+    return {
       getItem: (key) => {
         try {
           return localStorage.getItem(key);
@@ -37,7 +36,31 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
           console.error('Error removing from localStorage:', e);
         }
       }
-    }
+    };
+  } else {
+    // Server-side - use in-memory storage (won't persist, but prevents errors)
+    const storage = {};
+    return {
+      getItem: (key) => {
+        return storage[key] || null;
+      },
+      setItem: (key, value) => {
+        storage[key] = value;
+      },
+      removeItem: (key) => {
+        delete storage[key];
+      }
+    };
+  }
+};
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: typeof window !== 'undefined', // Only detect sessions in URL on client-side
+    storageKey: 'nuggs-auth-token',
+    storage: createCustomStorage()
   }
 });
 
