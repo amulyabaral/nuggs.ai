@@ -77,13 +77,17 @@ export default function Dashboard() {
       return;
     }
 
-    if (!profile) {
+    // Add a maximum retry counter to prevent infinite loops
+    if (!profile && refreshAttempts < 3) {
       if (profileError) {
         console.warn("Dashboard: User is authenticated, but profile loading failed:", profileError);
         setPageError(`Your profile data could not be loaded: ${profileError}. Some information might be missing. You can try refreshing.`);
+        // Don't automatically retry if there's a specific profile error
       } else {
         console.warn("Dashboard: User is authenticated, but profile is null (no specific error). Attempting to refresh profile.");
         setPageError("Loading your profile information...");
+        setRefreshAttempts(prev => prev + 1);
+        
         refreshProfile().then(success => {
           if (success && profile) {
             console.log("Dashboard: Profile refresh successful.");
@@ -93,15 +97,19 @@ export default function Dashboard() {
             setPageError("Could not load all profile details. This might be a new account or data is unavailable.");
           } else {
             console.error("Dashboard: Profile refresh attempt failed.");
-            setPageError(authContextProfileError => authContextProfileError || "Failed to load your profile information. Please try again later or contact support.");
+            setPageError(prevError => prevError || "Failed to load your profile information. Please try again later or contact support.");
           }
         });
       }
+    } else if (!profile && refreshAttempts >= 3) {
+      console.error("Dashboard: Maximum profile refresh attempts reached. Setting hard refresh needed.");
+      setHardRefreshNeeded(true);
+      setPageError("We're having trouble loading your profile. Please try signing out and back in.");
     } else {
       console.log("Dashboard: User and profile are available.");
       setPageError('');
     }
-  }, [authLoading, user, profile, router, refreshSession, sessionChecked, profileError, refreshProfile]);
+  }, [authLoading, user, profile, router, refreshSession, sessionChecked, profileError, refreshProfile, refreshAttempts]);
   
   useEffect(() => {
     if (user && profile && !authLoading) {

@@ -46,9 +46,40 @@ export function AuthProvider({ children }) {
         .eq('id', userId)
         .single();
 
-      if (error && status !== 406) {
-        console.error('AuthContext: Error fetching profile:', error);
-        throw error;
+      if (error) {
+        if (status === 406) {
+          console.log('AuthContext: Profile not found for user. This might be a new user.');
+          
+          try {
+            const { data: newProfile, error: createError } = await supabase
+              .from('profiles')
+              .insert({
+                id: userId,
+                email: userEmail,
+                subscription_tier: 'free',
+                daily_usage_count: 0,
+                daily_usage_reset_at: new Date().toISOString()
+              })
+              .single();
+              
+            if (createError) throw createError;
+            
+            if (newProfile) {
+              setProfile(newProfile);
+              setIsPremium(false);
+              const defaultFreeTries = parseInt(process.env.NEXT_PUBLIC_FREE_TRIES || '5', 10);
+              setUsageRemaining(defaultFreeTries);
+              console.log('AuthContext: New profile created for user:', userId);
+              return newProfile;
+            }
+          } catch (createErr) {
+            console.error('AuthContext: Failed to create profile for new user:', createErr);
+            throw createErr;
+          }
+        } else {
+          console.error('AuthContext: Error fetching profile:', error);
+          throw error;
+        }
       }
 
       if (data) {
