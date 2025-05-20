@@ -6,7 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../utils/supabaseClient';
 
 export default function Dashboard() {
-  const { user, profile, signOut, loading: authLoading, usageRemaining, isPremium } = useAuth();
+  const { user, profile, signOut, loading: authLoading, usageRemaining, isPremium, refreshSession } = useAuth();
   const [savedRecipes, setSavedRecipes] = useState([]);
   const [loadingRecipes, setLoadingRecipes] = useState(false);
   const [errorRecipes, setErrorRecipes] = useState('');
@@ -18,6 +18,14 @@ export default function Dashboard() {
       router.push('/');
     }
   }, [authLoading, user, router]);
+  
+  // Add a useEffect to handle session refresh
+  useEffect(() => {
+    if (!authLoading && user && !profile) {
+      // Attempt to refresh the session if the profile is not loaded
+      refreshSession();
+    }
+  }, [authLoading, user, profile, refreshSession]);
   
   // Fetch recipes when user and profile are available
   useEffect(() => {

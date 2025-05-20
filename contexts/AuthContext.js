@@ -11,6 +11,7 @@ const AuthContext = createContext({
   usageRemaining: 0,
   isPremium: false,
   incrementUsage: async () => false,
+  refreshSession: async () => {},
 });
 
 export function AuthProvider({ children }) {
@@ -50,15 +51,15 @@ export function AuthProvider({ children }) {
 
   // Setup auth state listener
   useEffect(() => {
-    // Get initial session
     const initAuth = async () => {
       setLoading(true);
       
       try {
         // Get current session
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error } = await supabase.auth.getSession();
         
-        // Set user from session if it exists
+        if (error) throw error;
+        
         if (session?.user) {
           setUser(session.user);
           const profileData = await fetchProfile(session.user.id);
@@ -80,7 +81,6 @@ export function AuthProvider({ children }) {
     
     initAuth();
     
-    // Subscribe to auth changes
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth state changed:', event);
       setLoading(true);
@@ -142,11 +142,23 @@ export function AuthProvider({ children }) {
   async function signOut() {
     try {
       await supabase.auth.signOut();
+      setUser(null);
+      setProfile(null);
+      setIsPremium(false);
+      setUsageRemaining(0);
     } catch (error) {
       console.error('Sign out error:', error);
     }
   }
   
+  // Add a fallback to sign out if session is invalid
+  useEffect(() => {
+    if (!loading && user && !profile) {
+      console.warn('Invalid session detected, signing out...');
+      signOut();
+    }
+  }, [loading, user, profile]);
+
   // Increment usage function
   const incrementUsage = useCallback(async () => {
     if (!user || !profile) return false;
@@ -178,6 +190,23 @@ export function AuthProvider({ children }) {
     }
   }, [user, profile, isPremium]);
 
+  // Add a function to refresh the session
+  async function refreshSession() {
+    try {
+      const { data: { session }, error } = await supabase.auth.refreshSession();
+      if (error) throw error;
+      if (session?.user) {
+        setUser(session.user);
+        const profileData = await fetchProfile(session.user.id);
+        setProfile(profileData);
+      }
+    } catch (error) {
+      console.error('Error refreshing session:', error);
+      setUser(null);
+      setProfile(null);
+    }
+  }
+
   const value = {
     user,
     profile,
@@ -188,6 +217,7 @@ export function AuthProvider({ children }) {
     usageRemaining,
     isPremium,
     incrementUsage,
+    refreshSession,
   };
   
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
