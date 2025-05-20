@@ -40,18 +40,21 @@ CREATE TRIGGER on_auth_user_created
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
 -- Policy: Users can select their own profile
+DROP POLICY IF EXISTS "Allow individual user read access to their own profile" ON public.profiles;
 CREATE POLICY "Allow individual user read access to their own profile"
   ON public.profiles FOR SELECT
-  USING (auth.uid() = id);
+  USING ((select auth.uid()) = id);
 
 -- Policy: Users can update their own profile (be specific about columns if needed for client-side updates)
 -- For now, most updates (like subscription) will be via service_role key from webhooks/API.
+DROP POLICY IF EXISTS "Allow individual user to update their own profile" ON public.profiles;
 CREATE POLICY "Allow individual user to update their own profile"
   ON public.profiles FOR UPDATE
-  USING (auth.uid() = id)
-  WITH CHECK (auth.uid() = id);
+  USING ((select auth.uid()) = id)
+  WITH CHECK ((select auth.uid()) = id);
 
 -- Policy: Allow service_role to do anything (important for backend processes like webhooks)
+DROP POLICY IF EXISTS "Allow service_role full access to profiles" ON public.profiles;
 CREATE POLICY "Allow service_role full access to profiles"
   ON public.profiles FOR ALL
   USING (auth.role() = 'service_role')
@@ -77,12 +80,14 @@ COMMENT ON COLUMN public.saved_recipes.is_favorite IS 'Whether the user has mark
 ALTER TABLE public.saved_recipes ENABLE ROW LEVEL SECURITY;
 
 -- Policy: Users can manage (CRUD) their own saved recipes
+DROP POLICY IF EXISTS "Allow individual user full CRUD access to their own recipes" ON public.saved_recipes;
 CREATE POLICY "Allow individual user full CRUD access to their own recipes"
   ON public.saved_recipes FOR ALL
-  USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
+  USING ((select auth.uid()) = user_id)
+  WITH CHECK ((select auth.uid()) = user_id);
 
 -- Policy: Allow service_role to do anything (e.g., for admin purposes or complex backend logic)
+DROP POLICY IF EXISTS "Allow service_role full access to saved_recipes" ON public.saved_recipes;
 CREATE POLICY "Allow service_role full access to saved_recipes"
   ON public.saved_recipes FOR ALL
   USING (auth.role() = 'service_role')
@@ -120,4 +125,4 @@ CREATE POLICY "Allow service_role to update usage history"
 -- Policy: (Optional) If users should see their own history
 -- CREATE POLICY "Allow individual user read access to their own usage"
 --   ON public.usage_history FOR SELECT
---   USING (auth.uid() = user_id AND is_anonymous = FALSE); 
+--   USING ((select auth.uid()) = user_id AND is_anonymous = FALSE); 
