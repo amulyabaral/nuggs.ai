@@ -25,8 +25,25 @@ LANGUAGE plpgsql
 SECURITY DEFINER SET search_path = public
 AS $$
 BEGIN
-  INSERT INTO public.profiles (id, email, daily_usage_reset_at)
-  VALUES (NEW.id, NEW.email, NOW());
+  INSERT INTO public.profiles (
+    id, 
+    email, 
+    subscription_tier,
+    daily_usage_count,
+    daily_usage_reset_at
+  )
+  VALUES (
+    NEW.id, 
+    NEW.email, 
+    'free',
+    0,
+    NOW()
+  );
+  RETURN NEW;
+EXCEPTION WHEN OTHERS THEN
+  -- Log the error (this will appear in Supabase logs)
+  RAISE LOG 'Error in handle_new_user trigger: %', SQLERRM;
+  -- Still return NEW so the user creation succeeds even if profile fails
   RETURN NEW;
 END;
 $$;
@@ -44,7 +61,7 @@ ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Allow individual user read access to their own profile" ON public.profiles;
 CREATE POLICY "Allow individual user read access to their own profile"
   ON public.profiles FOR SELECT
-  USING ((select auth.uid()) = id);
+  USING (auth.uid() = id);
 
 -- Policy: Users can update their own profile (be specific about columns if needed for client-side updates)
 -- For now, most updates (like subscription) will be via service_role key from webhooks/API.

@@ -58,7 +58,44 @@ export default function Dashboard() {
         router.push('/');
       } else {
         if (!profile) {
-          setPageError("Your profile data could not be loaded. Please try refreshing your profile or sign out and log back in.");
+          console.error("Dashboard: Profile data missing after auth. User object:", JSON.stringify(user));
+          setPageError("Your profile data could not be loaded. We'll try to fix this automatically. If this persists, please try signing out and back in.");
+          
+          // Try to create the profile if it's missing
+          const createMissingProfile = async () => {
+            try {
+              const { data, error } = await supabase
+                .from('profiles')
+                .insert({
+                  id: user.id,
+                  email: user.email,
+                  daily_usage_reset_at: new Date().toISOString(),
+                  daily_usage_count: 0,
+                  subscription_tier: 'free'
+                })
+                .select()
+                .single();
+                
+              if (error) {
+                console.error("Failed to create missing profile:", error);
+                return false;
+              }
+              
+              console.log("Successfully created missing profile");
+              await refreshProfile();
+              return true;
+            } catch (e) {
+              console.error("Error creating missing profile:", e);
+              return false;
+            }
+          };
+          
+          // Execute the profile creation
+          createMissingProfile().then(success => {
+            if (!success) {
+              setPageError("Your profile data could not be created. Please try refreshing your profile or sign out and log back in.");
+            }
+          });
         } else {
           setPageError('');
         }
@@ -72,7 +109,7 @@ export default function Dashboard() {
         authLoadingTimeoutRef.current = null;
       }
     };
-  }, [loading, user, profile, router, signOut]);
+  }, [loading, user, profile, router, signOut, refreshProfile]);
   
   useEffect(() => {
     if (user && profile && !loading) {

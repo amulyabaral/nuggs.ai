@@ -123,6 +123,7 @@ export function AuthProvider({ children }) {
     }
 
     try {
+      // First, try to get the profile
       const { data, error: profileError } = await supabase
         .from('profiles')
         .select('*')
@@ -133,10 +134,46 @@ export function AuthProvider({ children }) {
         console.error('Error fetching profile:', profileError);
         
         if (profileError.code === 'PGRST116') {
-          console.log('Profile not found, may need to be created');
+          console.log('Profile not found, creating a new one');
+          
+          // Profile doesn't exist, create it
+          const { data: newProfile, error: insertError } = await supabase
+            .from('profiles')
+            .insert({
+              id: userId,
+              email: user?.email,
+              daily_usage_reset_at: new Date().toISOString(),
+              daily_usage_count: 0,
+              subscription_tier: 'free'
+            })
+            .select()
+            .single();
+            
+          if (insertError) {
+            console.error('Error creating profile:', insertError);
+            setProfile(null);
+            setIsPremium(false);
+            setUsageRemaining(0);
+            setLoading(false);
+            return null;
+          }
+          
+          // Use the newly created profile
+          setProfile(newProfile);
+          setIsPremium(false);
+          // Get default free tries from environment variable, fallback to 5
+          const defaultFreeTries = parseInt(process.env.NEXT_PUBLIC_FREE_TRIES || '5', 10);
+          setUsageRemaining(defaultFreeTries);
+          setLoading(false);
+          return newProfile;
         }
         
-        // Don't throw - handle gracefully and set profile to null
+        // Handle other types of errors
+        setProfile(null);
+        setIsPremium(false);
+        setUsageRemaining(0);
+        setLoading(false);
+        return null;
       }
       
       if (!data) {
@@ -223,13 +260,49 @@ export function AuthProvider({ children }) {
   }
   
   async function signUp(email, password) {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-    
-    if (error) throw error;
-    return data;
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+      
+      if (error) throw error;
+      
+      // After successful signup, let's manually ensure the profile exists
+      if (data.user) {
+        // Wait a moment to let the database trigger work first
+        setTimeout(async () => {
+          try {
+            // Check if profile already exists
+            const { data: existingProfile } = await supabase
+              .from('profiles')
+              .select('id')
+              .eq('id', data.user.id)
+              .single();
+              
+            if (!existingProfile) {
+              // Profile doesn't exist yet, create it manually
+              const { error: profileError } = await supabase
+                .from('profiles')
+                .insert({
+                  id: data.user.id,
+                  email: data.user.email,
+                  daily_usage_reset_at: new Date().toISOString()
+                });
+                
+              if (profileError) console.error('Failed to create profile manually:', profileError);
+            }
+          } catch (err) {
+            console.error('Error checking/creating profile after signup:', err);
+          }
+        }, 1000);
+      }
+      
+      return data;
+    } catch (error) {
+      console.error("Sign up error:", error);
+      throw error;
+    }
   }
   
   async function signOut() {
