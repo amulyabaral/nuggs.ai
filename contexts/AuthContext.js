@@ -195,23 +195,29 @@ export function AuthProvider({ children }) {
     const checkInitialSession = async () => {
       if (!isMounted) return;
       console.log('AuthContext: Checking initial session...');
-
+      
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        console.log('AuthContext: Initial session data:', session ? 'Session found' : 'No session');
+        // First attempt to directly get the current user from supabase
+        const { data: authUser } = await supabase.auth.getUser();
+        const { data: sessionData } = await supabase.auth.getSession();
+        const session = sessionData?.session;
         
-        if (session?.user) {
-          const expiresAt = session.expires_at ? new Date(session.expires_at * 1000) : null;
-          const now = new Date();
-          const needsRefresh = expiresAt && ((expiresAt.getTime() - now.getTime()) < 10 * 60 * 1000);
+        console.log('AuthContext: Auth check -', 
+          'User from getUser():', authUser?.user ? `Found (${authUser.user.email})` : 'Not found', 
+          'Session:', session ? `Found (expires: ${new Date(session.expires_at * 1000).toISOString()})` : 'Not found');
+        
+        // If we have a user from cookies/local storage
+        if (authUser?.user) {
+          setUser(authUser.user);
           
-          if (needsRefresh) {
-            console.log('AuthContext: Session token needs refresh, refreshing...');
+          // Force refresh the session to ensure we have valid tokens
+          try {
+            console.log('AuthContext: Forcing session refresh to ensure valid tokens');
             const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
             
             if (refreshError) {
-              console.error('AuthContext: Session refresh failed:', refreshError);
-              await supabase.auth.signOut();
+              console.error('AuthContext: Session refresh failed - signing out:', refreshError);
+              await supabase.auth.signOut({ scope: 'local' });
               setUser(null);
               setProfile(null);
               setUsageRemaining(0);
@@ -220,23 +226,45 @@ export function AuthProvider({ children }) {
               return;
             }
             
-            console.log('AuthContext: Session refreshed successfully');
-            setUser(refreshData.user);
-            await _internalFetchProfile(refreshData.user.id, refreshData.user.email);
-          } else {
-            setUser(session.user);
-            await _internalFetchProfile(session.user.id, session.user.email);
+            if (refreshData?.user) {
+              console.log('AuthContext: Session refreshed successfully:', refreshData.user.email);
+              setUser(refreshData.user);
+              
+              // With refreshed session, now fetch profile
+              const profileData = await _internalFetchProfile(refreshData.user.id, refreshData.user.email);
+              if (!profileData) {
+                // If profile fetch fails after successful auth, this is a problem we need to handle
+                console.error('AuthContext: Profile fetch failed after successful session refresh');
+                throw new Error('Failed to load profile after successful authentication');
+              }
+            } else {
+              console.warn('AuthContext: Session refresh returned no user despite success');
+              throw new Error('Session refresh succeeded but returned no user');
+            }
+          } catch (refreshErr) {
+            console.error('AuthContext: Error during forced refresh:', refreshErr);
+            // Clean up auth state completely
+            await supabase.auth.signOut({ scope: 'local' });
+            setUser(null);
+            setProfile(null);
+            setUsageRemaining(0);
+            setIsPremium(false);
+            setLoading(false);
+            return;
           }
         } else {
+          // No user found in auth state
+          console.log('AuthContext: No user found in auth state');
           setUser(null);
           setProfile(null);
           setUsageRemaining(0);
           setIsPremium(false);
         }
       } catch (err) {
-        console.error('AuthContext: Error checking initial session:', err);
+        console.error('AuthContext: Critical error checking initial session:', err);
+        // Completely reset auth state and force sign out
         try {
-          await supabase.auth.signOut();
+          await supabase.auth.signOut({ scope: 'local' });
         } catch (e) {
           console.error('AuthContext: Error during cleanup sign out:', e);
         }
@@ -315,18 +343,38 @@ export function AuthProvider({ children }) {
     setLoading(true);
     try {
       console.log('AuthContext: Attempting to sign out...');
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error('AuthContext: Error during sign out:', error);
-        throw error;
-      }
-      console.log('AuthContext: Sign out successful. States will be cleared by onAuthStateChange.');
+      
+      // First clear all local state
       setUser(null);
       setProfile(null);
       setIsPremium(false);
       setUsageRemaining(0);
+      
+      // Then clear auth cookies/storage with scope: 'local'
+      const { error } = await supabase.auth.signOut({ scope: 'local' });
+      if (error) {
+        console.error('AuthContext: Error during sign out:', error);
+        throw error;
+      }
+      
+      console.log('AuthContext: Sign out successful.');
+      
+      // Force page reload to ensure all auth state is fresh
+      window.location.href = '/';
+      
     } catch (error) {
       console.error('AuthContext: Exception during sign out:', error);
+      
+      // Even if there's an error, try to clean up local storage directly
+      try {
+        localStorage.removeItem('supabase.auth.token');
+      } catch (e) {
+        console.error('AuthContext: Failed to manually clear local storage:', e);
+      }
+      
+      // Force page reload anyway to clean state
+      window.location.href = '/';
+      
     } finally {
       setLoading(false);
     }

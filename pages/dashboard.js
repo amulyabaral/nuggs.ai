@@ -23,6 +23,8 @@ export default function Dashboard() {
   const [pageError, setPageError] = useState('');
   const router = useRouter();
   
+  const [loadingTimeout, setLoadingTimeout] = useState(false);
+  
   const fetchSavedRecipes = useCallback(async () => {
     if (!user || !profile) {
       setLoadingRecipes(false);
@@ -106,6 +108,23 @@ export default function Dashboard() {
     testConnection();
   }, []);
   
+  useEffect(() => {
+    let timeoutId;
+    
+    if (authLoading) {
+      // Set a timeout to show a "loading too long" message
+      timeoutId = setTimeout(() => {
+        setLoadingTimeout(true);
+      }, 5000); // 5 seconds
+    } else {
+      setLoadingTimeout(false);
+    }
+    
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [authLoading]);
+  
   async function deleteRecipe(id) {
     try {
       const { error } = await supabase
@@ -156,6 +175,26 @@ export default function Dashboard() {
         </header>
         <main className="dashboardContainer" style={{ textAlign: 'center', paddingTop: '3rem' }}>
             <div className="loadingSpinner">Loading your session...</div>
+            
+            {loadingTimeout && (
+              <div style={{ marginTop: '2rem' }}>
+                <p>Loading is taking longer than expected.</p>
+                <button 
+                  onClick={() => window.location.href = '/'} 
+                  className="primaryButton"
+                  style={{ marginTop: '1rem' }}
+                >
+                  Return to Home
+                </button>
+                <button 
+                  onClick={() => window.location.reload()} 
+                  className="secondaryButton"
+                  style={{ marginTop: '1rem', marginLeft: '1rem' }}
+                >
+                  Refresh Page
+                </button>
+              </div>
+            )}
         </main>
       </div>
     );
@@ -211,32 +250,30 @@ export default function Dashboard() {
                     <div style={{marginTop: '1.5rem', display: 'flex', justifyContent: 'center', gap: '1rem'}}>
                         <button
                             onClick={async () => {
-                                setPageError('Attempting to reload profile...');
-                                const refreshed = await refreshProfile();
-                                if (!refreshed) {
-                                   setPageError("Failed to refresh profile. The profile data is still unavailable. Please try signing out and back in.");
-                                } else {
-                                   setPageError('');
+                                setPageError('Attempting to fix your session...');
+                                
+                                // Completely reset auth state and reload
+                                try {
+                                    await supabase.auth.signOut({ scope: 'local' });
+                                    localStorage.clear(); // Clear all local storage
+                                    window.location.href = '/'; // Redirect to home
+                                } catch (err) {
+                                    console.error('Error during session reset:', err);
+                                    // Force reload anyway
+                                    window.location.href = '/';
                                 }
                             }}
                             className="primaryButton"
                             style={{padding: '0.7rem 1.3rem', fontSize: '0.9rem'}}
                         >
-                            Retry Loading Profile
+                            Reset Session
                         </button>
                         <button
-                            onClick={async () => {
-                                try {
-                                    await signOut();
-                                    router.push('/');
-                                } catch (err) {
-                                    console.error('Error during sign out from dashboard error state:', err);
-                                    router.push('/');
-                                }
-                            }}
-                            className="navLink authNavButton"
+                            onClick={() => window.location.reload()}
+                            className="secondaryButton"
+                            style={{padding: '0.7rem 1.3rem', fontSize: '0.9rem'}}
                         >
-                            Sign Out
+                            Refresh Page
                         </button>
                     </div>
                 </div>

@@ -126,12 +126,37 @@ export default function HomePage() {
     const [saveStatus, setSaveStatus] = useState(null); // 'success', 'error', or null
     const [saveMessage, setSaveMessage] = useState('');
 
-    // Add a useEffect to check for inconsistent auth state
+    // Add more robust checking for session issues
     useEffect(() => {
-        if (!loading && user && !profile) {
-            console.log('HomePage: Detected inconsistent auth state - user exists but no profile. Refreshing session...');
-            refreshSession();
-        }
+        const checkAuthState = async () => {
+            if (!loading) {
+                if (user && !profile) {
+                    console.log('HomePage: Detected inconsistent auth state - user exists but no profile');
+                    
+                    try {
+                        console.log('HomePage: Attempting to refresh session to resolve inconsistency');
+                        const refreshResult = await refreshSession();
+                        console.log('HomePage: Session refresh result:', refreshResult ? 'Success' : 'Failed');
+                        
+                        if (!refreshResult) {
+                            console.log('HomePage: Session refresh failed, forcing sign out');
+                            // Force sign out and reload
+                            try {
+                                await supabase.auth.signOut({ scope: 'local' });
+                            } catch (e) {
+                                console.error('HomePage: Error during forced sign out:', e);
+                            }
+                            window.location.reload();
+                        }
+                    } catch (err) {
+                        console.error('HomePage: Error during auth state repair:', err);
+                        window.location.reload();
+                    }
+                }
+            }
+        };
+        
+        checkAuthState();
     }, [user, profile, loading, refreshSession]);
 
     // Effect to update activeTool when selectedToolId changes
