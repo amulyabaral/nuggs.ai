@@ -15,6 +15,7 @@ const AuthContext = createContext({
   refreshProfile: async () => false,
   sessionChecked: false,
   profileError: null,
+  sessionExpired: false,
 });
 
 export function AuthProvider({ children }) {
@@ -25,6 +26,7 @@ export function AuthProvider({ children }) {
   const [isPremium, setIsPremium] = useState(false);
   const [sessionChecked, setSessionChecked] = useState(false);
   const [profileError, setProfileError] = useState(null);
+  const [sessionExpired, setSessionExpired] = useState(false);
 
   const _internalFetchProfile = useCallback(async (userId, userEmail) => {
     console.log('AuthContext: _internalFetchProfile called for user ID:', userId);
@@ -134,8 +136,25 @@ export function AuthProvider({ children }) {
     }
   }, [clearAuthState]);
 
+  const setupSessionRefresh = useCallback((expiresAt) => {
+    if (!expiresAt) return null;
+    
+    const expiresIn = new Date(expiresAt).getTime() - Date.now();
+    const refreshTime = Math.max(expiresIn - 60000, 0);
+    
+    console.log(`AuthContext: Setting up token refresh in ${Math.floor(refreshTime/1000)} seconds`);
+    
+    const refreshTimer = setTimeout(async () => {
+      console.log('AuthContext: Proactively refreshing token before expiration');
+      await refreshSession();
+    }, refreshTime);
+    
+    return refreshTimer;
+  }, []);
+
   useEffect(() => {
     let isMounted = true;
+    let refreshTimer = null;
     setLoading(true);
 
     const handleAuthChange = async (event, session) => {
@@ -143,13 +162,24 @@ export function AuthProvider({ children }) {
       console.log('AuthContext: Auth state changed:', event, session);
       setLoading(true);
       setProfileError(null);
+      setSessionExpired(false);
 
       try {
         const currentUser = session?.user || null;
         setUser(currentUser);
 
+        if (refreshTimer) {
+          clearTimeout(refreshTimer);
+          refreshTimer = null;
+        }
+
         if (currentUser) {
           await _internalFetchProfile(currentUser.id, currentUser.email);
+          
+          if (session && session.expires_at) {
+            refreshTimer = setupSessionRefresh(session.expires_at);
+          }
+          
           console.log('AuthContext: User profile processing complete after auth change.');
         } else {
           setProfile(null);
@@ -173,7 +203,22 @@ export function AuthProvider({ children }) {
       if (!isMounted) return;
       console.log('AuthContext: Performing initial getSession()...');
       try {
-        await supabase.auth.getSession();
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('AuthContext: Error during initial getSession():', error);
+          return;
+        }
+        
+        if (data.session) {
+          console.log('AuthContext: Initial session found:', data.session.user?.email);
+          
+          if (data.session.expires_at) {
+            refreshTimer = setupSessionRefresh(data.session.expires_at);
+          }
+        } else {
+          console.log('AuthContext: No active session found during initialization');
+        }
       } catch (error) {
         console.error('AuthContext: Error during initial getSession():', error);
       } finally {
@@ -195,13 +240,15 @@ export function AuthProvider({ children }) {
 
     return () => {
       isMounted = false;
+      if (refreshTimer) clearTimeout(refreshTimer);
+      
       if (authListener && typeof authListener.unsubscribe === 'function') {
         authListener.unsubscribe();
       } else if (authListener && authListener.subscription) {
         authListener.subscription.unsubscribe();
       }
     };
-  }, [_internalFetchProfile, clearAuthState, sessionChecked, loading]);
+  }, [_internalFetchProfile, clearAuthState, sessionChecked, loading, setupSessionRefresh]);
   
   async function signIn(email, password) {
     setLoading(true);
@@ -348,14 +395,30 @@ export function AuthProvider({ children }) {
         
       if (error) {
         console.error('AuthContext: Manual session refresh failed:', error);
+        
+        if (error.message && (
+            error.message.includes("expired") || 
+            error.message.includes("invalid refresh token") ||
+            error.message.includes("JWT expired"))) {
+          console.log('AuthContext: Session expired, setting sessionExpired flag');
+          setSessionExpired(true);
+        }
+        
         clearAuthState();
         return false;
       }
       
       console.log('AuthContext: Manual session refresh successful. User:', data?.user?.email);
+      setSessionExpired(false);
+      
       if (data?.user) {
         setUser(data.user);
         await _internalFetchProfile(data.user.id, data.user.email);
+        
+        if (data.session && data.session.expires_at) {
+          setupSessionRefresh(data.session.expires_at);
+        }
+        
         return true;
       } else {
         clearAuthState();
@@ -368,7 +431,7 @@ export function AuthProvider({ children }) {
     } finally {
       setLoading(false);
     }
-  }, [_internalFetchProfile, clearAuthState]);
+  }, [_internalFetchProfile, clearAuthState, setupSessionRefresh]);
   
   const manualRefreshProfile = useCallback(async () => {
     if (user && !loading) {
@@ -404,6 +467,7 @@ export function AuthProvider({ children }) {
     refreshProfile: manualRefreshProfile,
     sessionChecked,
     profileError,
+    sessionExpired,
   };
   
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
