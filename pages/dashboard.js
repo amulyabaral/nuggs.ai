@@ -1,24 +1,26 @@
 import Head from 'next/head';
 import Link from 'next/link';
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, testSupabaseConnection } from '../utils/supabaseClient';
 
 export default function Dashboard() {
-  const { user, profile, signOut, loading, usageRemaining, isPremium, refreshProfile } = useAuth();
+  const { 
+    user, 
+    profile, 
+    signOut, 
+    loading: authLoading,
+    usageRemaining, 
+    isPremium, 
+    refreshProfile 
+  } = useAuth();
+
   const [savedRecipes, setSavedRecipes] = useState([]);
   const [loadingRecipes, setLoadingRecipes] = useState(true);
   const [errorRecipes, setErrorRecipes] = useState('');
   const [pageError, setPageError] = useState('');
   const router = useRouter();
-  const authLoadingTimeoutRef = useRef(null);
-  
-  useEffect(() => {
-    if (!loading && !user) {
-      router.replace('/');
-    }
-  }, [loading, user, router]);
   
   const fetchSavedRecipes = useCallback(async () => {
     if (!user || !profile) {
@@ -26,6 +28,7 @@ export default function Dashboard() {
       return;
     }
     try {
+      console.log("Dashboard: Fetching saved recipes for user:", user.id);
       setLoadingRecipes(true);
       setErrorRecipes('');
       const { data, error } = await supabase
@@ -37,8 +40,9 @@ export default function Dashboard() {
       if (error) throw error;
       
       setSavedRecipes(data || []);
+      console.log("Dashboard: Saved recipes fetched:", data);
     } catch (error) {
-      console.error('Error fetching saved recipes:', error);
+      console.error('Dashboard: Error fetching saved recipes:', error);
       setErrorRecipes('Could not load your saved recipes. Please try again later.');
     } finally {
       setLoadingRecipes(false);
@@ -46,107 +50,52 @@ export default function Dashboard() {
   }, [user, profile]);
   
   useEffect(() => {
-    // Cleanup previous timeout if effect re-runs
-    if (authLoadingTimeoutRef.current) {
-      clearTimeout(authLoadingTimeoutRef.current);
-      authLoadingTimeoutRef.current = null;
-    }
-
-    if (loading) {
+    if (authLoading) {
+      console.log("Dashboard: AuthContext is loading. Waiting...");
       setPageError('');
-      authLoadingTimeoutRef.current = setTimeout(() => {
-        console.warn('Dashboard: Auth loading timeout. AuthContext might be stuck. Forcing sign out.');
-        setPageError('Loading your session took too long. You have been signed out. Please try logging in again.');
-        signOut();
-      }, 30000);
-    } else {
-      if (!user) {
-        router.push('/');
-      } else {
-        if (!profile) {
-          console.error("Dashboard: Profile data missing after auth. User object:", JSON.stringify(user));
-          setPageError("Your profile data could not be loaded. We'll try to fix this automatically. If this persists, please try signing out and back in.");
-          
-          // Try to create the profile if it's missing
-          const createMissingProfile = async () => {
-            try {
-              // Check if profile already exists first to avoid duplicate creation attempts
-              const { data: existingProfile, error: checkError } = await supabase
-                .from('profiles')
-                .select('id')
-                .eq('id', user.id)
-                .single();
-                
-              if (checkError && checkError.code === 'PGRST116') {
-                // Profile doesn't exist, create it
-                const { data, error } = await supabase
-                  .from('profiles')
-                  .insert({
-                    id: user.id,
-                    email: user.email,
-                    daily_usage_reset_at: new Date().toISOString(),
-                    daily_usage_count: 0,
-                    subscription_tier: 'free'
-                  })
-                  .select()
-                  .single();
-                  
-                if (error) {
-                  console.error("Failed to create missing profile:", error);
-                  return false;
-                }
-                
-                console.log("Successfully created missing profile");
-                await refreshProfile();
-                return true;
-              } else if (existingProfile) {
-                // Profile exists but wasn't loaded properly - force refresh
-                console.log("Profile exists but wasn't loaded. Forcing refresh...");
-                await refreshProfile();
-                return true;
-              }
-              
-              return false;
-            } catch (e) {
-              console.error("Error creating missing profile:", e);
-              return false;
-            }
-          };
-          
-          // Execute the profile creation
-          createMissingProfile().then(success => {
-            if (!success) {
-              setPageError("Your profile data could not be created or refreshed. Please try refreshing your profile or sign out and log back in.");
-            }
-          });
-        } else {
-          setPageError('');
-        }
-      }
+      return;
     }
 
-    // Cleanup function for the timeout
-    return () => {
-      if (authLoadingTimeoutRef.current) {
-        clearTimeout(authLoadingTimeoutRef.current);
-        authLoadingTimeoutRef.current = null;
-      }
-    };
-  }, [loading, user, profile, router, signOut, refreshProfile]);
-  
-  useEffect(() => {
-    if (user && profile && !loading) {
-      fetchSavedRecipes();
+    console.log("Dashboard: AuthContext finished loading. User:", user, "Profile:", profile);
+    if (!user) {
+      console.log("Dashboard: No user found after auth loading. Redirecting to /");
+      router.replace('/');
+      return;
     }
-  }, [user, profile, loading, fetchSavedRecipes]);
+
+    if (!profile) {
+      console.warn("Dashboard: User is authenticated, but profile is null. AuthLoading is false.");
+      setPageError("Your profile data could not be loaded. We'll try to refresh it. If this persists, please sign out and back in.");
+      
+      refreshProfile().then(success => {
+        if (success) {
+          console.log("Dashboard: Profile refresh successful after finding it null.");
+          setPageError('');
+        } else {
+          console.error("Dashboard: Profile refresh failed after finding it null.");
+          setPageError("Failed to load your profile information. Please try signing out and then logging back in, or contact support if the issue continues.");
+        }
+      });
+    } else {
+      console.log("Dashboard: User and profile are available. Clearing page error.");
+      setPageError('');
+    }
+  }, [authLoading, user, profile, router, refreshProfile]);
   
   useEffect(() => {
-    // Test Supabase connection on component mount
+    if (user && profile && !authLoading) {
+      fetchSavedRecipes();
+    } else if (!user && !authLoading) {
+      setSavedRecipes([]);
+      setLoadingRecipes(false);
+    }
+  }, [user, profile, authLoading, fetchSavedRecipes]);
+  
+  useEffect(() => {
     const testConnection = async () => {
       const result = await testSupabaseConnection();
-      console.log('Supabase connection test result:', result);
+      console.log('Dashboard: Supabase connection test result:', result);
     };
-    
     testConnection();
   }, []);
   
@@ -159,7 +108,6 @@ export default function Dashboard() {
         
       if (error) throw error;
       
-      // Update the state to remove the deleted recipe
       setSavedRecipes(savedRecipes.filter(recipe => recipe.id !== id));
     } catch (error) {
       console.error('Error deleting recipe:', error);
@@ -175,7 +123,6 @@ export default function Dashboard() {
         
       if (error) throw error;
       
-      // Update state
       setSavedRecipes(savedRecipes.map(recipe => 
         recipe.id === id 
           ? { ...recipe, is_favorite: !currentValue }
@@ -186,34 +133,7 @@ export default function Dashboard() {
     }
   }
   
-  if (pageError && pageError.includes("took too long")) {
-    return (
-        <div className="pageContainer">
-            <header className="mainHeader">
-                <Link href="/" className="logoLink">
-                    <div className="logoArea">
-                        <h1 className="logoText"><span className="logoEmoji">🥦 </span> nuggs.ai</h1>
-                    </div>
-                </Link>
-                <nav>
-                    <Link href="/" className="navLink">Home</Link>
-                    <Link href="/blog" className="navLink">Blog</Link>
-                </nav>
-            </header>
-            <main className="dashboardContainer">
-                <div className="errorContainer" style={{textAlign: 'center', marginTop: '3rem'}}>
-                    <h1>Operation Timed Out</h1>
-                    <p>{pageError}</p>
-                    <button onClick={() => router.push('/')} className="backButton">
-                        Go to Homepage
-                    </button>
-                </div>
-            </main>
-        </div>
-    );
-  }
-  
-  if (loading) {
+  if (authLoading) {
     return (
       <div className="pageContainer">
         <header className="mainHeader">
@@ -228,7 +148,7 @@ export default function Dashboard() {
             </nav>
         </header>
         <main className="dashboardContainer" style={{ textAlign: 'center', paddingTop: '3rem' }}>
-            <div className="loadingSpinner">Loading your dashboard...</div>
+            <div className="loadingSpinner">Loading your session...</div>
         </main>
       </div>
     );
@@ -258,7 +178,7 @@ export default function Dashboard() {
     );
   }
 
-  if (!profile) {
+  if (!profile && pageError) {
     return (
         <div className="pageContainer">
             <header className="mainHeader">
@@ -270,30 +190,26 @@ export default function Dashboard() {
                 <nav>
                     <Link href="/" className="navLink">Home</Link>
                     <Link href="/blog" className="navLink">Blog</Link>
-                    <Link href="/dashboard" className="navLink navLinkActive">
-                        Dashboard
-                    </Link>
+                    {user && (
+                        <Link href="/dashboard" className="navLink navLinkActive">
+                            Dashboard
+                        </Link>
+                    )}
                 </nav>
             </header>
             <main className="dashboardContainer">
                 <div className="errorContainer" style={{textAlign: 'center', marginTop: '2rem'}}>
                     <h1>Profile Data Error</h1>
-                    <p>{pageError || "We couldn't load your complete profile information. This might be a temporary issue, or your profile data is missing."}</p>
-                    <p>Please try refreshing the profile. If the problem persists, signing out and then back in might help.</p>
+                    <p>{pageError}</p>
                     <div style={{marginTop: '1.5rem', display: 'flex', justifyContent: 'center', gap: '1rem'}}>
                         <button
                             onClick={async () => {
-                                setPageError('');
-                                if (user) {
-                                    try {
-                                        const refreshed = await refreshProfile();
-                                        if (!refreshed) {
-                                           setPageError("Failed to refresh profile. The profile data is still unavailable.");
-                                        }
-                                    } catch (e) {
-                                        console.error('Dashboard: Manual refreshProfile call failed:', e);
-                                        setPageError("An error occurred while trying to refresh your profile. Please try signing out and back in.");
-                                    }
+                                setPageError('Attempting to reload profile...');
+                                const refreshed = await refreshProfile();
+                                if (!refreshed) {
+                                   setPageError("Failed to refresh profile. The profile data is still unavailable. Please try signing out and back in.");
+                                } else {
+                                   setPageError('');
                                 }
                             }}
                             className="primaryButton"
@@ -305,9 +221,9 @@ export default function Dashboard() {
                             onClick={async () => {
                                 try {
                                     await signOut();
+                                    router.push('/');
                                 } catch (err) {
                                     console.error('Error during sign out from dashboard error state:', err);
-                                } finally {
                                     router.push('/');
                                 }
                             }}
