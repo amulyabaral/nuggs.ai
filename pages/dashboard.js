@@ -1,94 +1,23 @@
 import Head from 'next/head';
 import Link from 'next/link';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, testSupabaseConnection } from '../utils/supabaseClient';
 
 export default function Dashboard() {
-  const { user, profile, signOut, loading, usageRemaining, isPremium, refreshProfile, refreshSession } = useAuth();
+  const { user, profile, signOut, loading, usageRemaining, isPremium, refreshProfile } = useAuth();
   const [savedRecipes, setSavedRecipes] = useState([]);
   const [loadingRecipes, setLoadingRecipes] = useState(true);
   const [errorRecipes, setErrorRecipes] = useState('');
-  const [dashboardError, setDashboardError] = useState('');
+  const [pageError, setPageError] = useState('');
   const router = useRouter();
-  const loadingTimeoutRef = useRef(null);
+  const authLoadingTimeoutRef = useRef(null);
   
-  useEffect(() => {
-    return () => {
-      if (loadingTimeoutRef.current) {
-        clearTimeout(loadingTimeoutRef.current);
-      }
-    };
-  }, []);
-  
-  useEffect(() => {
-    // Clear any existing timeout when the effect runs again
-    if (loadingTimeoutRef.current) {
-      clearTimeout(loadingTimeoutRef.current);
-      loadingTimeoutRef.current = null;
-    }
-
-    if (loading) {
-      setDashboardError('');
-      // Set a timeout for loading
-      loadingTimeoutRef.current = setTimeout(async () => {
-        if (loading) {
-          console.warn('Dashboard loading timeout: Profile loading took too long.');
-          // Try to refresh the session before giving up
-          try {
-            const refreshed = await refreshSession();
-            if (!refreshed) {
-              setDashboardError('Loading your profile took too long. You have been signed out. Please try logging in again.');
-              signOut();
-            }
-          } catch (e) {
-            console.error('Error refreshing session after timeout:', e);
-            setDashboardError('Loading your profile took too long. You have been signed out. Please try logging in again.');
-            signOut();
-          }
-        }
-      }, 15000);
-    } else {
-      if (!user) {
-        router.push('/');
-      } else if (user && profile) {
-        fetchSavedRecipes();
-      } else if (user && !profile) {
-        if (!dashboardError) {
-          setDashboardError("Your profile data could not be loaded. Please try refreshing or signing out and back in.");
-          // Automatically try to refresh profile once
-          refreshProfile().catch(err => {
-            console.error('Error refreshing profile:', err);
-          });
-        }
-      }
-    }
-
-    // Cleanup function
-    return () => {
-      if (loadingTimeoutRef.current) {
-        clearTimeout(loadingTimeoutRef.current);
-        loadingTimeoutRef.current = null;
-      }
-    };
-  }, [loading, user, profile, router, signOut, dashboardError, refreshProfile, refreshSession]);
-  
-  useEffect(() => {
-    // Test Supabase connection on component mount
-    const testConnection = async () => {
-      const result = await testSupabaseConnection();
-      console.log('Supabase connection test result:', result);
-    };
-    
-    testConnection();
-  }, []);
-  
-  async function fetchSavedRecipes() {
+  const fetchSavedRecipes = useCallback(async () => {
     if (!user || !profile) {
-        setLoadingRecipes(false);
-        setErrorRecipes("Cannot load recipes: User or profile data is missing.");
-        return;
+      setLoadingRecipes(false);
+      return;
     }
     try {
       setLoadingRecipes(true);
@@ -108,7 +37,58 @@ export default function Dashboard() {
     } finally {
       setLoadingRecipes(false);
     }
-  }
+  }, [user, profile]);
+  
+  useEffect(() => {
+    // Cleanup previous timeout if effect re-runs
+    if (authLoadingTimeoutRef.current) {
+      clearTimeout(authLoadingTimeoutRef.current);
+      authLoadingTimeoutRef.current = null;
+    }
+
+    if (loading) {
+      setPageError('');
+      authLoadingTimeoutRef.current = setTimeout(() => {
+        console.warn('Dashboard: Auth loading timeout. AuthContext might be stuck. Forcing sign out.');
+        setPageError('Loading your session took too long. You have been signed out. Please try logging in again.');
+        signOut();
+      }, 20000);
+    } else {
+      if (!user) {
+        router.push('/');
+      } else {
+        if (!profile) {
+          setPageError("Your profile data could not be loaded. Please try refreshing your profile or sign out and log back in.");
+        } else {
+          setPageError('');
+        }
+      }
+    }
+
+    // Cleanup function for the timeout
+    return () => {
+      if (authLoadingTimeoutRef.current) {
+        clearTimeout(authLoadingTimeoutRef.current);
+        authLoadingTimeoutRef.current = null;
+      }
+    };
+  }, [loading, user, profile, router, signOut]);
+  
+  useEffect(() => {
+    if (user && profile && !loading) {
+      fetchSavedRecipes();
+    }
+  }, [user, profile, loading, fetchSavedRecipes]);
+  
+  useEffect(() => {
+    // Test Supabase connection on component mount
+    const testConnection = async () => {
+      const result = await testSupabaseConnection();
+      console.log('Supabase connection test result:', result);
+    };
+    
+    testConnection();
+  }, []);
   
   async function deleteRecipe(id) {
     try {
@@ -146,7 +126,7 @@ export default function Dashboard() {
     }
   }
   
-  if (dashboardError && !loading) {
+  if (pageError && pageError.includes("took too long")) {
     return (
         <div className="pageContainer">
             <header className="mainHeader">
@@ -158,16 +138,15 @@ export default function Dashboard() {
                 <nav>
                     <Link href="/" className="navLink">Home</Link>
                     <Link href="/blog" className="navLink">Blog</Link>
-                    {user && <button onClick={signOut} className="navLink authNavButton">Sign Out</button>}
                 </nav>
             </header>
             <main className="dashboardContainer">
                 <div className="errorContainer" style={{textAlign: 'center', marginTop: '3rem'}}>
                     <h1>Operation Timed Out</h1>
-                    <p>{dashboardError}</p>
-                    <Link href="/" className="backButton" onClick={() => router.push('/')}>
+                    <p>{pageError}</p>
+                    <button onClick={() => router.push('/')} className="backButton">
                         Go to Homepage
-                    </Link>
+                    </button>
                 </div>
             </main>
         </div>
@@ -175,7 +154,24 @@ export default function Dashboard() {
   }
   
   if (loading) {
-    return <div className="loadingSpinner">Loading your profile...</div>;
+    return (
+      <div className="pageContainer">
+        <header className="mainHeader">
+            <Link href="/" className="logoLink">
+                <div className="logoArea">
+                    <h1 className="logoText"><span className="logoEmoji">🥦 </span> nuggs.ai</h1>
+                </div>
+            </Link>
+            <nav>
+                <Link href="/" className="navLink">Home</Link>
+                <Link href="/blog" className="navLink">Blog</Link>
+            </nav>
+        </header>
+        <main className="dashboardContainer" style={{ textAlign: 'center', paddingTop: '3rem' }}>
+            <div className="loadingSpinner">Loading your dashboard...</div>
+        </main>
+      </div>
+    );
   }
   
   if (!user) {
@@ -195,8 +191,7 @@ export default function Dashboard() {
             <main className="dashboardContainer">
                 <div className="errorContainer" style={{textAlign: 'center', marginTop: '3rem'}}>
                     <h1>Access Denied</h1>
-                    <p>You need to be logged in to view the dashboard.</p>
-                    <Link href="/" className="backButton" onClick={() => router.push('/')}>Go to Homepage</Link>
+                    <p>You need to be logged in to view the dashboard. Redirecting...</p>
                 </div>
             </main>
         </div>
@@ -215,38 +210,47 @@ export default function Dashboard() {
                 <nav>
                     <Link href="/" className="navLink">Home</Link>
                     <Link href="/blog" className="navLink">Blog</Link>
-                    <button onClick={signOut} className="navLink authNavButton">Sign Out</button>
+                    <Link href="/dashboard" className="navLink navLinkActive">
+                        Dashboard
+                    </Link>
                 </nav>
             </header>
             <main className="dashboardContainer">
                 <div className="errorContainer" style={{textAlign: 'center', marginTop: '2rem'}}>
                     <h1>Profile Data Error</h1>
-                    <p>We couldn't load your complete profile information. This might be a temporary issue, or your profile data is missing.</p>
-                    <p>Please try refreshing the page. If the problem persists, signing out and then back in might help.</p>
+                    <p>{pageError || "We couldn't load your complete profile information. This might be a temporary issue, or your profile data is missing."}</p>
+                    <p>Please try refreshing the profile. If the problem persists, signing out and then back in might help.</p>
                     <div style={{marginTop: '1.5rem', display: 'flex', justifyContent: 'center', gap: '1rem'}}>
-                        <button 
+                        <button
                             onClick={async () => {
-                                setDashboardError('');
-                                if (user) await refreshProfile();
+                                setPageError('');
+                                if (user) {
+                                    try {
+                                        const refreshed = await refreshProfile();
+                                        if (!refreshed) {
+                                           setPageError("Failed to refresh profile. The profile data is still unavailable.");
+                                        }
+                                    } catch (e) {
+                                        console.error('Dashboard: Manual refreshProfile call failed:', e);
+                                        setPageError("An error occurred while trying to refresh your profile. Please try signing out and back in.");
+                                    }
+                                }
                             }}
-                            className="primaryButton" 
+                            className="primaryButton"
                             style={{padding: '0.7rem 1.3rem', fontSize: '0.9rem'}}
                         >
                             Retry Loading Profile
                         </button>
-                        <button 
+                        <button
                             onClick={async () => {
                                 try {
-                                    console.log('Sign out button clicked');
                                     await signOut();
-                                    // Force navigation after sign out to ensure clean state
-                                    router.push('/');
                                 } catch (err) {
-                                    console.error('Error during sign out from dashboard:', err);
-                                    // Still try to navigate away
+                                    console.error('Error during sign out from dashboard error state:', err);
+                                } finally {
                                     router.push('/');
                                 }
-                            }} 
+                            }}
                             className="navLink authNavButton"
                         >
                             Sign Out
@@ -281,46 +285,12 @@ export default function Dashboard() {
           <Link href="/dashboard" className="navLink navLinkActive">
             Dashboard
           </Link>
-          {user && (
-            <button onClick={signOut} className="navLink authNavButton">
-              Sign Out
-            </button>
-          )}
         </nav>
       </header>
       
       <main className="dashboardContainer">
         <div className="dashboardHeader">
           <h1>Your Profile</h1>
-          <button onClick={signOut} className="signOutButton">Sign Out</button>
-        </div>
-        
-        <div className="userInfoCard">
-          <div className="userEmail">
-            <strong>Email:</strong> {user?.email || profile?.email}
-          </div>
-          
-          <div className="subscriptionInfo">
-            <div className="subscriptionTier">
-              <strong>Subscription:</strong> 
-              <span className={`tierBadge ${isPremium ? 'premiumBadge' : 'freeBadge'}`}>
-                {isPremium ? 'Premium' : 'Free'}
-              </span>
-            </div>
-            
-            {!isPremium && (
-              <div className="usageLimits">
-                <strong>Daily Recipe Generations:</strong> 
-                <span>{usageRemaining} remaining today</span>
-              </div>
-            )}
-            
-            {!isPremium && profile.subscription_tier !== 'premium' && (
-              <Link href="/pricing" className="upgradeToPremiumLink">
-                Upgrade to Premium for Unlimited Recipes
-              </Link>
-            )}
-          </div>
         </div>
         
         <section className="savedRecipesSection">
@@ -376,6 +346,36 @@ export default function Dashboard() {
             </div>
           )}
         </section>
+        
+        <div className="userInfoCard">
+          <div className="userEmail">
+            <strong>Email:</strong> {user?.email || profile?.email}
+          </div>
+          
+          <div className="subscriptionInfo">
+            <div className="subscriptionTier">
+              <strong>Subscription:</strong> 
+              <span className={`tierBadge ${isPremium ? 'premiumBadge' : 'freeBadge'}`}>
+                {isPremium ? 'Premium' : 'Free'}
+              </span>
+            </div>
+            
+            {!isPremium && (
+              <div className="usageLimits">
+                <strong>Daily Recipe Generations:</strong> 
+                <span>{usageRemaining} remaining today</span>
+              </div>
+            )}
+            
+            {!isPremium && profile.subscription_tier !== 'premium' && (
+              <Link href="/pricing" className="upgradeToPremiumLink">
+                Upgrade to Premium for Unlimited Recipes
+              </Link>
+            )}
+          </div>
+          
+          <button onClick={signOut} className="signOutButton" style={{marginTop: '1rem'}}>Sign Out</button>
+        </div>
       </main>
     </div>
   );

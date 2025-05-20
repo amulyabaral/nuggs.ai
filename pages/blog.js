@@ -78,14 +78,9 @@ export default function Blog({ posts }) {
             Blog
           </Link>
           {user ? (
-            <>
-              <Link href="/dashboard" className="navLink">
-                Dashboard
-              </Link>
-              <button onClick={signOut} className="navLink authNavButton">
-                Sign Out
-              </button>
-            </>
+            <Link href="/dashboard" className="navLink">
+              Dashboard
+            </Link>
           ) : (
             <button
               onClick={() => {

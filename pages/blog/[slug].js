@@ -72,18 +72,14 @@ export default function BlogPost({ title, content, date }) {
             Blog
           </Link>
           {user ? (
-            <>
-              <Link href="/dashboard" className="navLink">
-                Dashboard
-              </Link>
-              <button onClick={signOut} className="navLink authNavButton">
-                Sign Out
-              </button>
-            </>
+            <Link href="/dashboard" className="navLink">
+              Dashboard
+            </Link>
           ) : (
             <button
               onClick={() => {
                 console.log('Login button clicked');
+                // Assuming you'd want to add similar modal functionality here
               }}
               className="navLink authNavButton"
             >
