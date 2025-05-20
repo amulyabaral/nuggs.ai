@@ -20,55 +20,57 @@ export function AuthProvider({ children }) {
   const [isPremium, setIsPremium] = useState(false);
 
   useEffect(() => {
-    console.log('[AuthContext] useEffect triggered. Supabase client:', supabase); // Check if supabase object is valid
+    let isMounted = true;
 
     const handleAuthChange = async (event, session) => {
-      console.log('[AuthContext] Auth state changed:', event, session);
+      // Always set loading to true at the start of an auth change
+      setLoading(true);
       try {
-        // Update user state
         const currentUser = session?.user || null;
         setUser(currentUser);
-        
+
         if (currentUser) {
-          // We have a user, try to fetch profile
-          try {
-            await fetchProfile(currentUser.id);
-          } catch (err) {
-            console.error('Error fetching profile during auth change:', err);
-            setProfile(null);
-          }
+          await fetchProfile(currentUser.id);
         } else {
-          // No user, reset all related states
           setProfile(null);
           setUsageRemaining(0);
           setIsPremium(false);
         }
       } catch (err) {
         console.error('Error handling auth change:', err);
-        // Reset to safe defaults
         setUser(null);
         setProfile(null);
         setUsageRemaining(0);
         setIsPremium(false);
+      } finally {
+        // Always set loading to false at the end
+        if (isMounted) setLoading(false);
       }
     };
 
-    // Check initial session
+    // Initial session check: always get the user and profile
     const checkInitialSession = async () => {
       setLoading(true);
       try {
-        // Get current session
         const { data: { session } } = await supabase.auth.getSession();
-        await handleAuthChange('INITIAL_SESSION', session);
+        if (session?.user) {
+          setUser(session.user);
+          await fetchProfile(session.user.id);
+        } else {
+          setUser(null);
+          setProfile(null);
+          setUsageRemaining(0);
+          setIsPremium(false);
+        }
       } catch (err) {
         console.error('Error checking initial session:', err);
-        // Reset auth state on error
         setUser(null);
         setProfile(null);
         setUsageRemaining(0);
         setIsPremium(false);
+      } finally {
+        if (isMounted) setLoading(false);
       }
-      setLoading(false); // Always set loading to false after initial check
     };
 
     checkInitialSession();
@@ -78,38 +80,12 @@ export function AuthProvider({ children }) {
 
     // Cleanup
     return () => {
+      isMounted = false;
       if (authListener?.subscription?.unsubscribe) {
         authListener.subscription.unsubscribe();
       }
     };
   }, []);
-  
-  async function checkUser() {
-    try {
-      setLoading(true);
-      const { data: { user: authUser } } = await supabase.auth.getUser();
-
-      if (authUser) {
-        setUser(authUser);
-        await fetchProfile(authUser.id);
-      } else {
-        // No user initially, ensure states are reset
-        setUser(null);
-        setProfile(null);
-        setUsageRemaining(0);
-        setIsPremium(false);
-      }
-    } catch (error) {
-      console.error('Error checking user:', error);
-      // Ensure clean state on error during initial check
-      setUser(null);
-      setProfile(null);
-      setUsageRemaining(0);
-      setIsPremium(false);
-    } finally {
-      setLoading(false); // Always set loading to false after initial check
-    }
-  }
   
   async function fetchProfile(userId) {
     console.log('Fetching profile for user ID:', userId);
