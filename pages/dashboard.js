@@ -14,13 +14,16 @@ export default function Dashboard() {
     usageRemaining, 
     isPremium, 
     refreshProfile,
-    refreshSession
+    refreshSession,
+    sessionChecked,
   } = useAuth();
 
   const [savedRecipes, setSavedRecipes] = useState([]);
   const [loadingRecipes, setLoadingRecipes] = useState(true);
   const [errorRecipes, setErrorRecipes] = useState('');
   const [pageError, setPageError] = useState('');
+  const [refreshAttempts, setRefreshAttempts] = useState(0);
+  const [hardRefreshNeeded, setHardRefreshNeeded] = useState(false);
   const router = useRouter();
   
   const [loadingTimeout, setLoadingTimeout] = useState(false);
@@ -53,6 +56,12 @@ export default function Dashboard() {
   }, [user, profile]);
   
   useEffect(() => {
+    // Wait until initial session check is complete (either success or failure)
+    if (!sessionChecked) {
+      console.log("Dashboard: Waiting for initial session check to complete...");
+      return;
+    }
+
     if (authLoading) {
       console.log("Dashboard: AuthContext is loading. Waiting...");
       setPageError('');
@@ -69,27 +78,39 @@ export default function Dashboard() {
 
     if (!profile) {
       console.warn("Dashboard: User is authenticated, but profile is null. Attempting session refresh.");
-      setPageError("Your profile data could not be loaded. Trying to refresh your session...");
       
-      refreshSession().then(success => {
-        if (success) {
-          console.log("Dashboard: Profile refresh successful after finding it null.");
-          setPageError('');
-        } else {
-          console.error("Dashboard: Profile refresh failed after finding it null.");
-          setPageError("Failed to load your profile information. Please try signing out and logging back in.");
-          
-          // If refresh failed, forcibly redirect back to home after a delay
-          setTimeout(() => {
-            router.replace('/');
-          }, 5000);
-        }
-      });
+      // Only try refreshing if we haven't reached the maximum attempts (3)
+      if (refreshAttempts < 3) {
+        setPageError("Your profile data could not be loaded. Trying to refresh your session...");
+        
+        refreshSession().then(success => {
+          if (success) {
+            console.log("Dashboard: Profile refresh successful after finding it null.");
+            setPageError('');
+            setRefreshAttempts(0); // Reset counter on success
+          } else {
+            console.error("Dashboard: Profile refresh failed after finding it null.");
+            setRefreshAttempts(prev => prev + 1);
+            
+            if (refreshAttempts >= 2) {
+              // On third failed attempt, suggest a hard refresh
+              setPageError("Session refresh failed. Please try signing out and logging back in.");
+              setHardRefreshNeeded(true);
+            } else {
+              setPageError(`Failed to load your profile information. Retry attempt ${refreshAttempts + 1}/3...`);
+            }
+          }
+        });
+      } else if (!hardRefreshNeeded) {
+        setPageError("Multiple refresh attempts failed. Please try signing out completely.");
+        setHardRefreshNeeded(true);
+      }
     } else {
       console.log("Dashboard: User and profile are available. Clearing page error.");
       setPageError('');
+      setRefreshAttempts(0);
     }
-  }, [authLoading, user, profile, router, refreshSession]);
+  }, [authLoading, user, profile, router, refreshSession, refreshAttempts, sessionChecked, hardRefreshNeeded]);
   
   useEffect(() => {
     if (user && profile && !authLoading) {
@@ -159,6 +180,23 @@ export default function Dashboard() {
     }
   }
   
+  // Add this to show hard refresh UI if needed
+  const handleForceSignOut = async () => {
+    try {
+      setPageError("Signing you out completely...");
+      await signOut();
+      
+      // If signOut doesn't redirect, force reload the page
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 1000);
+    } catch (err) {
+      console.error("Error during forced sign out:", err);
+      // Force reload anyway as a last resort
+      window.location.href = '/';
+    }
+  };
+  
   if (authLoading) {
     return (
       <div className="pageContainer">
@@ -224,7 +262,7 @@ export default function Dashboard() {
     );
   }
 
-  if (!profile && pageError) {
+  if (!profile && pageError && hardRefreshNeeded) {
     return (
         <div className="pageContainer">
             <header className="mainHeader">
@@ -245,28 +283,15 @@ export default function Dashboard() {
             </header>
             <main className="dashboardContainer">
                 <div className="errorContainer" style={{textAlign: 'center', marginTop: '2rem'}}>
-                    <h1>Profile Data Error</h1>
+                    <h1>Session Error</h1>
                     <p>{pageError}</p>
                     <div style={{marginTop: '1.5rem', display: 'flex', justifyContent: 'center', gap: '1rem'}}>
                         <button
-                            onClick={async () => {
-                                setPageError('Attempting to fix your session...');
-                                
-                                // Completely reset auth state and reload
-                                try {
-                                    await supabase.auth.signOut({ scope: 'local' });
-                                    localStorage.clear(); // Clear all local storage
-                                    window.location.href = '/'; // Redirect to home
-                                } catch (err) {
-                                    console.error('Error during session reset:', err);
-                                    // Force reload anyway
-                                    window.location.href = '/';
-                                }
-                            }}
+                            onClick={handleForceSignOut}
                             className="primaryButton"
                             style={{padding: '0.7rem 1.3rem', fontSize: '0.9rem'}}
                         >
-                            Reset Session
+                            Sign Out Completely
                         </button>
                         <button
                             onClick={() => window.location.reload()}

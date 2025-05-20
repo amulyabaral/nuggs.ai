@@ -119,10 +119,9 @@ export default async function handler(req, res) {
             // This ensures the app doesn't break completely if there's a database issue
         }
     } else if (isAnonymousUser && ip) {
-        // New code for anonymous users with IP tracking
+        // Modified code for anonymous users with IP tracking to handle missing table
         try {
             // Get the IP hash or just use the IP directly
-            // For privacy, you might want to hash the IP address
             const ipIdentifier = ip;
             
             // Get default free tries from environment variable, fallback to 3 for anonymous users
@@ -132,39 +131,59 @@ export default async function handler(req, res) {
             const today = new Date();
             today.setHours(0, 0, 0, 0); // Start of the current day
             
-            const { data: ipUsage, error: ipUsageError } = await supabase
-                .from('anonymous_usage')
-                .select('*')
-                .eq('ip_identifier', ipIdentifier)
-                .gte('created_at', today.toISOString())
-                .order('created_at', { ascending: false });
-                
-            if (ipUsageError) throw ipUsageError;
-            
-            // Check if anonymous user has reached their daily limit
-            if (ipUsage && ipUsage.length >= anonymousFreeTries) {
-                return res.status(403).json({ 
-                    error: 'Daily usage limit reached', 
-                    limitReached: true,
-                    message: `You've reached the daily limit for anonymous users. Please create an account to continue using our service.`
-                });
+            try {
+                const { data: ipUsage, error: ipUsageError } = await supabase
+                    .from('anonymous_usage')
+                    .select('*')
+                    .eq('ip_identifier', ipIdentifier)
+                    .gte('created_at', today.toISOString())
+                    .order('created_at', { ascending: false });
+                    
+                if (ipUsageError) {
+                    // Check if error is because table doesn't exist
+                    if (ipUsageError.code === '42P01') {
+                        console.warn('anonymous_usage table does not exist, skipping anonymous usage limit check');
+                        // Continue without checking limits for now
+                    } else {
+                        throw ipUsageError;
+                    }
+                } else if (ipUsage && ipUsage.length >= anonymousFreeTries) {
+                    return res.status(403).json({ 
+                        error: 'Daily usage limit reached', 
+                        limitReached: true,
+                        message: `You've reached the daily limit for anonymous users. Please create an account to continue using our service.`
+                    });
+                }
+            } catch (tableError) {
+                console.error('Error with anonymous_usage table:', tableError);
+                // Continue without tracking - don't block the user due to our infrastructure issue
             }
             
-            // Log this anonymous usage
-            await supabase
-                .from('anonymous_usage')
-                .insert({
-                    ip_identifier: ipIdentifier,
-                    prompt_text: promptText
-                });
-                
+            // Try to log usage, but don't fail the request if it doesn't work
+            try {
+                await supabase
+                    .from('anonymous_usage')
+                    .insert({
+                        ip_identifier: ipIdentifier,
+                        prompt_text: promptText
+                    });
+            } catch (insertError) {
+                console.warn('Could not insert into anonymous_usage, likely table missing:', insertError);
+                // Continue anyway
+            }
+            
             // Also log in main usage history
-            await supabase
-                .from('usage_history')
-                .insert({
-                    prompt_text: promptText,
-                    is_anonymous: true
-                });
+            try {
+                await supabase
+                    .from('usage_history')
+                    .insert({
+                        prompt_text: promptText,
+                        is_anonymous: true
+                    });
+            } catch (historyError) {
+                console.warn('Error logging to usage_history:', historyError);
+                // Continue anyway
+            }
                 
         } catch (error) {
             console.error('Error checking anonymous user limits:', error);
