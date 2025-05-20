@@ -121,10 +121,8 @@ export default function Pricing() {
             
             <div className="tierFeatures">
               <ul>
-                <li>3 recipe generations per day</li>
-                <li>Basic recipe details</li>
-                <li>Save up to 10 recipes</li>
-                <li>Ad-supported experience</li>
+                <li>5 recipe generations per day</li>
+                <li>Basic recipe access</li>
               </ul>
             </div>
             
@@ -156,18 +154,14 @@ export default function Pricing() {
             <div className="popularBadge">Most Popular</div>
             <div className="tierHeader">
               <h2>Premium</h2>
-              <p className="tierPrice">$9.99</p>
+              <p className="tierPrice">$2</p>
               <p className="tierBilling">per month</p>
             </div>
             
             <div className="tierFeatures">
               <ul>
                 <li>✨ <strong>Unlimited</strong> recipe generations</li>
-                <li>✨ Enhanced recipe details</li>
-                <li>✨ Unlimited recipe saving</li>
-                <li>✨ Ad-free experience</li>
-                <li>✨ Priority support</li>
-                <li>✨ Early access to new features</li>
+                <li>✨ Save recipes to access them later</li>
               </ul>
             </div>
             
@@ -197,7 +191,7 @@ export default function Pricing() {
           
           <div className="faqItem">
             <h3>How do recipe generations work?</h3>
-            <p>Free users can generate up to 3 recipe ideas per day. Premium members enjoy unlimited recipe generations with no daily limit.</p>
+            <p>Free users can generate up to 5 recipe ideas per day. Premium members enjoy unlimited recipe generations with no daily limit.</p>
           </div>
           
           <div className="faqItem">

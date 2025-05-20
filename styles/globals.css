@@ -1765,12 +1765,21 @@ img {
 
 /* Nav Button Auth Styling */
 .authNavButton {
-  background: none;
+  background: var(--accent-primary); /* Add pill background color */
   border: none;
   cursor: pointer;
   font-family: inherit;
-  font-size: inherit;
+  font-size: inherit; /* Keep the same font size as other nav items */
   display: inline-block;
+  color: var(--button-text-light); /* White text */
+  padding: 0.4rem 0.8rem; /* Match padding with other nav links */
+  border-radius: 20px; /* Pill shape */
+  transition: all 0.2s ease;
+}
+
+.authNavButton:hover {
+  background-color: var(--accent-primary-hover);
+  text-decoration: none;
 }
 
 /* Dashboard Styles */

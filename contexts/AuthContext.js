@@ -37,12 +37,15 @@ export function AuthProvider({ children }) {
           } catch (err) {
             console.error('Error fetching profile during auth change:', err);
             setProfile(null);
+            // Always ensure loading state is reset even on error
+            setLoading(false);
           }
         } else {
           // No user, reset all related states
           setProfile(null);
           setUsageRemaining(0);
           setIsPremium(false);
+          setLoading(false); // Make sure loading is false when no user
         }
       } catch (err) {
         console.error('Error handling auth change:', err);
@@ -51,8 +54,7 @@ export function AuthProvider({ children }) {
         setProfile(null);
         setUsageRemaining(0);
         setIsPremium(false);
-      } finally {
-        setLoading(false);
+        setLoading(false); // Ensure loading is set to false on error
       }
     };
 
@@ -116,6 +118,7 @@ export function AuthProvider({ children }) {
     
     if (!userId) {
       console.error('Cannot fetch profile: userId is missing');
+      setLoading(false); // Ensure we exit loading state
       return null;
     }
 
@@ -199,7 +202,11 @@ export function AuthProvider({ children }) {
       setProfile(null);
       setIsPremium(false);
       setUsageRemaining(0);
+      setLoading(false); // Always ensure loading is false after an error
       return null;
+    } finally {
+      // Guarantee loading state is reset
+      setLoading(false);
     }
     
     return data; // Return the profile data for optional chaining
@@ -295,6 +302,38 @@ export function AuthProvider({ children }) {
     }
   }
   
+  const refreshSession = async () => {
+    try {
+      setLoading(true);
+      // Force a session refresh
+      const { data, error } = await supabase.auth.refreshSession();
+      if (error) throw error;
+      
+      // If successful, we'll have a user in the data
+      if (data.user) {
+        setUser(data.user);
+        await fetchProfile(data.user.id);
+      } else {
+        // No user after refresh, clear state
+        setUser(null);
+        setProfile(null);
+        setIsPremium(false);
+        setUsageRemaining(0);
+      }
+      return data.user !== null;
+    } catch (err) {
+      console.error('Error refreshing session:', err);
+      // On error, clear state to prevent stuck states
+      setUser(null);
+      setProfile(null);
+      setIsPremium(false);
+      setUsageRemaining(0);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+  
   const value = {
     user,
     profile,
@@ -305,6 +344,7 @@ export function AuthProvider({ children }) {
     usageRemaining,
     isPremium,
     incrementUsage,
+    refreshSession,
     refreshProfile: () => {
       if (user && !loading) {
         setLoading(true);

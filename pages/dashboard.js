@@ -6,7 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase, testSupabaseConnection } from '../utils/supabaseClient';
 
 export default function Dashboard() {
-  const { user, profile, signOut, loading, usageRemaining, isPremium, refreshProfile } = useAuth();
+  const { user, profile, signOut, loading, usageRemaining, isPremium, refreshProfile, refreshSession } = useAuth();
   const [savedRecipes, setSavedRecipes] = useState([]);
   const [loadingRecipes, setLoadingRecipes] = useState(true);
   const [errorRecipes, setErrorRecipes] = useState('');
@@ -31,14 +31,24 @@ export default function Dashboard() {
 
     if (loading) {
       setDashboardError('');
-      // Set a longer timeout (15 seconds instead of 10)
-      loadingTimeoutRef.current = setTimeout(() => {
+      // Set a timeout for loading
+      loadingTimeoutRef.current = setTimeout(async () => {
         if (loading) {
           console.warn('Dashboard loading timeout: Profile loading took too long.');
-          setDashboardError('Loading your profile took too long. You have been signed out. Please try logging in again.');
-          signOut();
+          // Try to refresh the session before giving up
+          try {
+            const refreshed = await refreshSession();
+            if (!refreshed) {
+              setDashboardError('Loading your profile took too long. You have been signed out. Please try logging in again.');
+              signOut();
+            }
+          } catch (e) {
+            console.error('Error refreshing session after timeout:', e);
+            setDashboardError('Loading your profile took too long. You have been signed out. Please try logging in again.');
+            signOut();
+          }
         }
-      }, 15000); // Extend to 15 seconds
+      }, 15000);
     } else {
       if (!user) {
         router.push('/');
@@ -62,7 +72,7 @@ export default function Dashboard() {
         loadingTimeoutRef.current = null;
       }
     };
-  }, [loading, user, profile, router, signOut, dashboardError, refreshProfile]);
+  }, [loading, user, profile, router, signOut, dashboardError, refreshProfile, refreshSession]);
   
   useEffect(() => {
     // Test Supabase connection on component mount
