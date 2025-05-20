@@ -56,8 +56,35 @@ export default function Dashboard() {
     }
   }, [user, profile]);
   
+  // Add this function to fetch recipes directly without requiring a profile
+  const fetchSavedRecipesWithoutProfile = useCallback(async () => {
+    if (!user) return;
+    
+    try {
+      console.log("Dashboard: Attempting to fetch recipes directly (without profile)");
+      setLoadingRecipes(true);
+      setErrorRecipes('');
+      
+      const { data, error } = await supabase
+        .from('saved_recipes')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+        
+      if (error) throw error;
+      
+      setSavedRecipes(data || []);
+      console.log("Dashboard: Saved recipes fetched (without profile):", data);
+    } catch (error) {
+      console.error('Dashboard: Error fetching saved recipes (without profile):', error);
+      setErrorRecipes('Could not load your saved recipes. Please try again later.');
+    } finally {
+      setLoadingRecipes(false);
+    }
+  }, [user]);
+  
   useEffect(() => {
-    // Wait until initial session check is complete (either success or failure)
+    // Wait until initial session check is complete
     if (!sessionChecked) {
       console.log("Dashboard: Waiting for initial session check to complete...");
       return;
@@ -69,7 +96,7 @@ export default function Dashboard() {
       return;
     }
 
-    console.log("Dashboard: AuthContext finished loading. User:", user ? "Found" : "Not found", "Profile:", profile ? "Found" : "Not found", "ProfileError:", profileError);
+    console.log("Dashboard: AuthContext finished loading. User:", user ? "Found" : "Not found", "Profile:", profile ? "Found" : "Not found");
     
     if (!user) {
       console.log("Dashboard: No user found after auth loading. Redirecting to /");
@@ -82,34 +109,56 @@ export default function Dashboard() {
       if (profileError) {
         console.warn("Dashboard: User is authenticated, but profile loading failed:", profileError);
         setPageError(`Your profile data could not be loaded: ${profileError}. Some information might be missing. You can try refreshing.`);
-        // Don't automatically retry if there's a specific profile error
+        // Add a button to manually refresh profile
       } else {
         console.warn("Dashboard: User is authenticated, but profile is null (no specific error). Attempting to refresh profile.");
         setPageError("Loading your profile information...");
-        setRefreshAttempts(prev => prev + 1);
         
-        refreshProfile().then(success => {
-          if (success && profile) {
-            console.log("Dashboard: Profile refresh successful.");
-            setPageError('');
-          } else if (success && !profile) {
-            console.warn("Dashboard: Profile refresh ran, but profile still null (might be new user or no data).");
-            setPageError("Could not load all profile details. This might be a new account or data is unavailable.");
-          } else {
-            console.error("Dashboard: Profile refresh attempt failed.");
-            setPageError(prevError => prevError || "Failed to load your profile information. Please try again later or contact support.");
-          }
-        });
+        // Prevent multiple refreshes happening at once
+        if (refreshAttempts === 0) {
+          setRefreshAttempts(prev => prev + 1);
+          
+          // Add a timeout to ensure we don't get stuck
+          const timeoutId = setTimeout(() => {
+            console.warn("Dashboard: Profile refresh timeout occurred");
+            setRefreshAttempts(prev => prev + 1); // Force increment to continue
+            setPageError("Profile loading timed out. Your dashboard might have limited functionality.");
+          }, 8000); // 8-second timeout
+          
+          refreshProfile().then(success => {
+            clearTimeout(timeoutId); // Clear timeout if we get a response
+            
+            if (success) {
+              console.log("Dashboard: Profile refresh successful.");
+              setPageError('');
+            } else {
+              console.error("Dashboard: Profile refresh attempt failed.");
+              setPageError("Failed to load your profile information. Some features may be limited.");
+              // Increment the attempts counter only after the refresh completes
+              setRefreshAttempts(prev => prev + 1);
+            }
+          }).catch(err => {
+            clearTimeout(timeoutId);
+            console.error("Dashboard: Exception during profile refresh:", err);
+            setRefreshAttempts(prev => prev + 1);
+            setPageError("An error occurred while loading your profile. You might see limited functionality.");
+          });
+        }
       }
     } else if (!profile && refreshAttempts >= 3) {
-      console.error("Dashboard: Maximum profile refresh attempts reached. Setting hard refresh needed.");
+      console.error("Dashboard: Maximum profile refresh attempts reached.");
       setHardRefreshNeeded(true);
-      setPageError("We're having trouble loading your profile. Please try signing out and back in.");
+      setPageError("We're having trouble loading your complete profile. Some features might be limited.");
+      
+      // Still attempt to fetch recipes even without a profile
+      if (user && !loadingRecipes && savedRecipes.length === 0) {
+        fetchSavedRecipesWithoutProfile();
+      }
     } else {
       console.log("Dashboard: User and profile are available.");
       setPageError('');
     }
-  }, [authLoading, user, profile, router, refreshSession, sessionChecked, profileError, refreshProfile, refreshAttempts]);
+  }, [authLoading, user, profile, router, refreshSession, sessionChecked, profileError, refreshProfile, refreshAttempts, loadingRecipes, savedRecipes.length]);
   
   useEffect(() => {
     if (user && profile && !authLoading) {
@@ -216,20 +265,33 @@ export default function Dashboard() {
             {loadingTimeout && (
               <div style={{ marginTop: '2rem' }}>
                 <p>Loading is taking longer than expected.</p>
-                <button 
-                  onClick={() => window.location.href = '/'} 
-                  className="primaryButton"
-                  style={{ marginTop: '1rem' }}
-                >
-                  Return to Home
-                </button>
-                <button 
-                  onClick={() => window.location.reload()} 
-                  className="secondaryButton"
-                  style={{ marginTop: '1rem', marginLeft: '1rem' }}
-                >
-                  Refresh Page
-                </button>
+                <p style={{ fontSize: '0.9rem', marginTop: '0.5rem' }}>This could be due to a slow connection or temporary authentication issues.</p>
+                <div style={{ marginTop: '1rem', display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '0.8rem' }}>
+                  <button 
+                    onClick={() => window.location.href = '/'} 
+                    className="secondaryButton"
+                    style={{ padding: '0.5rem 1rem', fontSize: '0.9rem' }}
+                  >
+                    Return to Home
+                  </button>
+                  <button 
+                    onClick={() => window.location.reload()} 
+                    className="primaryButton"
+                    style={{ padding: '0.5rem 1rem', fontSize: '0.9rem' }}
+                  >
+                    Refresh Page
+                  </button>
+                  <button 
+                    onClick={() => {
+                      setLoadingTimeout(false);
+                      refreshSession().then(() => fetchSavedRecipesWithoutProfile());
+                    }} 
+                    className="secondaryButton"
+                    style={{ padding: '0.5rem 1rem', fontSize: '0.9rem' }}
+                  >
+                    Try Recovering Session
+                  </button>
+                </div>
               </div>
             )}
         </main>
@@ -345,7 +407,27 @@ export default function Dashboard() {
         </div>
         
         {pageError && <div className="errorMessage" style={{marginBottom: '1rem', textAlign: 'center', backgroundColor: 'var(--accent-negative-bg)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--accent-negative)'}}>{pageError}</div>}
-        {profileError && !pageError && <div className="errorMessage" style={{marginBottom: '1rem', textAlign: 'center', backgroundColor: 'var(--accent-negative-bg)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--accent-negative)'}}>Profile loading issue: {profileError} <button onClick={refreshProfile} className="linkButton">Try refreshing profile</button></div>}
+        {profileError && !pageError && (
+          <div className="errorMessage" style={{marginBottom: '1rem', textAlign: 'center', backgroundColor: 'var(--accent-negative-bg)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--accent-negative)'}}>
+            Profile loading issue: {profileError} 
+            <div style={{marginTop: '0.5rem'}}>
+              <button 
+                onClick={() => refreshProfile()} 
+                className="secondaryButton"
+                style={{marginRight: '0.5rem', padding: '0.3rem 0.7rem', fontSize: '0.85rem'}}
+              >
+                Retry Loading Profile
+              </button>
+              <button 
+                onClick={() => fetchSavedRecipesWithoutProfile()} 
+                className="secondaryButton"
+                style={{padding: '0.3rem 0.7rem', fontSize: '0.85rem'}}
+              >
+                Load Recipes Anyway
+              </button>
+            </div>
+          </div>
+        )}
 
         <section className="savedRecipesSection">
           <h2>Your Saved Recipes</h2>
@@ -355,6 +437,15 @@ export default function Dashboard() {
           ) : errorRecipes ? (
             <div className="errorMessage" style={{textAlign: 'center', padding: '1rem', backgroundColor: 'var(--accent-negative-bg)'}}>
                 {errorRecipes}
+                <div style={{marginTop: '0.5rem'}}>
+                  <button 
+                    onClick={() => fetchSavedRecipes()} 
+                    className="secondaryButton"
+                    style={{marginRight: '0.5rem', padding: '0.3rem 0.7rem', fontSize: '0.85rem'}}
+                  >
+                    Retry Loading Recipes
+                  </button>
+                </div>
             </div>
           ) : savedRecipes.length === 0 ? (
             <div className="emptyState">

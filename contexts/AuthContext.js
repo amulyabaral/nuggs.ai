@@ -42,18 +42,31 @@ export function AuthProvider({ children }) {
     try {
       console.log('AuthContext: Fetching profile for user:', userId);
       setProfileError(null);
-      const { data, error, status } = await supabase
+      
+      // Add timeout handling for profile fetch
+      const fetchPromise = supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
+      
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Profile fetch timed out')), 7000);
+      });
+      
+      const { data, error, status } = await Promise.race([fetchPromise, timeoutPromise])
+        .catch(err => {
+          console.error('AuthContext: Profile fetch timeout or error:', err);
+          throw err;
+        });
 
       if (error) {
         if (status === 406) {
           console.log('AuthContext: Profile not found for user. This might be a new user.');
           
           try {
-            const { data: newProfile, error: createError } = await supabase
+            // Use the same timeout pattern for profile creation
+            const createPromise = supabase
               .from('profiles')
               .insert({
                 id: userId,
@@ -64,6 +77,11 @@ export function AuthProvider({ children }) {
               })
               .single();
               
+            const { data: newProfile, error: createError } = await Promise.race([
+              createPromise, 
+              new Promise((_, reject) => setTimeout(() => reject(new Error('Profile creation timed out')), 7000))
+            ]);
+            
             if (createError) throw createError;
             
             if (newProfile) {
@@ -159,13 +177,16 @@ export function AuthProvider({ children }) {
 
     const handleAuthChange = async (event, session) => {
       if (!isMounted) return;
-      console.log('AuthContext: Auth state changed:', event, session);
+      console.log('AuthContext: Auth state changed:', event, session?.user?.email ? `User ${session.user.email}` : 'No user');
+      
       setLoading(true);
       setProfileError(null);
       setSessionExpired(false);
 
       try {
         const currentUser = session?.user || null;
+        
+        // First update the user state immediately for fast UI feedback
         setUser(currentUser);
 
         if (refreshTimer) {
@@ -174,7 +195,20 @@ export function AuthProvider({ children }) {
         }
 
         if (currentUser) {
-          await _internalFetchProfile(currentUser.id, currentUser.email);
+          // Now fetch the profile - wrap this in a timeout to prevent blocking
+          const profilePromise = _internalFetchProfile(currentUser.id, currentUser.email);
+          
+          // Create a timeout promise to ensure we don't get stuck if profile fetch hangs
+          const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Profile fetch timeout')), 5000);
+          });
+          
+          try {
+            await Promise.race([profilePromise, timeoutPromise]);
+          } catch (err) {
+            console.warn('AuthContext: Profile fetch timed out or errored:', err);
+            // We'll continue - the UI should handle missing profile gracefully
+          }
           
           if (session && session.expires_at) {
             refreshTimer = setupSessionRefresh(session.expires_at);
@@ -189,7 +223,7 @@ export function AuthProvider({ children }) {
       } catch (err) {
         console.error('AuthContext: Unexpected error handling auth change:', err);
         if (!session?.user) {
-            clearAuthState();
+          clearAuthState();
         }
       } finally {
         if (isMounted) {
@@ -433,25 +467,26 @@ export function AuthProvider({ children }) {
     }
   }, [_internalFetchProfile, clearAuthState, setupSessionRefresh]);
   
-  const manualRefreshProfile = useCallback(async () => {
-    if (user && !loading) {
-      console.log('AuthContext: manualRefreshProfile called for user:', user.id);
-      setLoading(true);
-      setProfileError(null);
-      try {
-        await _internalFetchProfile(user.id, user.email);
-        console.log('AuthContext: Profile refreshed successfully via manualRefreshProfile');
-        return true;
-      } catch (err) {
-        console.error('AuthContext: Error during manualRefreshProfile (already handled by _internalFetchProfile):', err);
-        return false;
-      } finally {
-        setLoading(false);
-      }
+  const refreshProfile = useCallback(async () => {
+    if (!user) {
+      console.log('AuthContext: Cannot refresh profile - no user');
+      return false;
     }
-    console.log('AuthContext: manualRefreshProfile skipped (no user or already loading)');
-    return false;
-  }, [user, loading, _internalFetchProfile]);
+    
+    try {
+      console.log('AuthContext: Manual refreshProfile called for user:', user.id);
+      setProfileError(null);
+      
+      const fetchedProfile = await _internalFetchProfile(user.id, user.email);
+      console.log('AuthContext: Profile refresh completed, result:', !!fetchedProfile);
+      
+      return !!fetchedProfile;
+    } catch (err) {
+      console.error('AuthContext: Error in refreshProfile:', err);
+      setProfileError(`Error refreshing profile: ${err.message}`);
+      return false;
+    }
+  }, [user, _internalFetchProfile]);
 
   const value = {
     user,
@@ -464,7 +499,7 @@ export function AuthProvider({ children }) {
     isPremium,
     incrementUsage,
     refreshSession,
-    refreshProfile: manualRefreshProfile,
+    refreshProfile,
     sessionChecked,
     profileError,
     sessionExpired,
