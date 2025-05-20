@@ -20,8 +20,8 @@ export function AuthProvider({ children }) {
   const [usageRemaining, setUsageRemaining] = useState(0);
   const [isPremium, setIsPremium] = useState(false);
 
-  // Simplified profile fetching without complex error handling
-  const fetchProfile = useCallback(async (userId, userEmail) => {
+  // Simplified profile fetching
+  const fetchProfile = useCallback(async (userId) => {
     if (!userId) return null;
     
     try {
@@ -31,26 +31,15 @@ export function AuthProvider({ children }) {
         .eq('id', userId)
         .single();
         
-      if (error) {
-        // If no profile exists, create one
-        if (error.code === 'PGRST116') {
-          const { data: newProfile, error: createError } = await supabase
-            .from('profiles')
-            .insert({
-              id: userId,
-              email: userEmail,
-              subscription_tier: 'free',
-              daily_usage_count: 0,
-              daily_usage_reset_at: new Date().toISOString()
-            })
-            .select()
-            .single();
-            
-          if (createError) throw createError;
-          return newProfile;
-        }
-        throw error;
-      }
+      if (error) throw error;
+      
+      // Set premium status and usage
+      const defaultFreeTries = parseInt(process.env.NEXT_PUBLIC_FREE_TRIES || '5', 10);
+      const premiumStatus = data.subscription_tier === 'premium' &&
+        (data.subscription_expires_at ? new Date(data.subscription_expires_at) > new Date() : false);
+        
+      setIsPremium(premiumStatus);
+      setUsageRemaining(premiumStatus ? Infinity : Math.max(0, defaultFreeTries - (data.daily_usage_count || 0)));
       
       return data;
     } catch (err) {
@@ -59,75 +48,66 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  // Process user authentication state
-  const handleAuthChange = useCallback(async (event, session) => {
-    setLoading(true);
-    
-    try {
-      const currentUser = session?.user || null;
-      setUser(currentUser);
-      
-      if (currentUser) {
-        const profileData = await fetchProfile(currentUser.id, currentUser.email);
-        setProfile(profileData);
-        
-        if (profileData) {
-          const defaultFreeTries = parseInt(process.env.NEXT_PUBLIC_FREE_TRIES || '5', 10);
-          const premiumStatus = profileData.subscription_tier === 'premium' &&
-            (profileData.subscription_expires_at ? new Date(profileData.subscription_expires_at) > new Date() : false);
-            
-          setIsPremium(premiumStatus);
-          setUsageRemaining(premiumStatus ? Infinity : Math.max(0, defaultFreeTries - (profileData.daily_usage_count || 0)));
-        }
-      } else {
-        setProfile(null);
-        setIsPremium(false);
-        setUsageRemaining(0);
-      }
-    } catch (error) {
-      console.error('Auth state handling error:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, [fetchProfile]);
-
-  // Initialize authentication listener
+  // Setup auth state listener
   useEffect(() => {
-    let isMounted = true;
-    
-    // Initial session check
-    const checkSession = async () => {
+    // Get initial session
+    const initAuth = async () => {
+      setLoading(true);
+      
       try {
-        const { data, error } = await supabase.auth.getSession();
-        if (error) throw error;
+        // Get current session
+        const { data: { session } } = await supabase.auth.getSession();
         
-        if (data.session && isMounted) {
-          handleAuthChange('INITIAL_SESSION', data.session);
+        // Set user from session if it exists
+        if (session?.user) {
+          setUser(session.user);
+          const profileData = await fetchProfile(session.user.id);
+          setProfile(profileData);
         } else {
-          setLoading(false);
+          setUser(null);
+          setProfile(null);
+          setIsPremium(false);
+          setUsageRemaining(0);
         }
       } catch (error) {
-        console.error('Session check error:', error);
+        console.error('Session init error:', error);
+        setUser(null);
+        setProfile(null);
+      } finally {
         setLoading(false);
       }
     };
     
-    checkSession();
+    initAuth();
     
-    // Set up auth state change listener
-    const { data: authListener } = supabase.auth.onAuthStateChange(handleAuthChange);
+    // Subscribe to auth changes
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state changed:', event);
+      setLoading(true);
+      
+      if (session?.user) {
+        setUser(session.user);
+        const profileData = await fetchProfile(session.user.id);
+        setProfile(profileData);
+      } else {
+        setUser(null);
+        setProfile(null);
+        setIsPremium(false);
+        setUsageRemaining(0);
+      }
+      
+      setLoading(false);
+    });
     
     return () => {
-      isMounted = false;
       if (authListener && typeof authListener.unsubscribe === 'function') {
         authListener.unsubscribe();
       }
     };
-  }, [handleAuthChange]);
+  }, [fetchProfile]);
 
-  // Simplified sign in function
+  // Sign in function
   async function signIn(email, password) {
-    setLoading(true);
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -139,14 +119,11 @@ export function AuthProvider({ children }) {
     } catch (error) {
       console.error("Sign in error:", error);
       throw error;
-    } finally {
-      setLoading(false);
     }
   }
   
-  // Simplified sign up function
+  // Sign up function
   async function signUp(email, password) {
-    setLoading(true);
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -158,25 +135,19 @@ export function AuthProvider({ children }) {
     } catch (error) {
       console.error("Sign up error:", error);
       throw error;
-    } finally {
-      setLoading(false);
     }
   }
   
-  // Simplified sign out function
+  // Sign out function
   async function signOut() {
     try {
       await supabase.auth.signOut();
-      
-      if (typeof window !== 'undefined') {
-        window.location.href = '/';
-      }
     } catch (error) {
       console.error('Sign out error:', error);
     }
   }
   
-  // Simplified usage increment
+  // Increment usage function
   const incrementUsage = useCallback(async () => {
     if (!user || !profile) return false;
     if (isPremium) return true;

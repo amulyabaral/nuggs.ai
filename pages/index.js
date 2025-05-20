@@ -458,17 +458,10 @@ IMPORTANT:
         if (event) event.preventDefault();
         if (!activeTool) return;
 
-        // Check for inconsistent auth state before proceeding
-        if (user && !profile && !profileError) { // Added !profileError check
-            setError("Your profile is still loading or couldn't be retrieved. Please wait a moment or try refreshing your profile from the dashboard.");
-            // Optionally, you could try a gentle profile refresh here if desired,
-            // but avoid forcing a session refresh if auth itself is fine.
-            // await refreshProfile(); // Example if you add refreshProfile to useAuth
+        // Don't try to proceed if auth is still loading
+        if (authLoading) {
+            setError("Please wait while we check your session...");
             return;
-        }
-        if (user && profileError) {
-            setError(`There was an issue loading your profile: ${profileError}. Some features might be limited.`);
-            // Allow proceeding if possible, or block based on severity
         }
 
         const currentInput = isRandom ? "Surprise me with a random healthy recipe." : inputValue;

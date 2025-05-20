@@ -65,8 +65,8 @@ export default function Dashboard() {
             <Link href="/blog" className="navLink">Blog</Link>
           </nav>
         </header>
-        <main className="dashboardContainer" style={{ textAlign: 'center', paddingTop: '3rem' }}>
-          <div className="loadingSpinner">Loading your session...</div>
+        <main className="dashboardContainer">
+          <div className="loadingSpinner" style={{ margin: '3rem auto' }}>Loading your session...</div>
         </main>
       </div>
     );
