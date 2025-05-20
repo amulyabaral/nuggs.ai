@@ -1,4 +1,5 @@
 import Stripe from 'stripe';
+import { createPagesServerClient } from '@supabase/auth-helpers-nextjs';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -7,11 +8,19 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  const supabase = createPagesServerClient({ req, res });
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return res.status(401).json({ error: 'Unauthorized. Please log in.' });
+  }
+
   try {
-    const { userId, email } = req.body;
+    const userId = user.id;
+    const email = user.email;
     
     if (!userId || !email) {
-      return res.status(400).json({ error: 'Missing required parameters' });
+      return res.status(400).json({ error: 'User ID or Email missing from session' });
     }
     
     // Create a Stripe checkout session

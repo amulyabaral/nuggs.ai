@@ -1,15 +1,16 @@
 // pages/api/generate.js
 import { createClient } from '@supabase/supabase-js';
+import { createPagesServerClient } from '@supabase/auth-helpers-nextjs';
 
 // Retrieve API Key from environment variables (set this in Render for your Next.js service)
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-1.5-flash-latest'; // Using a potentially more capable model
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
 
-// Initialize Supabase client for server
+// Initialize Supabase client for server (ADMIN CLIENT)
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey); // Renamed for clarity
 
 if (!GEMINI_API_KEY) {
     console.error("CRITICAL: GEMINI_API_KEY environment variable is not set. The API route will not function.");
@@ -34,7 +35,13 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: 'API key not configured on server.' });
     }
 
-    const { promptText, userId, isAnonymous } = req.body;
+    // Create a Supabase client for user session
+    const supabaseUserClient = createPagesServerClient({ req, res });
+    const { data: { user: authUser } } = await supabaseUserClient.auth.getUser();
+
+    const { promptText /*, userId, isAnonymous - these might change */ } = req.body;
+    let userId = authUser?.id || null;
+    let isAnonymousRequest = !authUser;
 
     if (!promptText) {
         return res.status(400).json({ error: 'promptText is required in the request body.' });
@@ -46,18 +53,18 @@ export default async function handler(req, res) {
                null;
                
     // Determine anonymous vs authenticated status
-    const isAuthenticatedUser = userId && !isAnonymous;
-    const isAnonymousUser = !userId || isAnonymous;
+    const isAuthenticatedUser = !!userId && !isAnonymousRequest; // Use derived userId and isAnonymousRequest
+    const isAnonymousUserFlow = isAnonymousRequest; // Use derived isAnonymousRequest
 
     // Check usage limits based on authentication status
     if (isAuthenticatedUser) {
         // Existing code for authenticated users
         try {
-            // Get user profile
-            const { data: profile, error: profileError } = await supabase
+            // Get user profile using ADMIN client for direct access
+            const { data: profile, error: profileError } = await supabaseAdmin
                 .from('profiles')
                 .select('*')
-                .eq('id', userId)
+                .eq('id', userId) // userId is from authUser.id
                 .single();
                 
             if (profileError) throw profileError;
@@ -69,19 +76,19 @@ export default async function handler(req, res) {
             // If user is not premium, check usage limits
             if (!isPremium) {
                 // Check if we need to reset the daily counter
-                const resetDate = new Date(profile.daily_usage_reset_at);
+                const resetDate = profile.daily_usage_reset_at ? new Date(profile.daily_usage_reset_at) : new Date(0); // Handle null reset_at
                 const now = new Date();
                 
                 // Get default free tries from environment variable, fallback to 5
-                const defaultFreeTries = parseInt(process.env.FREE_TRIES || '5', 10);
+                const defaultFreeTries = parseInt(process.env.NEXT_PUBLIC_FREE_TRIES || '5', 10); // Use NEXT_PUBLIC_ prefix if defined there
                 
-                if (resetDate < now) {
+                if (now.toDateString() !== resetDate.toDateString()) { // Simpler daily reset check
                     // Reset the counter if it's a new day
-                    await supabase
+                    await supabaseAdmin
                         .from('profiles')
                         .update({
                             daily_usage_count: 1, // Set to 1 for this request
-                            daily_usage_reset_at: now
+                            daily_usage_reset_at: now.toISOString() // Store as ISO string
                         })
                         .eq('id', userId);
                 } else {
@@ -95,7 +102,7 @@ export default async function handler(req, res) {
                     }
                     
                     // Increment usage count
-                    await supabase
+                    await supabaseAdmin
                         .from('profiles')
                         .update({
                             daily_usage_count: profile.daily_usage_count + 1
@@ -104,8 +111,8 @@ export default async function handler(req, res) {
                 }
             }
             
-            // Log this usage
-            await supabase
+            // Log this usage using ADMIN client
+            await supabaseAdmin
                 .from('usage_history')
                 .insert({
                     user_id: userId,
@@ -118,7 +125,7 @@ export default async function handler(req, res) {
             // Continue with the request even if there's an error checking limits
             // This ensures the app doesn't break completely if there's a database issue
         }
-    } else if (isAnonymousUser && ip) {
+    } else if (isAnonymousUserFlow && ip) { // Use isAnonymousUserFlow
         // Modified code for anonymous users with IP tracking to handle missing table
         try {
             // Get the IP hash or just use the IP directly
@@ -132,12 +139,11 @@ export default async function handler(req, res) {
             today.setHours(0, 0, 0, 0); // Start of the current day
             
             try {
-                const { data: ipUsage, error: ipUsageError } = await supabase
+                const { data: ipUsage, error: ipUsageError } = await supabaseAdmin // Use ADMIN client
                     .from('anonymous_usage')
-                    .select('*')
+                    .select('*', { count: 'exact' }) // Get count for efficiency
                     .eq('ip_identifier', ipIdentifier)
-                    .gte('created_at', today.toISOString())
-                    .order('created_at', { ascending: false });
+                    .gte('created_at', today.toISOString());
                     
                 if (ipUsageError) {
                     // Check if error is because table doesn't exist
@@ -161,7 +167,7 @@ export default async function handler(req, res) {
             
             // Try to log usage, but don't fail the request if it doesn't work
             try {
-                await supabase
+                await supabaseAdmin // Use ADMIN client
                     .from('anonymous_usage')
                     .insert({
                         ip_identifier: ipIdentifier,
@@ -174,7 +180,7 @@ export default async function handler(req, res) {
             
             // Also log in main usage history
             try {
-                await supabase
+                await supabaseAdmin // Use ADMIN client
                     .from('usage_history')
                     .insert({
                         prompt_text: promptText,
@@ -241,8 +247,8 @@ export default async function handler(req, res) {
                         recipeName = recipeData.recipeName;
                         
                         // If this was a logged-in user, also save the recipe to the database
-                        if (userId && !isAnonymous) {
-                            await supabase
+                        if (userId && !isAnonymousRequest) { // Use derived userId and isAnonymousRequest
+                            await supabaseAdmin // Use ADMIN client
                                 .from('saved_recipes')
                                 .insert({
                                     user_id: userId,
@@ -257,10 +263,11 @@ export default async function handler(req, res) {
                 }
                 
                 // Update usage history with recipe name if available
-                if (userId || !isAnonymous) {
-                    await supabase
+                if (userId && !isAnonymousRequest) { // Use derived userId and isAnonymousRequest
+                    await supabaseAdmin // Use ADMIN client
                         .from('usage_history')
                         .update({ recipe_name: recipeName })
+                        .eq('user_id', userId) // More specific update
                         .eq('prompt_text', promptText)
                         .order('created_at', { ascending: false })
                         .limit(1);

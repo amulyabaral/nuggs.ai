@@ -3,10 +3,9 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '../contexts/AuthContext';
-import { supabase } from '../utils/supabaseClient';
 
 export default function Dashboard() {
-  const { user, profile, signOut, loading: authLoading, usageRemaining, isPremium, refreshSession } = useAuth();
+  const { user, profile, signOut, loading: authLoading, usageRemaining, isPremium, refreshUserProfile, supabaseClient, profileError } = useAuth();
   const [savedRecipes, setSavedRecipes] = useState([]);
   const [loadingRecipes, setLoadingRecipes] = useState(false);
   const [errorRecipes, setErrorRecipes] = useState('');
@@ -16,27 +15,22 @@ export default function Dashboard() {
   useEffect(() => {
     if (!authLoading && !user) {
       router.push('/');
+    } else if (!authLoading && user && !profile && !profileError) {
+      // Attempt to refresh the session if the profile is not loaded and no error yet
+      refreshUserProfile();
     }
-  }, [authLoading, user, router]);
-  
-  // Add a useEffect to handle session refresh
-  useEffect(() => {
-    if (!authLoading && user && !profile) {
-      // Attempt to refresh the session if the profile is not loaded
-      refreshSession();
-    }
-  }, [authLoading, user, profile, refreshSession]);
+  }, [authLoading, user, router, profile, refreshUserProfile, profileError]);
   
   // Fetch recipes when user and profile are available
   useEffect(() => {
     const fetchRecipes = async () => {
-      if (!user) return;
+      if (!user || !supabaseClient) return;
       
       try {
         setLoadingRecipes(true);
         setErrorRecipes('');
         
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
           .from('saved_recipes')
           .select('*')
           .eq('user_id', user.id)
@@ -53,10 +47,10 @@ export default function Dashboard() {
       }
     };
     
-    if (user) {
+    if (user && supabaseClient) {
       fetchRecipes();
     }
-  }, [user]);
+  }, [user, supabaseClient]);
   
   // Simple loading state
   if (authLoading) {

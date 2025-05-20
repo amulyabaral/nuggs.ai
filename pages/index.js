@@ -115,7 +115,7 @@ export default function HomePage() {
     const router = useRouter();
 
     // Add this to access auth context
-    const { user, usageRemaining, isPremium, incrementUsage, signOut, profile, loading: authLoading, refreshSession, profileError } = useAuth();
+    const { user, usageRemaining, isPremium, incrementUsage, signOut, profile, loading: authLoading, refreshUserProfile, profileError, supabaseClient } = useAuth();
 
     // Add to your existing state variables
     const [showAuthModal, setShowAuthModal] = useState(false);
@@ -134,13 +134,13 @@ export default function HomePage() {
             console.warn('HomePage: User is logged in, but profile loading failed:', profileError);
             // You could set a local error state here to inform the user.
             // setError(profileError); // Example: if you have a local error state for UI
-        } else if (!authLoading && user && !profile && !profileError) {
-            // This case means user exists, profile is null, and no specific error from AuthContext.
+        } else if (!authLoading && user && !profile && !profileError && !authLoading) { // Added !authLoading to prevent premature call
+            // This case means user exists, profile is null, and no specific profile error from AuthContext.
             // This could be a new user whose profile is still being created, or an edge case.
-            // AuthContext's _internalFetchProfile should handle new users gracefully.
-            console.log('HomePage: User logged in, profile is null, no specific profile error. Profile might be pending or not found.');
+            console.log('HomePage: User logged in, profile is null, no specific profile error. Attempting to refresh profile.');
+            refreshUserProfile(); // Attempt to refresh profile
         }
-    }, [user, profile, authLoading, profileError, refreshSession]); // Added profileError
+    }, [user, profile, authLoading, profileError, refreshUserProfile]); // Added profileError and refreshUserProfile
 
     // Effect to update activeTool when selectedToolId changes
     useEffect(() => {
@@ -460,7 +460,7 @@ IMPORTANT:
 
         // Don't try to proceed if auth is still loading
         if (authLoading) {
-            setError("Please wait while we check your session...");
+            setError("Please wait, your session is loading...");
             return;
         }
 
@@ -474,15 +474,17 @@ IMPORTANT:
             return;
         }
 
-        // If user is not logged in, allow one anonymous generation
-        // Otherwise, check usage limits
-        if (user) {
-            const canProceed = await incrementUsage();
+        // Usage increment logic
+        let canProceed = true;
+        if (user) { // For logged-in users
+            canProceed = await incrementUsage();
             if (!canProceed) {
-                setError("You've reached your daily limit of 3 recipe generations. Upgrade to premium for unlimited recipes.");
+                setError(`You've reached your daily limit of ${isPremium ? 'unlimited' : (process.env.NEXT_PUBLIC_FREE_TRIES || 5)} recipe generations. Upgrade to premium for unlimited recipes, or check your dashboard for more details.`);
                 setUsageLimitReached(true);
                 return;
             }
+        } else { // For anonymous users, the API route /api/generate will handle IP-based limiting
+          // No client-side increment for anonymous, API handles it
         }
 
         // Show the tool container when either button is clicked
@@ -508,8 +510,7 @@ IMPORTANT:
 
         let requestBody = { 
             promptText,
-            userId: user?.id || null,
-            isAnonymous: !user
+            // userId and isAnonymous will be determined by the API route from the session cookie
         };
 
         try {
@@ -928,7 +929,7 @@ IMPORTANT:
             return;
         }
         
-        if (!results) return;
+        if (!results || !supabaseClient) return; // Ensure supabaseClient is available
         
         try {
             let recipeData;
@@ -944,7 +945,7 @@ IMPORTANT:
             setSaveStatus('loading');
             setSaveMessage('Saving recipe...');
             
-            const { error } = await supabase
+            const { error } = await supabaseClient
                 .from('saved_recipes')
                 .insert({
                     user_id: user.id,
