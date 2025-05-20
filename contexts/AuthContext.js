@@ -24,7 +24,6 @@ export function AuthProvider({ children }) {
 
     const handleAuthChange = async (event, session) => {
       console.log('[AuthContext] Auth state changed:', event, session);
-      
       try {
         // Update user state
         const currentUser = session?.user || null;
@@ -37,14 +36,12 @@ export function AuthProvider({ children }) {
           } catch (err) {
             console.error('Error fetching profile during auth change:', err);
             setProfile(null);
-            // Loading will be set to false in the finally block
           }
         } else {
           // No user, reset all related states
           setProfile(null);
           setUsageRemaining(0);
           setIsPremium(false);
-          // Loading will be set to false in the finally block
         }
       } catch (err) {
         console.error('Error handling auth change:', err);
@@ -53,17 +50,13 @@ export function AuthProvider({ children }) {
         setProfile(null);
         setUsageRemaining(0);
         setIsPremium(false);
-      } finally {
-        // Always ensure loading is set to false when handleAuthChange completes
-        setLoading(false);
       }
     };
 
     // Check initial session
     const checkInitialSession = async () => {
+      setLoading(true);
       try {
-        setLoading(true);
-        
         // Get current session
         const { data: { session } } = await supabase.auth.getSession();
         await handleAuthChange('INITIAL_SESSION', session);
@@ -74,15 +67,10 @@ export function AuthProvider({ children }) {
         setProfile(null);
         setUsageRemaining(0);
         setIsPremium(false);
-        setLoading(false);
-      } finally {
-        // Double-check that loading is set to false
-        // This ensures loading state is reset even if handleAuthChange has issues
-        setLoading(false);
       }
+      setLoading(false); // Always set loading to false after initial check
     };
 
-    // Run initial session check
     checkInitialSession();
 
     // Subscribe to auth changes
@@ -251,9 +239,6 @@ export function AuthProvider({ children }) {
       setUsageRemaining(0);
       setLoading(false); // Always ensure loading is false after an error
       return null;
-    } finally {
-      // Guarantee loading state is reset
-      setLoading(false);
     }
     
     return data; // Return the profile data for optional chaining

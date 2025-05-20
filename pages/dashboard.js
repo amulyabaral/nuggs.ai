@@ -14,6 +14,12 @@ export default function Dashboard() {
   const router = useRouter();
   const authLoadingTimeoutRef = useRef(null);
   
+  useEffect(() => {
+    if (!loading && !user) {
+      router.replace('/');
+    }
+  }, [loading, user, router]);
+  
   const fetchSavedRecipes = useCallback(async () => {
     if (!user || !profile) {
       setLoadingRecipes(false);
