@@ -2364,4 +2364,32 @@ img {
   .usageLimitAlert {
     padding: 1rem;
   }
+}
+
+/* Add this to your existing styles/globals.css file */
+.anonymousUsageNote {
+  background-color: #F9F3E5;
+  border: 1px dashed var(--border-color);
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 1.5rem auto;
+  max-width: 600px;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.createAccountButton {
+  background: none;
+  border: none;
+  color: var(--accent-primary);
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  font-size: inherit;
+  text-decoration: underline;
+}
+
+.createAccountButton:hover {
+  color: var(--accent-primary-hover);
 } 

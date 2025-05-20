@@ -40,8 +40,18 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'promptText is required in the request body.' });
     }
 
-    // Check user limits
-    if (userId && !isAnonymous) {
+    // Get client IP address
+    const ip = req.headers['x-forwarded-for'] || 
+               req.socket.remoteAddress || 
+               null;
+               
+    // Determine anonymous vs authenticated status
+    const isAuthenticatedUser = userId && !isAnonymous;
+    const isAnonymousUser = !userId || isAnonymous;
+
+    // Check usage limits based on authentication status
+    if (isAuthenticatedUser) {
+        // Existing code for authenticated users
         try {
             // Get user profile
             const { data: profile, error: profileError } = await supabase
@@ -108,18 +118,57 @@ export default async function handler(req, res) {
             // Continue with the request even if there's an error checking limits
             // This ensures the app doesn't break completely if there's a database issue
         }
-    } else if (isAnonymous) {
-        // Log anonymous usage
+    } else if (isAnonymousUser && ip) {
+        // New code for anonymous users with IP tracking
         try {
+            // Get the IP hash or just use the IP directly
+            // For privacy, you might want to hash the IP address
+            const ipIdentifier = ip;
+            
+            // Get default free tries from environment variable, fallback to 3 for anonymous users
+            const anonymousFreeTries = parseInt(process.env.ANONYMOUS_FREE_TRIES || '3', 10);
+            
+            // Check if this IP has already used the service today
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // Start of the current day
+            
+            const { data: ipUsage, error: ipUsageError } = await supabase
+                .from('anonymous_usage')
+                .select('*')
+                .eq('ip_identifier', ipIdentifier)
+                .gte('created_at', today.toISOString())
+                .order('created_at', { ascending: false });
+                
+            if (ipUsageError) throw ipUsageError;
+            
+            // Check if anonymous user has reached their daily limit
+            if (ipUsage && ipUsage.length >= anonymousFreeTries) {
+                return res.status(403).json({ 
+                    error: 'Daily usage limit reached', 
+                    limitReached: true,
+                    message: `You've reached the daily limit for anonymous users. Please create an account to continue using our service.`
+                });
+            }
+            
+            // Log this anonymous usage
+            await supabase
+                .from('anonymous_usage')
+                .insert({
+                    ip_identifier: ipIdentifier,
+                    prompt_text: promptText
+                });
+                
+            // Also log in main usage history
             await supabase
                 .from('usage_history')
                 .insert({
                     prompt_text: promptText,
                     is_anonymous: true
                 });
+                
         } catch (error) {
-            console.error('Error logging anonymous usage:', error);
-            // Continue with the request
+            console.error('Error checking anonymous user limits:', error);
+            // Continue with the request even if there's an error checking limits
         }
     }
 

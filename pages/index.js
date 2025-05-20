@@ -1234,6 +1234,25 @@ IMPORTANT:
                 </div>
             )}
 
+            {!user && (
+                <div className="anonymousUsageNote">
+                    <p>
+                        <strong>Anonymous users:</strong> You can generate up to 3 recipes per day.
+                        <br />
+                        <button 
+                            onClick={() => {
+                                setAuthMode('signup');
+                                setShowAuthModal(true);
+                            }}
+                            className="createAccountButton"
+                        >
+                            Create a free account
+                        </button> 
+                        for 5 daily recipes and to save your favorites!
+                    </p>
+                </div>
+            )}
+
             <AuthModal 
                 isOpen={showAuthModal}
                 onClose={() => setShowAuthModal(false)}
