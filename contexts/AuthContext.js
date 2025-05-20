@@ -167,6 +167,7 @@ export function AuthProvider({ children }) {
 
         if (currentUser) {
           await _internalFetchProfile(currentUser.id, currentUser.email);
+          console.log('AuthContext: User profile loaded after auth change');
         } else {
           setProfile(null);
           setUsageRemaining(0);
@@ -174,6 +175,14 @@ export function AuthProvider({ children }) {
         }
       } catch (err) {
         console.error('AuthContext: Error handling auth change:', err);
+        if (event !== 'SIGNED_OUT') {
+          console.log('AuthContext: Forcing sign out due to auth error');
+          try {
+            await supabase.auth.signOut();
+          } catch (e) {
+            console.error('AuthContext: Error during forced sign out:', e);
+          }
+        }
         setUser(null);
         setProfile(null);
         setUsageRemaining(0);
@@ -189,10 +198,35 @@ export function AuthProvider({ children }) {
 
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        console.log('AuthContext: Initial session data:', session);
+        console.log('AuthContext: Initial session data:', session ? 'Session found' : 'No session');
+        
         if (session?.user) {
-          setUser(session.user);
-          await _internalFetchProfile(session.user.id, session.user.email);
+          const expiresAt = session.expires_at ? new Date(session.expires_at * 1000) : null;
+          const now = new Date();
+          const needsRefresh = expiresAt && ((expiresAt.getTime() - now.getTime()) < 10 * 60 * 1000);
+          
+          if (needsRefresh) {
+            console.log('AuthContext: Session token needs refresh, refreshing...');
+            const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+            
+            if (refreshError) {
+              console.error('AuthContext: Session refresh failed:', refreshError);
+              await supabase.auth.signOut();
+              setUser(null);
+              setProfile(null);
+              setUsageRemaining(0);
+              setIsPremium(false);
+              setLoading(false);
+              return;
+            }
+            
+            console.log('AuthContext: Session refreshed successfully');
+            setUser(refreshData.user);
+            await _internalFetchProfile(refreshData.user.id, refreshData.user.email);
+          } else {
+            setUser(session.user);
+            await _internalFetchProfile(session.user.id, session.user.email);
+          }
         } else {
           setUser(null);
           setProfile(null);
@@ -201,6 +235,11 @@ export function AuthProvider({ children }) {
         }
       } catch (err) {
         console.error('AuthContext: Error checking initial session:', err);
+        try {
+          await supabase.auth.signOut();
+        } catch (e) {
+          console.error('AuthContext: Error during cleanup sign out:', e);
+        }
         setUser(null);
         setProfile(null);
         setUsageRemaining(0);
@@ -211,7 +250,6 @@ export function AuthProvider({ children }) {
     };
 
     checkInitialSession();
-
     const { data: authListener } = supabase.auth.onAuthStateChange(handleAuthChange);
 
     return () => {
@@ -332,23 +370,37 @@ export function AuthProvider({ children }) {
   const refreshSession = useCallback(async () => {
     setLoading(true);
     try {
-      console.log('AuthContext: Refreshing session...');
+      console.log('AuthContext: Manual refreshSession called, refreshing session...');
       const { data, error } = await supabase.auth.refreshSession();
-      if (error) throw error;
+      if (error) {
+        console.error('AuthContext: Manual session refresh failed:', error);
+        await supabase.auth.signOut();
+        setUser(null);
+        setProfile(null);
+        setIsPremium(false);
+        setUsageRemaining(0);
+        return false;
+      }
       
-      console.log('AuthContext: Session refresh call completed. User:', data.user);
+      console.log('AuthContext: Manual session refresh successful. User:', data.user);
       if (data.user) {
         setUser(data.user);
         await _internalFetchProfile(data.user.id, data.user.email);
+        return true;
       } else {
         setUser(null);
         setProfile(null);
         setIsPremium(false);
         setUsageRemaining(0);
+        return false;
       }
-      return data.user !== null;
     } catch (err) {
-      console.error('AuthContext: Error refreshing session:', err);
+      console.error('AuthContext: Error in manual refreshSession:', err);
+      try {
+        await supabase.auth.signOut();
+      } catch (e) {
+        console.error('AuthContext: Error signing out after refresh error:', e);
+      }
       setUser(null);
       setProfile(null);
       setIsPremium(false);

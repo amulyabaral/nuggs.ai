@@ -115,7 +115,7 @@ export default function HomePage() {
     const router = useRouter();
 
     // Add this to access auth context
-    const { user, usageRemaining, isPremium, incrementUsage, signOut } = useAuth();
+    const { user, usageRemaining, isPremium, incrementUsage, signOut, profile, loading, refreshSession } = useAuth();
 
     // Add to your existing state variables
     const [showAuthModal, setShowAuthModal] = useState(false);
@@ -125,6 +125,14 @@ export default function HomePage() {
     // Add these new state variables near the other useState declarations
     const [saveStatus, setSaveStatus] = useState(null); // 'success', 'error', or null
     const [saveMessage, setSaveMessage] = useState('');
+
+    // Add a useEffect to check for inconsistent auth state
+    useEffect(() => {
+        if (!loading && user && !profile) {
+            console.log('HomePage: Detected inconsistent auth state - user exists but no profile. Refreshing session...');
+            refreshSession();
+        }
+    }, [user, profile, loading, refreshSession]);
 
     // Effect to update activeTool when selectedToolId changes
     useEffect(() => {
@@ -441,6 +449,16 @@ IMPORTANT:
     const handleSubmit = async (event, isRandom = false) => {
         if (event) event.preventDefault();
         if (!activeTool) return;
+
+        // Check for inconsistent auth state before proceeding
+        if (user && !profile) {
+            setError("Your session appears to be invalid. Refreshing...");
+            const refreshed = await refreshSession();
+            if (!refreshed) {
+                setError("Unable to refresh your session. Please log out and log in again.");
+                return;
+            }
+        }
 
         const currentInput = isRandom ? "Surprise me with a random healthy recipe." : inputValue;
         const promptText = getPromptForTool(activeTool, currentInput);

@@ -13,7 +13,8 @@ export default function Dashboard() {
     loading: authLoading,
     usageRemaining, 
     isPremium, 
-    refreshProfile 
+    refreshProfile,
+    refreshSession
   } = useAuth();
 
   const [savedRecipes, setSavedRecipes] = useState([]);
@@ -56,7 +57,8 @@ export default function Dashboard() {
       return;
     }
 
-    console.log("Dashboard: AuthContext finished loading. User:", user, "Profile:", profile);
+    console.log("Dashboard: AuthContext finished loading. User:", user ? "Found" : "Not found", "Profile:", profile ? "Found" : "Not found");
+    
     if (!user) {
       console.log("Dashboard: No user found after auth loading. Redirecting to /");
       router.replace('/');
@@ -64,23 +66,28 @@ export default function Dashboard() {
     }
 
     if (!profile) {
-      console.warn("Dashboard: User is authenticated, but profile is null. AuthLoading is false.");
-      setPageError("Your profile data could not be loaded. We'll try to refresh it. If this persists, please sign out and back in.");
+      console.warn("Dashboard: User is authenticated, but profile is null. Attempting session refresh.");
+      setPageError("Your profile data could not be loaded. Trying to refresh your session...");
       
-      refreshProfile().then(success => {
+      refreshSession().then(success => {
         if (success) {
           console.log("Dashboard: Profile refresh successful after finding it null.");
           setPageError('');
         } else {
           console.error("Dashboard: Profile refresh failed after finding it null.");
-          setPageError("Failed to load your profile information. Please try signing out and then logging back in, or contact support if the issue continues.");
+          setPageError("Failed to load your profile information. Please try signing out and logging back in.");
+          
+          // If refresh failed, forcibly redirect back to home after a delay
+          setTimeout(() => {
+            router.replace('/');
+          }, 5000);
         }
       });
     } else {
       console.log("Dashboard: User and profile are available. Clearing page error.");
       setPageError('');
     }
-  }, [authLoading, user, profile, router, refreshProfile]);
+  }, [authLoading, user, profile, router, refreshSession]);
   
   useEffect(() => {
     if (user && profile && !authLoading) {
