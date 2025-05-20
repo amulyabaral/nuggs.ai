@@ -37,15 +37,14 @@ export function AuthProvider({ children }) {
           } catch (err) {
             console.error('Error fetching profile during auth change:', err);
             setProfile(null);
-            // Always ensure loading state is reset even on error
-            setLoading(false);
+            // Loading will be set to false in the finally block
           }
         } else {
           // No user, reset all related states
           setProfile(null);
           setUsageRemaining(0);
           setIsPremium(false);
-          setLoading(false); // Make sure loading is false when no user
+          // Loading will be set to false in the finally block
         }
       } catch (err) {
         console.error('Error handling auth change:', err);
@@ -54,7 +53,9 @@ export function AuthProvider({ children }) {
         setProfile(null);
         setUsageRemaining(0);
         setIsPremium(false);
-        setLoading(false); // Ensure loading is set to false on error
+      } finally {
+        // Always ensure loading is set to false when handleAuthChange completes
+        setLoading(false);
       }
     };
 
@@ -68,6 +69,15 @@ export function AuthProvider({ children }) {
         await handleAuthChange('INITIAL_SESSION', session);
       } catch (err) {
         console.error('Error checking initial session:', err);
+        // Reset auth state on error
+        setUser(null);
+        setProfile(null);
+        setUsageRemaining(0);
+        setIsPremium(false);
+        setLoading(false);
+      } finally {
+        // Double-check that loading is set to false
+        // This ensures loading state is reset even if handleAuthChange has issues
         setLoading(false);
       }
     };
