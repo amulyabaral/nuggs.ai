@@ -14,6 +14,7 @@ const AuthContext = createContext({
   refreshSession: async () => false,
   refreshProfile: async () => false,
   sessionChecked: false,
+  profileError: null,
 });
 
 export function AuthProvider({ children }) {
@@ -23,6 +24,7 @@ export function AuthProvider({ children }) {
   const [usageRemaining, setUsageRemaining] = useState(0);
   const [isPremium, setIsPremium] = useState(false);
   const [sessionChecked, setSessionChecked] = useState(false);
+  const [profileError, setProfileError] = useState(null);
 
   const _internalFetchProfile = useCallback(async (userId, userEmail) => {
     console.log('AuthContext: _internalFetchProfile called for user ID:', userId);
@@ -31,125 +33,52 @@ export function AuthProvider({ children }) {
       setProfile(null);
       setIsPremium(false);
       setUsageRemaining(0);
+      setProfileError(null);
       return null;
     }
 
     try {
-      const { data, error: profileError } = await supabase
+      console.log('AuthContext: Fetching profile for user:', userId);
+      setProfileError(null);
+      const { data, error, status } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
 
-      if (profileError) {
-        console.error('AuthContext: Error fetching profile:', profileError);
-        if (profileError.code === 'PGRST116' && userEmail) {
-          console.log('AuthContext: Profile not found for', userId, ', creating a new one with email:', userEmail);
-          const { data: newProfile, error: insertError } = await supabase
-            .from('profiles')
-            .insert({
-              id: userId,
-              email: userEmail,
-              daily_usage_reset_at: new Date().toISOString(),
-              daily_usage_count: 0,
-              subscription_tier: 'free'
-            })
-            .select()
-            .single();
+      if (error && status !== 406) {
+        console.error('AuthContext: Error fetching profile:', error);
+        throw error;
+      }
 
-          if (insertError) {
-            console.error('AuthContext: Error creating profile:', insertError);
-            setProfile(null);
-            setIsPremium(false);
-            setUsageRemaining(0);
-            return null;
-          }
-          console.log('AuthContext: New profile created:', newProfile);
-          setProfile(newProfile);
-          setIsPremium(false);
-          const defaultFreeTries = parseInt(process.env.NEXT_PUBLIC_FREE_TRIES || '5', 10);
-          setUsageRemaining(defaultFreeTries);
-          return newProfile;
+      if (data) {
+        setProfile(data);
+        const premiumStatus = data.subscription_tier === 'premium' &&
+          (data.subscription_expires_at ? new Date(data.subscription_expires_at) > new Date() : false);
+        setIsPremium(premiumStatus);
+        
+        const defaultFreeTries = parseInt(process.env.NEXT_PUBLIC_FREE_TRIES || '5', 10);
+        if (premiumStatus) {
+          setUsageRemaining(Infinity);
+        } else {
+          const dailyUsage = data.daily_usage_count || 0;
+          setUsageRemaining(Math.max(0, defaultFreeTries - dailyUsage));
         }
+        console.log('AuthContext: Profile loaded:', data, 'Is Premium:', premiumStatus);
+      } else {
+        console.warn('AuthContext: No profile found for user:', userId, 'Email:', userEmail, 'This might be a new user.');
         setProfile(null);
         setIsPremium(false);
-        setUsageRemaining(0);
-        return null;
-      }
-
-      if (!data && userEmail) {
-        console.warn(`AuthContext: Profile data not found for user ${userId} (no error code). Attempting to create.`);
-        const { data: newProfile, error: insertError } = await supabase
-            .from('profiles')
-            .insert({
-              id: userId,
-              email: userEmail,
-              daily_usage_reset_at: new Date().toISOString(),
-              daily_usage_count: 0,
-              subscription_tier: 'free'
-            })
-            .select()
-            .single();
-        if (insertError) {
-            console.error('AuthContext: Error creating profile (fallback):', insertError);
-            setProfile(null); setIsPremium(false); setUsageRemaining(0);
-            return null;
-        }
-        console.log('AuthContext: New profile created (fallback):', newProfile);
-        setProfile(newProfile); setIsPremium(false);
         const defaultFreeTries = parseInt(process.env.NEXT_PUBLIC_FREE_TRIES || '5', 10);
         setUsageRemaining(defaultFreeTries);
-        return newProfile;
-      } else if (!data) {
-        console.warn(`AuthContext: Profile data not found for user ${userId} and no email provided for creation.`);
-        setProfile(null); setIsPremium(false); setUsageRemaining(0);
-        return null;
-      }
-
-      console.log('AuthContext: Profile fetched:', data);
-      setProfile(data);
-
-      const premium = data.subscription_tier === 'premium' &&
-                     (data.subscription_expires_at ? new Date(data.subscription_expires_at) > new Date() : false);
-      setIsPremium(premium);
-
-      if (premium) {
-        setUsageRemaining(Infinity);
-      } else {
-        const now = new Date();
-        const defaultFreeTries = parseInt(process.env.NEXT_PUBLIC_FREE_TRIES || '5', 10);
-        const resetDate = data.daily_usage_reset_at ? new Date(data.daily_usage_reset_at) : new Date(0);
-        const currentUsageCount = data.daily_usage_count || 0;
-
-        if (resetDate < now) {
-          try {
-            const { data: updatedProfileData, error: updateError } = await supabase
-              .from('profiles')
-              .update({
-                daily_usage_count: 0,
-                daily_usage_reset_at: now.toISOString()
-              })
-              .eq('id', userId)
-              .select()
-              .single();
-
-            if (updateError) throw updateError;
-            setProfile(updatedProfileData);
-            setUsageRemaining(defaultFreeTries);
-          } catch (e) {
-            console.error("AuthContext: Error during daily usage reset logic:", e);
-            setUsageRemaining(Math.max(0, defaultFreeTries - currentUsageCount));
-          }
-        } else {
-          setUsageRemaining(Math.max(0, defaultFreeTries - currentUsageCount));
-        }
       }
       return data;
-    } catch (error) {
-      console.error('AuthContext: Exception in _internalFetchProfile function:', error);
+    } catch (err) {
+      console.error('AuthContext: Exception in _internalFetchProfile:', err);
       setProfile(null);
       setIsPremium(false);
       setUsageRemaining(0);
+      setProfileError('Failed to load profile data. Some features might be unavailable.');
       return null;
     }
   }, []);
@@ -159,22 +88,17 @@ export function AuthProvider({ children }) {
     setProfile(null);
     setIsPremium(false);
     setUsageRemaining(0);
+    setProfileError(null);
   }, []);
 
   const forceSignOut = useCallback(async () => {
     try {
-      clearAuthState();
+      console.log('AuthContext: Forcing sign out...');
       await supabase.auth.signOut({ scope: 'global' });
-      if (typeof window !== 'undefined') {
-        Object.keys(localStorage).forEach(key => {
-          if (key.startsWith('supabase.auth') || key.includes('nuggs-auth')) {
-            localStorage.removeItem(key);
-          }
-        });
-      }
-      console.log('AuthContext: Force sign out completed');
+      console.log('AuthContext: Force sign out completed via Supabase.');
     } catch (e) {
-      console.error('AuthContext: Error during force sign out:', e);
+      console.error('AuthContext: Error during Supabase sign out in forceSignOut:', e);
+    } finally {
       clearAuthState();
     }
   }, [clearAuthState]);
@@ -187,6 +111,7 @@ export function AuthProvider({ children }) {
       if (!isMounted) return;
       console.log('AuthContext: Auth state changed:', event, session);
       setLoading(true);
+      setProfileError(null);
 
       try {
         const currentUser = session?.user || null;
@@ -194,117 +119,58 @@ export function AuthProvider({ children }) {
 
         if (currentUser) {
           await _internalFetchProfile(currentUser.id, currentUser.email);
-          console.log('AuthContext: User profile loaded after auth change');
+          console.log('AuthContext: User profile processing complete after auth change.');
         } else {
           setProfile(null);
           setUsageRemaining(0);
           setIsPremium(false);
         }
       } catch (err) {
-        console.error('AuthContext: Error handling auth change:', err);
-        if (event !== 'SIGNED_OUT') {
-          console.log('AuthContext: Forcing sign out due to auth error');
-          try {
-            await supabase.auth.signOut();
-          } catch (e) {
-            console.error('AuthContext: Error during forced sign out:', e);
-          }
+        console.error('AuthContext: Unexpected error handling auth change:', err);
+        if (!session?.user) {
+            clearAuthState();
         }
-        setUser(null);
-        setProfile(null);
-        setUsageRemaining(0);
-        setIsPremium(false);
       } finally {
-        if (isMounted) setLoading(false);
-      }
-    };
-
-    const checkInitialSession = async () => {
-      if (!isMounted) return;
-      console.log('AuthContext: Checking initial session...');
-      
-      const timeoutId = setTimeout(() => {
-        if (isMounted && loading) {
-          console.error('AuthContext: Session check timed out after 10 seconds');
-          clearAuthState();
-          setLoading(false);
-          setSessionChecked(true);
-        }
-      }, 10000);
-      
-      try {
-        const { data: authUser } = await supabase.auth.getUser();
-        const { data: sessionData } = await supabase.auth.getSession();
-        const session = sessionData?.session;
-        
-        console.log('AuthContext: Auth check -', 
-          'User from getUser():', authUser?.user ? `Found (${authUser.user.email})` : 'Not found', 
-          'Session:', session ? `Found (expires: ${new Date(session.expires_at * 1000).toISOString()})` : 'Not found');
-        
-        if (authUser?.user) {
-          setUser(authUser.user);
-          
-          try {
-            console.log('AuthContext: Forcing session refresh to ensure valid tokens');
-            const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
-            
-            if (refreshError) {
-              console.error('AuthContext: Session refresh failed - signing out:', refreshError);
-              await forceSignOut();
-              setLoading(false);
-              setSessionChecked(true);
-              clearTimeout(timeoutId);
-              return;
-            }
-            
-            if (refreshData?.user) {
-              console.log('AuthContext: Session refreshed successfully:', refreshData.user.email);
-              setUser(refreshData.user);
-              
-              const profileData = await _internalFetchProfile(refreshData.user.id, refreshData.user.email);
-              if (!profileData) {
-                console.error('AuthContext: Profile fetch failed after successful session refresh');
-                throw new Error('Failed to load profile after successful authentication');
-              }
-            } else {
-              console.warn('AuthContext: Session refresh returned no user despite success');
-              throw new Error('Session refresh succeeded but returned no user');
-            }
-          } catch (refreshErr) {
-            console.error('AuthContext: Error during forced refresh:', refreshErr);
-            await forceSignOut();
-            setLoading(false);
-            setSessionChecked(true);
-            clearTimeout(timeoutId);
-            return;
-          }
-        } else {
-          console.log('AuthContext: No user found in auth state');
-          clearAuthState();
-        }
-      } catch (err) {
-        console.error('AuthContext: Critical error checking initial session:', err);
-        await forceSignOut();
-      } finally {
-        clearTimeout(timeoutId);
         if (isMounted) {
           setLoading(false);
-          setSessionChecked(true);
+          if (!sessionChecked) setSessionChecked(true);
         }
       }
     };
 
-    checkInitialSession();
+    const performInitialSessionCheck = async () => {
+      if (!isMounted) return;
+      console.log('AuthContext: Performing initial getSession()...');
+      try {
+        await supabase.auth.getSession();
+      } catch (error) {
+        console.error('AuthContext: Error during initial getSession():', error);
+      } finally {
+        if (isMounted && !sessionChecked) {
+            setTimeout(() => {
+                if (isMounted && loading) {
+                    console.warn("AuthContext: Fallback timeout, setting loading false and sessionChecked true.");
+                    setLoading(false);
+                    setSessionChecked(true);
+                }
+            }, 3000);
+        }
+      }
+    };
+
+    performInitialSessionCheck();
+
     const { data: authListener } = supabase.auth.onAuthStateChange(handleAuthChange);
 
     return () => {
       isMounted = false;
-      if (authListener?.subscription?.unsubscribe) {
+      if (authListener && typeof authListener.unsubscribe === 'function') {
+        authListener.unsubscribe();
+      } else if (authListener && authListener.subscription) {
         authListener.subscription.unsubscribe();
-        console.log('AuthContext: Unsubscribed from auth changes.');
       }
     };
-  }, [_internalFetchProfile, forceSignOut, clearAuthState]);
+  }, [_internalFetchProfile, clearAuthState, sessionChecked, loading]);
   
   async function signIn(email, password) {
     setLoading(true);
@@ -361,44 +227,44 @@ export function AuthProvider({ children }) {
     try {
       console.log('AuthContext: Attempting to sign out...');
       
-      // First clear all local state
-      setUser(null);
-      setProfile(null);
-      setIsPremium(false);
-      setUsageRemaining(0);
+      clearAuthState();
       
-      // Then clear auth cookies/storage with scope: 'local'
       const { error } = await supabase.auth.signOut({ scope: 'local' });
       if (error) {
-        console.error('AuthContext: Error during sign out:', error);
-        throw error;
+        console.error('AuthContext: Error during Supabase sign out:', error);
       }
       
-      console.log('AuthContext: Sign out successful.');
+      console.log('AuthContext: Supabase sign out successful.');
       
-      // Force page reload to ensure all auth state is fresh
-      window.location.href = '/';
+      if (typeof window !== 'undefined') {
+        window.location.href = '/';
+      }
       
     } catch (error) {
-      console.error('AuthContext: Exception during sign out:', error);
-      
-      // Even if there's an error, try to clean up local storage directly
-      try {
-        localStorage.removeItem('supabase.auth.token');
-      } catch (e) {
-        console.error('AuthContext: Failed to manually clear local storage:', e);
+      console.error('AuthContext: Exception during sign out process:', error);
+      clearAuthState();
+      if (typeof window !== 'undefined') {
+        window.location.href = '/';
       }
-      
-      // Force page reload anyway to clean state
-      window.location.href = '/';
-      
     } finally {
-      setLoading(false);
+      if (typeof window !== 'undefined') {
+        setLoading(false);
+      }
     }
   }
   
   const incrementUsage = useCallback(async () => {
-    if (!user || !profile) return false;
+    if (!user || !profile) {
+      if (user && !profile && profileError) {
+          console.warn("AuthContext: Cannot increment usage, profile not loaded due to error.");
+          return false;
+      }
+      if (!user) return false;
+      if (user && !profile) {
+          console.log("AuthContext: Increment usage check: User exists but profile is null. Denying usage increment.");
+          return false;
+      }
+    }
     if (isPremium) return true;
 
     const currentProfile = profile;
@@ -430,10 +296,11 @@ export function AuthProvider({ children }) {
       if (user?.id) await _internalFetchProfile(user.id, user.email);
       return false;
     }
-  }, [user, profile, isPremium, _internalFetchProfile]);
+  }, [user, profile, isPremium, _internalFetchProfile, profileError]);
   
   const refreshSession = useCallback(async () => {
     setLoading(true);
+    setProfileError(null);
     try {
       console.log('AuthContext: Manual refreshSession called, refreshing session...');
       
@@ -450,12 +317,12 @@ export function AuthProvider({ children }) {
         
       if (error) {
         console.error('AuthContext: Manual session refresh failed:', error);
-        await forceSignOut();
+        clearAuthState();
         return false;
       }
       
-      console.log('AuthContext: Manual session refresh successful. User:', data.user);
-      if (data.user) {
+      console.log('AuthContext: Manual session refresh successful. User:', data?.user?.email);
+      if (data?.user) {
         setUser(data.user);
         await _internalFetchProfile(data.user.id, data.user.email);
         return true;
@@ -465,23 +332,24 @@ export function AuthProvider({ children }) {
       }
     } catch (err) {
       console.error('AuthContext: Error in manual refreshSession:', err);
-      await forceSignOut();
+      clearAuthState();
       return false;
     } finally {
       setLoading(false);
     }
-  }, [_internalFetchProfile, forceSignOut, clearAuthState]);
+  }, [_internalFetchProfile, clearAuthState]);
   
   const manualRefreshProfile = useCallback(async () => {
     if (user && !loading) {
       console.log('AuthContext: manualRefreshProfile called for user:', user.id);
       setLoading(true);
+      setProfileError(null);
       try {
         await _internalFetchProfile(user.id, user.email);
         console.log('AuthContext: Profile refreshed successfully via manualRefreshProfile');
         return true;
       } catch (err) {
-        console.error('AuthContext: Error during manualRefreshProfile:', err);
+        console.error('AuthContext: Error during manualRefreshProfile (already handled by _internalFetchProfile):', err);
         return false;
       } finally {
         setLoading(false);
@@ -504,6 +372,7 @@ export function AuthProvider({ children }) {
     refreshSession,
     refreshProfile: manualRefreshProfile,
     sessionChecked,
+    profileError,
   };
   
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

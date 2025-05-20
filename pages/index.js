@@ -115,7 +115,7 @@ export default function HomePage() {
     const router = useRouter();
 
     // Add this to access auth context
-    const { user, usageRemaining, isPremium, incrementUsage, signOut, profile, loading, refreshSession } = useAuth();
+    const { user, usageRemaining, isPremium, incrementUsage, signOut, profile, loading: authLoading, refreshSession, profileError } = useAuth();
 
     // Add to your existing state variables
     const [showAuthModal, setShowAuthModal] = useState(false);
@@ -128,36 +128,19 @@ export default function HomePage() {
 
     // Add more robust checking for session issues
     useEffect(() => {
-        const checkAuthState = async () => {
-            if (!loading) {
-                if (user && !profile) {
-                    console.log('HomePage: Detected inconsistent auth state - user exists but no profile');
-                    
-                    try {
-                        console.log('HomePage: Attempting to refresh session to resolve inconsistency');
-                        const refreshResult = await refreshSession();
-                        console.log('HomePage: Session refresh result:', refreshResult ? 'Success' : 'Failed');
-                        
-                        if (!refreshResult) {
-                            console.log('HomePage: Session refresh failed, forcing sign out');
-                            // Force sign out and reload
-                            try {
-                                await supabase.auth.signOut({ scope: 'local' });
-                            } catch (e) {
-                                console.error('HomePage: Error during forced sign out:', e);
-                            }
-                            window.location.reload();
-                        }
-                    } catch (err) {
-                        console.error('HomePage: Error during auth state repair:', err);
-                        window.location.reload();
-                    }
-                }
-            }
-        };
-        
-        checkAuthState();
-    }, [user, profile, loading, refreshSession]);
+        // This effect can be simplified as AuthContext is now more robust.
+        // If there's a profileError from AuthContext, you can display a message.
+        if (!authLoading && user && !profile && profileError) {
+            console.warn('HomePage: User is logged in, but profile loading failed:', profileError);
+            // You could set a local error state here to inform the user.
+            // setError(profileError); // Example: if you have a local error state for UI
+        } else if (!authLoading && user && !profile && !profileError) {
+            // This case means user exists, profile is null, and no specific error from AuthContext.
+            // This could be a new user whose profile is still being created, or an edge case.
+            // AuthContext's _internalFetchProfile should handle new users gracefully.
+            console.log('HomePage: User logged in, profile is null, no specific profile error. Profile might be pending or not found.');
+        }
+    }, [user, profile, authLoading, profileError, refreshSession]); // Added profileError
 
     // Effect to update activeTool when selectedToolId changes
     useEffect(() => {
@@ -476,13 +459,16 @@ IMPORTANT:
         if (!activeTool) return;
 
         // Check for inconsistent auth state before proceeding
-        if (user && !profile) {
-            setError("Your session appears to be invalid. Refreshing...");
-            const refreshed = await refreshSession();
-            if (!refreshed) {
-                setError("Unable to refresh your session. Please log out and log in again.");
-                return;
-            }
+        if (user && !profile && !profileError) { // Added !profileError check
+            setError("Your profile is still loading or couldn't be retrieved. Please wait a moment or try refreshing your profile from the dashboard.");
+            // Optionally, you could try a gentle profile refresh here if desired,
+            // but avoid forcing a session refresh if auth itself is fine.
+            // await refreshProfile(); // Example if you add refreshProfile to useAuth
+            return;
+        }
+        if (user && profileError) {
+            setError(`There was an issue loading your profile: ${profileError}. Some features might be limited.`);
+            // Allow proceeding if possible, or block based on severity
         }
 
         const currentInput = isRandom ? "Surprise me with a random healthy recipe." : inputValue;

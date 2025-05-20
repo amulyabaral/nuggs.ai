@@ -16,6 +16,7 @@ export default function Dashboard() {
     refreshProfile,
     refreshSession,
     sessionChecked,
+    profileError,
   } = useAuth();
 
   const [savedRecipes, setSavedRecipes] = useState([]);
@@ -68,7 +69,7 @@ export default function Dashboard() {
       return;
     }
 
-    console.log("Dashboard: AuthContext finished loading. User:", user ? "Found" : "Not found", "Profile:", profile ? "Found" : "Not found");
+    console.log("Dashboard: AuthContext finished loading. User:", user ? "Found" : "Not found", "Profile:", profile ? "Found" : "Not found", "ProfileError:", profileError);
     
     if (!user) {
       console.log("Dashboard: No user found after auth loading. Redirecting to /");
@@ -77,40 +78,30 @@ export default function Dashboard() {
     }
 
     if (!profile) {
-      console.warn("Dashboard: User is authenticated, but profile is null. Attempting session refresh.");
-      
-      // Only try refreshing if we haven't reached the maximum attempts (3)
-      if (refreshAttempts < 3) {
-        setPageError("Your profile data could not be loaded. Trying to refresh your session...");
-        
-        refreshSession().then(success => {
-          if (success) {
-            console.log("Dashboard: Profile refresh successful after finding it null.");
+      if (profileError) {
+        console.warn("Dashboard: User is authenticated, but profile loading failed:", profileError);
+        setPageError(`Your profile data could not be loaded: ${profileError}. Some information might be missing. You can try refreshing.`);
+      } else {
+        console.warn("Dashboard: User is authenticated, but profile is null (no specific error). Attempting to refresh profile.");
+        setPageError("Loading your profile information...");
+        refreshProfile().then(success => {
+          if (success && profile) {
+            console.log("Dashboard: Profile refresh successful.");
             setPageError('');
-            setRefreshAttempts(0); // Reset counter on success
+          } else if (success && !profile) {
+            console.warn("Dashboard: Profile refresh ran, but profile still null (might be new user or no data).");
+            setPageError("Could not load all profile details. This might be a new account or data is unavailable.");
           } else {
-            console.error("Dashboard: Profile refresh failed after finding it null.");
-            setRefreshAttempts(prev => prev + 1);
-            
-            if (refreshAttempts >= 2) {
-              // On third failed attempt, suggest a hard refresh
-              setPageError("Session refresh failed. Please try signing out and logging back in.");
-              setHardRefreshNeeded(true);
-            } else {
-              setPageError(`Failed to load your profile information. Retry attempt ${refreshAttempts + 1}/3...`);
-            }
+            console.error("Dashboard: Profile refresh attempt failed.");
+            setPageError(authContextProfileError => authContextProfileError || "Failed to load your profile information. Please try again later or contact support.");
           }
         });
-      } else if (!hardRefreshNeeded) {
-        setPageError("Multiple refresh attempts failed. Please try signing out completely.");
-        setHardRefreshNeeded(true);
       }
     } else {
-      console.log("Dashboard: User and profile are available. Clearing page error.");
+      console.log("Dashboard: User and profile are available.");
       setPageError('');
-      setRefreshAttempts(0);
     }
-  }, [authLoading, user, profile, router, refreshSession, refreshAttempts, sessionChecked, hardRefreshNeeded]);
+  }, [authLoading, user, profile, router, refreshSession, sessionChecked, profileError, refreshProfile]);
   
   useEffect(() => {
     if (user && profile && !authLoading) {
@@ -283,22 +274,29 @@ export default function Dashboard() {
             </header>
             <main className="dashboardContainer">
                 <div className="errorContainer" style={{textAlign: 'center', marginTop: '2rem'}}>
-                    <h1>Session Error</h1>
-                    <p>{pageError}</p>
+                    <h1>Profile Error</h1>
+                    <p>{pageError || profileError || "We encountered an issue loading your profile."}</p>
                     <div style={{marginTop: '1.5rem', display: 'flex', justifyContent: 'center', gap: '1rem'}}>
+                        <button
+                            onClick={async () => {
+                                const success = await refreshProfile();
+                                if (!success) {
+                                    setPageError("Still unable to load profile after refresh.");
+                                } else {
+                                    setPageError("");
+                                }
+                            }}
+                            className="secondaryButton"
+                            style={{padding: '0.7rem 1.3rem', fontSize: '0.9rem'}}
+                        >
+                            Retry Profile Load
+                        </button>
                         <button
                             onClick={handleForceSignOut}
                             className="primaryButton"
                             style={{padding: '0.7rem 1.3rem', fontSize: '0.9rem'}}
                         >
                             Sign Out Completely
-                        </button>
-                        <button
-                            onClick={() => window.location.reload()}
-                            className="secondaryButton"
-                            style={{padding: '0.7rem 1.3rem', fontSize: '0.9rem'}}
-                        >
-                            Refresh Page
                         </button>
                     </div>
                 </div>
@@ -338,6 +336,9 @@ export default function Dashboard() {
           <h1>Your Profile</h1>
         </div>
         
+        {pageError && <div className="errorMessage" style={{marginBottom: '1rem', textAlign: 'center', backgroundColor: 'var(--accent-negative-bg)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--accent-negative)'}}>{pageError}</div>}
+        {profileError && !pageError && <div className="errorMessage" style={{marginBottom: '1rem', textAlign: 'center', backgroundColor: 'var(--accent-negative-bg)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--accent-negative)'}}>Profile loading issue: {profileError} <button onClick={refreshProfile} className="linkButton">Try refreshing profile</button></div>}
+
         <section className="savedRecipesSection">
           <h2>Your Saved Recipes</h2>
           
