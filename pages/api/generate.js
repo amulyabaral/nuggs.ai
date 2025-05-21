@@ -169,12 +169,34 @@ export default async function handler(req, res) {
             } catch (e) { /* Could not parse recipe name, proceed without it */ }
         }
 
+        let apiResponseData = { ...responseData }; // Clone responseData to add custom fields
+
         try {
             if (isAnonymousRequest && clientIp !== 'unknown_ip') {
                 await supabaseAdmin.from('anonymous_usage').insert({
                     ip_identifier: clientIp,
                     prompt_text: promptText.substring(0, 500),
                 });
+
+                // After successful insert, get the new count for this IP today to return remaining tries
+                const today = new Date();
+                const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0, 0).toISOString();
+                const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999).toISOString();
+
+                const { count: newCountAfterInsert, error: newCountError } = await supabaseAdmin
+                    .from('anonymous_usage')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('ip_identifier', clientIp)
+                    .gte('created_at', startOfDay)
+                    .lte('created_at', endOfDay);
+
+                if (newCountError) {
+                    console.error('Error fetching new anonymous usage count:', newCountError.message);
+                    // If error, client will rely on its current state or default
+                } else if (newCountAfterInsert !== null) {
+                    apiResponseData.anonymousUserTriesRemaining = Math.max(0, ANONYMOUS_TRIES_PER_DAY - newCountAfterInsert);
+                    apiResponseData.anonymousUserTriesLimit = ANONYMOUS_TRIES_PER_DAY;
+                }
             }
             await supabaseAdmin.from('usage_history').insert({
                 user_id: userId, // Will be null for anonymous
@@ -186,7 +208,7 @@ export default async function handler(req, res) {
             console.error("Error logging usage to DB:", dbError.message);
         }
 
-        return res.status(200).json(responseData);
+        return res.status(200).json(apiResponseData);
 
     } catch (error) {
         console.error('Error calling Gemini API or processing response:', error.message);

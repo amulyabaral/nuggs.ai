@@ -122,25 +122,32 @@ export default function HomePage() {
     const [authMode, setAuthMode] = useState('login');
     const [usageLimitReached, setUsageLimitReached] = useState(false);
 
+    // New state for anonymous user's remaining tries
+    // Initial state assumes full tries, no longer loading from a separate API.
+    const [anonymousUserTries, setAnonymousUserTries] = useState({
+        remaining: parseInt(process.env.NEXT_PUBLIC_ANONYMOUS_TRIES || '3', 10),
+        limit: parseInt(process.env.NEXT_PUBLIC_ANONYMOUS_TRIES || '3', 10),
+        loading: false, // Not loading from API anymore
+    });
+
     // Add these new state variables near the other useState declarations
     const [saveStatus, setSaveStatus] = useState(null); // 'success', 'error', or null
     const [saveMessage, setSaveMessage] = useState('');
 
-    // Add more robust checking for session issues
+    // Fetch anonymous usage info
     useEffect(() => {
-        // This effect can be simplified as AuthContext is now more robust.
-        // If there's a profileError from AuthContext, you can display a message.
-        if (!authLoading && user && !profile && profileError) {
-            console.warn('HomePage: User is logged in, but profile loading failed:', profileError);
-            // You could set a local error state here to inform the user.
-            // setError(profileError); // Example: if you have a local error state for UI
-        } else if (!authLoading && user && !profile && !profileError && !authLoading) { // Added !authLoading to prevent premature call
-            // This case means user exists, profile is null, and no specific profile error from AuthContext.
-            // This could be a new user whose profile is still being created, or an edge case.
-            console.log('HomePage: User logged in, profile is null, no specific profile error. Attempting to refresh profile.');
-            refreshUserProfile(); // Attempt to refresh profile
+        // This useEffect is now simplified as we are not fetching anonymous usage on page load.
+        // The anonymousUserTries state is initialized with default values.
+        // It will be updated after a successful generation via the /api/generate response.
+        if (user) {
+            // Reset anonymous tries if user logs in, or ensure it's not showing stale anonymous data.
+            setAnonymousUserTries({
+                remaining: parseInt(process.env.NEXT_PUBLIC_ANONYMOUS_TRIES || '3', 10), // Reset to default
+                limit: parseInt(process.env.NEXT_PUBLIC_ANONYMOUS_TRIES || '3', 10),
+                loading: false,
+            });
         }
-    }, [user, profile, authLoading, profileError, refreshUserProfile]); // Added profileError and refreshUserProfile
+    }, [authLoading, user]);
 
     // Effect to update activeTool when selectedToolId changes
     useEffect(() => {
@@ -538,6 +545,15 @@ IMPORTANT:
                 
                 setResults(aiResponseText);
                 setResultsShown(true); // Set that results are now shown
+                
+                // Update anonymous user tries if data is present in the response
+                if (!user && data.anonymousUserTriesRemaining !== undefined && data.anonymousUserTriesLimit !== undefined) {
+                    setAnonymousUserTries({
+                        remaining: data.anonymousUserTriesRemaining,
+                        limit: data.anonymousUserTriesLimit,
+                        loading: false,
+                    });
+                }
                 
                 // Scroll to results after a short delay to ensure rendering
                 setTimeout(() => {
@@ -1251,9 +1267,16 @@ IMPORTANT:
             )}
 
             {/* Display for logged-in, non-premium users showing remaining tries */}
-            {!authLoading && user && !isPremium && typeof usageRemaining === 'number' && usageRemaining > 0 && (
+            {!authLoading && user && !isPremium && typeof usageRemaining === 'number' && usageRemaining >= 0 && (
                 <div className="usageRemainingTodayInfo">
                     <p>You have {usageRemaining} recipe generation{usageRemaining === 1 ? '' : 's'} left today.</p>
+                </div>
+            )}
+
+            {/* Display for anonymous users showing remaining tries */}
+            {!authLoading && !user && !anonymousUserTries.loading && typeof anonymousUserTries.remaining === 'number' && (
+                 <div className="usageRemainingTodayInfo">
+                    <p>You have {anonymousUserTries.remaining} recipe generation{anonymousUserTries.remaining === 1 ? '' : 's'} left today.</p>
                 </div>
             )}
 
@@ -1266,11 +1289,10 @@ IMPORTANT:
                 </div>
             )}
 
-            {!user && !authLoading && ( // Message for anonymous users
+            {!user && !authLoading && ( // General CTA for anonymous users
                 <div className="anonymousUsageNote">
                     <p>
-                        <strong>Anonymous users:</strong> You can generate up to {process.env.NEXT_PUBLIC_ANONYMOUS_TRIES || 3} recipes per day.
-                        <br />
+                        {/* Removed: <strong>Anonymous users:</strong> You can generate up to {process.env.NEXT_PUBLIC_ANONYMOUS_TRIES || 3} recipes per day. */}
                         <button
                             onClick={() => {
                                 setAuthMode('signup');
