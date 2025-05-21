@@ -1,9 +1,15 @@
-import { supabase } from '../../lib/supabaseClient'; // Assuming you have a supabase client export
+import { createClient } from '@supabase/supabase-js'; // ADDED
 
 const PADDLE_API_KEY = process.env.PADDLE_API_KEY;
 const PADDLE_API_BASE_URL = 'https://api.paddle.com'; // Use sandbox URL for testing if needed: https://sandbox-api.paddle.com
 const PREMIUM_PRICE_ID = process.env.PADDLE_PREMIUM_PRICE_ID; // Your specific price ID for the premium plan
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+
+// ADDED: Initialize Supabase Admin Client
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -14,6 +20,12 @@ export default async function handler(req, res) {
   if (!PADDLE_API_KEY || !PREMIUM_PRICE_ID) {
     console.error('Paddle API Key or Premium Price ID is not configured.');
     return res.status(500).json({ error: 'Server configuration error.' });
+  }
+
+  // ADDED: Check for Supabase environment variables
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    console.error('Supabase URL or Service Role Key is not configured for the backend.');
+    return res.status(500).json({ error: 'Server configuration error for database integration.' });
   }
 
   const { email, userId } = req.body;
