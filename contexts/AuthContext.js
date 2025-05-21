@@ -77,15 +77,21 @@ export function AuthProvider({ children }) {
   }, [supabaseClient]);
 
   useEffect(() => {
-    if (user?.id && !profileLoading) {
-      fetchProfile(user.id);
-    } else if (!user?.id) {
-      setProfile(null);
-      setIsPremium(false);
-      setUsageRemaining(0);
-      setProfileError(null);
+    const currentUserId = user?.id;
+
+    if (currentUserId) {
+      if (!profileLoading && (!profile || profile.id !== currentUserId)) {
+        fetchProfile(currentUserId);
+      }
+    } else {
+      if (profile !== null || isPremium !== false || usageRemaining !== 0 || profileError !== null) {
+        setProfile(null);
+        setIsPremium(false);
+        setUsageRemaining(0);
+        setProfileError(null);
+      }
     }
-  }, [user, fetchProfile, profileLoading]);
+  }, [user?.id, profile?.id, profileLoading, fetchProfile]);
 
   async function signIn(email, password) {
     const { error } = await supabaseClient.auth.signInWithPassword({
