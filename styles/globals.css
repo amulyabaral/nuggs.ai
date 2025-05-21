@@ -2553,14 +2553,14 @@ img {
 }
 
 .mainContentArea {
-  flex: 3.5; /* UPDATED: Main content takes slightly more space relative to sidebar */
+  flex: 2.5; /* UPDATED: Main content takes less space */
   min-width: 0; /* Prevents flex items from overflowing */
 }
 
 .communityRecipesSidebar {
-  flex: 1; /* Sidebar takes less space */
-  min-width: 300px; /* ADDED: Ensure sidebar has a minimum width */
-  max-width: 380px; /* ADDED: And a maximum width */
+  flex: 1.5; /* UPDATED: Sidebar takes more space */
+  min-width: 300px; 
+  max-width: 500px; /* UPDATED: Increased max-width for the sidebar */
   padding: 1.5rem 1rem; /* Adjusted padding */
   background: transparent; /* Allows body gradient to show through */
   border-radius: 8px;
