@@ -13,13 +13,29 @@ export default function Dashboard() {
 
   // Simple effect to check authentication and redirect if needed
   useEffect(() => {
-    if (!authLoading && !user) {
+    // Don't try to refresh if still loading authentication
+    if (authLoading) return;
+    
+    // Redirect if not logged in
+    if (!user) {
       router.push('/');
-    } else if (!authLoading && user && !profile && !profileError) {
-      // Attempt to refresh the session if the profile is not loaded and no error yet
-      refreshUserProfile();
+      return;
     }
-  }, [authLoading, user, router, profile, refreshUserProfile, profileError]);
+    
+    // Only try to refresh the profile once when the component mounts
+    // and only if we have a user but no profile (and no error yet)
+    const shouldRefreshProfile = user && !profile && !profileError;
+    
+    if (shouldRefreshProfile) {
+      // Use a one-time refresh attempt
+      const refreshAttempt = async () => {
+        await refreshUserProfile();
+      };
+      refreshAttempt();
+    }
+    // Remove profile from the dependencies to prevent the loop
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoading, user, router, refreshUserProfile, profileError]);
   
   // Fetch recipes when user and profile are available
   useEffect(() => {
