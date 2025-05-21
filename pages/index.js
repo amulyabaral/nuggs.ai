@@ -1250,16 +1250,23 @@ IMPORTANT:
                 </div>
             )}
 
-            {usageLimitReached && (
+            {/* Display for logged-in, non-premium users showing remaining tries */}
+            {!authLoading && user && !isPremium && typeof usageRemaining === 'number' && usageRemaining > 0 && (
+                <div className="usageRemainingTodayInfo">
+                    <p>You have {usageRemaining} recipe generation{usageRemaining === 1 ? '' : 's'} left today.</p>
+                </div>
+            )}
+
+            {usageLimitReached && user && ( // This shows when a logged-in user HITS their limit
                 <div className="usageLimitAlert">
-                    <p>You've reached your daily limit of 3 recipe generations.</p>
+                    <p>You've reached your daily limit of {isPremium ? 'unlimited' : (process.env.NEXT_PUBLIC_FREE_TRIES || 5)} recipe generations.</p>
                     <Link href="/pricing" className="upgradeToPremiumButton">
                         Upgrade to Premium
                     </Link>
                 </div>
             )}
 
-            {!user && (
+            {!user && !authLoading && ( // Message for anonymous users
                 <div className="anonymousUsageNote">
                     <p>
                         <strong>Anonymous users:</strong> You can generate up to {process.env.NEXT_PUBLIC_ANONYMOUS_TRIES || 3} recipes per day.

@@ -2507,4 +2507,20 @@ img {
 }
 .moveRecipeModal .secondaryButton:hover {
   border-color: var(--text-secondary);
-} 
+}
+
+.learnMoreLink:hover {
+  color: var(--accent-primary-hover);
+}
+
+.usageRemainingTodayInfo {
+  text-align: center;
+  margin: 1rem auto;
+  padding: 0.8rem 1.2rem;
+  background-color: var(--background-card-subtle);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  max-width: 600px;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
