@@ -6,6 +6,7 @@ const AuthContext = createContext({
   profile: null,
   signIn: async () => {},
   signUp: async () => {},
+  signInWithGoogle: async () => {},
   signOut: async () => {},
   loading: true,
   usageRemaining: 0,
@@ -177,11 +178,29 @@ export function AuthProvider({ children }) {
   
   const overallLoading = sessionLoading || (!!user && profileLoading);
 
+  async function signInWithGoogle() {
+    const { error } = await supabaseClient.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        // Optional: redirectTo can be specified if you want to control
+        // where the user is sent after successful Google auth.
+        // redirectTo: `${window.location.origin}/dashboard` 
+      }
+    });
+    if (error) {
+      console.error("Google Sign in error:", error);
+      throw error;
+    }
+    // Supabase handles the redirect to Google and then back to your app.
+    // The session will be updated automatically by the Auth helpers.
+  }
+
   const value = {
     user,
     profile,
     signIn,
     signUp,
+    signInWithGoogle,
     signOut,
     loading: overallLoading,
     usageRemaining,

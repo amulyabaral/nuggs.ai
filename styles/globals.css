@@ -2779,3 +2779,60 @@ img {
     text-align: left;
   }
 }
+
+/* Styles for Social Auth Buttons and Separator */
+.socialAuthSeparator {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 1.5rem 0; /* Increased margin */
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.socialAuthSeparator::before,
+.socialAuthSeparator::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.socialAuthSeparator span {
+  padding: 0 0.8rem; /* Space around "OR" */
+}
+
+.socialAuthButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem; /* Space between icon and text */
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid var(--border-color);
+  background-color: var(--background-card); /* White background */
+  color: var(--text-primary);
+}
+
+.socialAuthButton:hover:not(:disabled) {
+  background-color: var(--background-card-subtle);
+  border-color: #c0c0c0; /* Slightly darker border on hover */
+}
+
+.socialAuthButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.socialAuthButton svg { /* For react-icons */
+  font-size: 1.2em; /* Adjust icon size */
+}
+
+.googleAuthButton {
+  /* Specific Google colors if desired, or keep generic */
+  /* color: #4285F4; */ /* Google Blue */
+}
