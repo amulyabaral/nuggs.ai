@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useAuth } from '../contexts/AuthContext';
 import AuthModal from '../components/AuthModal';
-import CommunityRecipeModal from '../components/CommunityRecipeModal'; // New Import
 
 const AMAZON_AFFILIATE_TAG = 'nuggs00-20';
 
@@ -139,11 +138,6 @@ export default function HomePage() {
     const [communityRecipes, setCommunityRecipes] = useState([]);
     const [loadingCommunityRecipes, setLoadingCommunityRecipes] = useState(true);
     const [errorCommunityRecipes, setErrorCommunityRecipes] = useState('');
-    const [selectedCommunityRecipe, setSelectedCommunityRecipe] = useState(null);
-    const [showCommunityRecipeModal, setShowCommunityRecipeModal] = useState(false);
-    const [isCommunityRecipeSaved, setIsCommunityRecipeSaved] = useState(false);
-    const [saveCommunityRecipeStatus, setSaveCommunityRecipeStatus] = useState(null);
-    const [saveCommunityRecipeMessage, setSaveCommunityRecipeMessage] = useState('');
 
     // Fetch anonymous usage info
     useEffect(() => {
@@ -1036,88 +1030,12 @@ IMPORTANT:
 
     // Handler for viewing a community recipe
     const handleViewCommunityRecipe = async (recipe) => {
-        setSelectedCommunityRecipe(recipe);
-        setShowCommunityRecipeModal(true);
-        setSaveCommunityRecipeStatus(null);
-        setSaveCommunityRecipeMessage('');
-        setIsCommunityRecipeSaved(false); // Reset
-
-        if (user && supabaseClient && recipe.recipe_data?.recipeName) {
-            try {
-                const { data, error, count } = await supabaseClient
-                    .from('saved_recipes')
-                    .select('id', { count: 'exact', head: true })
-                    .eq('user_id', user.id)
-                    .eq('recipe_name', recipe.recipe_data.recipeName);
-
-                if (error) {
-                    console.error("Error checking if community recipe is saved:", error);
-                    // Don't throw, just assume not saved or handle silently
-                    setIsCommunityRecipeSaved(false);
-                    return;
-                };
-                setIsCommunityRecipeSaved(count > 0);
-            } catch (err) {
-                console.error("Exception checking if community recipe is saved:", err);
-                setIsCommunityRecipeSaved(false);
-            }
+        if (recipe && recipe.id) {
+            router.push(`/community-recipe/${recipe.id}`);
+        } else {
+            console.error("Recipe ID is missing, cannot navigate.");
+            setError("Sorry, we couldn't open that recipe. Please try another one.");
         }
-    };
-
-    // Handler for saving a selected community recipe
-    const handleSaveSelectedCommunityRecipe = async () => {
-        if (!user) {
-            setShowCommunityRecipeModal(false); // Close community modal
-            setAuthMode('login'); // Set auth modal to login
-            setShowAuthModal(true); // Show main auth modal
-            return;
-        }
-        if (!selectedCommunityRecipe || !selectedCommunityRecipe.recipe_data || !supabaseClient) {
-            setSaveCommunityRecipeStatus('error');
-            setSaveCommunityRecipeMessage('Error: No recipe selected or data missing.');
-            return;
-        }
-
-        setSaveCommunityRecipeStatus('loading');
-        setSaveCommunityRecipeMessage('Saving...');
-
-        try {
-            const recipeToSave = selectedCommunityRecipe.recipe_data;
-            const { error } = await supabaseClient
-                .from('saved_recipes')
-                .insert({
-                    user_id: user.id,
-                    recipe_name: recipeToSave.recipeName || 'Untitled Community Recipe',
-                    recipe_data: recipeToSave,
-                    folder: 'Saved Recipes', // Default folder
-                    is_favorite: false,     // Default favorite status
-                });
-
-            if (error) throw error;
-
-            setSaveCommunityRecipeStatus('success');
-            setSaveCommunityRecipeMessage('Recipe saved to your collection!');
-            setIsCommunityRecipeSaved(true);
-
-            setTimeout(() => {
-                if (setSaveCommunityRecipeStatus) { // Check if component is still mounted
-                    setSaveCommunityRecipeStatus(null);
-                    setSaveCommunityRecipeMessage('');
-                }
-            }, 3000);
-
-        } catch (error) {
-            console.error('Error saving community recipe:', error);
-            setSaveCommunityRecipeStatus('error');
-            setSaveCommunityRecipeMessage(`Failed to save: ${error.message}`);
-        }
-    };
-
-    // New handler to open auth modal from community recipe modal
-    const handleCommunityRecipeAuthRequest = () => {
-        setShowCommunityRecipeModal(false); // Close the community recipe modal
-        setAuthMode('login'); // Default to login, or 'signup' if preferred
-        setShowAuthModal(true);     // Open the main auth modal
     };
 
     return (
@@ -1499,18 +1417,6 @@ IMPORTANT:
                     message={authMode === 'login' 
                         ? "Log in to save recipes and track your usage"
                         : "Create an account to save recipes and get 3 free generations daily"}
-                />
-
-                <CommunityRecipeModal
-                    isOpen={showCommunityRecipeModal}
-                    onClose={() => setShowCommunityRecipeModal(false)}
-                    recipe={selectedCommunityRecipe}
-                    onSave={handleSaveSelectedCommunityRecipe}
-                    isSaved={isCommunityRecipeSaved}
-                    userLoggedIn={!!user}
-                    saveStatus={saveCommunityRecipeStatus}
-                    saveMessage={saveCommunityRecipeMessage}
-                    onAuthRequest={handleCommunityRecipeAuthRequest}
                 />
         </div>
     );
