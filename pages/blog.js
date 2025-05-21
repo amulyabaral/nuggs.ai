@@ -68,7 +68,9 @@ export default function Blog({ posts }) {
       
       <header className="mainHeader">
         <div className="logoArea">
-          <h1 className="logoText"><span className="logoEmoji">🥦 </span> nuggs.ai</h1>
+          <h1 className="logoText">
+            <img src="/logo.png" alt="Nuggs.ai logo" className="headerLogoImage" /> nuggs.ai
+          </h1>
         </div>
         <nav>
           <Link href="/" className="navLink">

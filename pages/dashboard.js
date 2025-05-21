@@ -217,7 +217,9 @@ export default function Dashboard() {
         <header className="mainHeader">
           <Link href="/" className="logoLink">
             <div className="logoArea">
-              <h1 className="logoText"><span className="logoEmoji">🥦 </span> nuggs.ai</h1>
+              <h1 className="logoText">
+                <img src="/logo.png" alt="Nuggs.ai logo" className="headerLogoImage" /> nuggs.ai
+              </h1>
             </div>
           </Link>
           <nav>
@@ -239,7 +241,9 @@ export default function Dashboard() {
         <header className="mainHeader">
           <Link href="/" className="logoLink">
             <div className="logoArea">
-              <h1 className="logoText"><span className="logoEmoji">🥦 </span> nuggs.ai</h1>
+              <h1 className="logoText">
+                <img src="/logo.png" alt="Nuggs.ai logo" className="headerLogoImage" /> nuggs.ai
+              </h1>
             </div>
           </Link>
           <nav>
@@ -268,7 +272,9 @@ export default function Dashboard() {
       <header className="mainHeader">
         <Link href="/" className="logoLink">
           <div className="logoArea">
-            <h1 className="logoText"><span className="logoEmoji">🥦 </span> nuggs.ai</h1>
+            <h1 className="logoText">
+              <img src="/logo.png" alt="Nuggs.ai logo" className="headerLogoImage" /> nuggs.ai
+            </h1>
           </div>
         </Link>
         <nav>

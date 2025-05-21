@@ -150,6 +150,12 @@ img {
   text-transform: lowercase;
 }
 
+.headerLogoImage {
+  height: 28px; /* Adjust size as needed */
+  width: auto;
+  margin-right: 0.5rem; /* Space between image and text */
+}
+
 .logoText::after {
   content: none; /* Remove underline */
 }
@@ -1099,10 +1105,6 @@ img {
   
   .logoText {
     font-size: 1.2rem;
-  }
-  
-  .logoEmoji {
-    font-size: 0.9em;
   }
   
   .mainHeader nav {

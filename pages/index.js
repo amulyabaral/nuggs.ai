@@ -1005,20 +1005,20 @@ IMPORTANT:
             <Head>
                 <title>nuggs.ai - Healthy Recipes with AI</title>
                 <meta name="description" content="Discover tasty healthy recipes, find smart food substitutes, and get AI-powered nutrition advice with Nuggs.AI. Your free guide to healthier, delicious eating!" />
-                <link rel="icon" href="/broccoli-logo.svg" />
+                <link rel="icon" href="/favicon.ico" />
 
                 {/* SEO / Open Graph / Twitter Card Meta Tags */}
                 <meta property="og:title" content="nuggs.ai - Healthy Recipes with AI" />
                 <meta property="og:description" content="AI companion for smarter, healthier eating choices. Find substitutes, generate recipes, analyze meals, and get nutrition facts." />
                 <meta property="og:type" content="website" />
                 <meta property="og:url" content="https://nuggs.ai" />
-                <meta property="og:image" content="https://nuggs.ai/public/broccoli-logo.svg" />
-                <meta property="og:image:alt" content="nuggs.ai Broccoli Logo" />
+                <meta property="og:image" content="https://nuggs.ai/logo.png" />
+                <meta property="og:image:alt" content="nuggs.ai Logo" />
                 
                 <meta name="twitter:card" content="summary_large_image" />
                 <meta name="twitter:title" content="nuggs.ai - Delicious Healthy Recipes Powered by AI" />
                 <meta name="twitter:description" content="Your AI companion for smarter, healthier eating choices. Find substitutes, generate recipes, analyze meals, and get nutrition facts." />
-                <meta name="twitter:image" content="https://nuggs.ai/broccoli-logo.svg" />
+                <meta name="twitter:image" content="https://nuggs.ai/logo.png" />
 
                 <link rel="canonical" href="https://nuggs.ai" />
 
@@ -1047,7 +1047,9 @@ IMPORTANT:
             <header className="mainHeader">
                 <Link href="/" className="logoLink">
                     <div className="logoArea">
-                        <h1 className="logoText"><span className="logoEmoji">🥦 </span> nuggs.ai</h1>
+                        <h1 className="logoText">
+                          <img src="/logo.png" alt="Nuggs.ai logo" className="headerLogoImage" /> nuggs.ai
+                        </h1>
                     </div>
                 </Link>
                 <nav>
