@@ -2551,17 +2551,15 @@ img {
   flex: 1; /* Sidebar takes less space */
   min-width: 0; /* Prevents flex items from overflowing */
   padding: 1.5rem 1rem; /* Adjusted padding */
-  /* background-color: var(--background-main); /* Use main background color */ /* MODIFIED */
-  background: transparent; /* ADDED - Allows body gradient to show through */
+  background: transparent; /* Allows body gradient to show through */
   border-radius: 8px;
   max-height: calc(100vh - 100px); /* Adjust based on header height and desired spacing */
   overflow-y: auto;
   border-left: 1px solid var(--border-color); /* Optional: subtle separator */
   
-  /* Added for vertical centering of content */
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+  /* Changed for vertical centering of content using Grid */
+  display: grid;
+  place-content: center; /* Centers the content block if smaller than the container */
 }
 
 .communityRecipesSidebar h2 {
