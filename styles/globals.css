@@ -122,10 +122,10 @@ img {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.5rem 1.5rem; /* Reduced padding for thinner header */
-  width: calc(100% - 40px);
+  padding: 0.5rem 0.5rem; /* UPDATED: Was 0.5rem 1.5rem */
+  width: calc(100% - 1rem); /* UPDATED: Was calc(100% - 40px) */
   max-width: 1200px;
-  margin: 0.5rem auto; /* Reduced margin */
+  margin: 0.5rem auto; /* This centers it */
   background-color: var(--background-card);
   box-shadow: 0 2px 8px var(--shadow-color-medium);
   border-radius: 50px;
@@ -2557,9 +2557,9 @@ img {
   overflow-y: auto;
   border-left: 1px solid var(--border-color); /* Optional: subtle separator */
   
-  /* Changed for vertical centering of content using Grid */
-  display: grid;
-  place-content: center; /* Centers the content block if smaller than the container */
+  /* REMOVED: display: grid; */
+  /* REMOVED: place-content: center; */
+  /* Content will now flow naturally from the top */
 }
 
 .communityRecipesSidebar h2 {
