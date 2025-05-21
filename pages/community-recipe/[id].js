@@ -37,24 +37,9 @@ export async function getServerSideProps(ctx) {
       return { notFound: true };
     }
     
-    // Fetch profile of the user who originally saved/created this recipe (optional, for display)
-    let originalUserProfile = null;
-    if (recipe.user_id) {
-        const { data: profileData, error: profileError } = await supabaseAdmin
-            .from('profiles')
-            .select('email') // Or any other public info you want to show
-            .eq('id', recipe.user_id)
-            .single();
-        if (profileData && !profileError) {
-            originalUserProfile = profileData;
-        }
-    }
-
     return {
       props: {
         recipe,
-        originalUserEmail: originalUserProfile ? originalUserProfile.email : null,
-        // initialSession: session, // AuthProvider handles session
       },
     };
   } catch (e) {
@@ -63,7 +48,7 @@ export async function getServerSideProps(ctx) {
   }
 }
 
-export default function CommunityRecipePage({ recipe, originalUserEmail }) {
+export default function CommunityRecipePage({ recipe }) {
   const { user, supabaseClient, loading: authLoading } = useAuth();
   const router = useRouter();
 
@@ -207,11 +192,6 @@ export default function CommunityRecipePage({ recipe, originalUserEmail }) {
             <Link href="/#community" className="backLink" style={{ marginRight: '1rem' }}> 
               &larr; Back to Community Recipes
             </Link>
-             {originalUserEmail && (
-                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)'}}>
-                    Shared by: {originalUserEmail.split('@')[0]}...
-                </span>
-            )}
           </div>
           {!authLoading && (
             <div className="saveRecipeContainer" style={{ margin: '0.5rem 0 0' }}>
