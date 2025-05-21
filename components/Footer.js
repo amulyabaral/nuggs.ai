@@ -11,10 +11,9 @@ export default function Footer() {
           <Link href="/terms-of-service" className="footerLink">
             Terms of Service
           </Link>
-          {/* You can add more links here, e.g., Privacy Policy */}
-          {/* <Link href="/privacy-policy" className="footerLink">
+          <Link href="/privacy-policy" className="footerLink">
             Privacy Policy
-          </Link> */}
+          </Link>
         </nav>
       </div>
     </footer>
