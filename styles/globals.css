@@ -2549,20 +2549,39 @@ img {
 .communityRecipesSidebar {
   flex: 1; /* Sidebar takes less space */
   min-width: 0; /* Prevents flex items from overflowing */
-  padding: 1rem;
-  background-color: #f9f9f9; /* Light background for sidebar */
+  padding: 1.5rem 1rem; /* Adjusted padding */
+  background-color: var(--background-main); /* Use main background color */
   border-radius: 8px;
-  max-height: calc(100vh - 120px); /* Adjust based on header height */
+  max-height: calc(100vh - 100px); /* Adjust based on header height and desired spacing */
   overflow-y: auto;
+  border-left: 1px solid var(--border-color); /* Optional: subtle separator */
 }
 
 .communityRecipesSidebar h2 {
   margin-top: 0;
-  margin-bottom: 1rem;
-  font-size: 1.5rem;
+  margin-bottom: 0.5rem; /* Space before subtitle */
+  font-size: 1.6rem; /* Slightly larger title */
   color: var(--text-primary);
-  border-bottom: 2px solid var(--accent-primary-light);
-  padding-bottom: 0.5rem;
+  text-align: left; /* Align to left */
+  line-height: 1.3;
+}
+
+.communityRecipesSidebar h2 strong {
+  font-weight: 700;
+  background-color: var(--accent-primary);
+  color: white;
+  padding: 0.1rem 0.8rem;
+  border-radius: 30px;
+  display: inline-block;
+  box-shadow: 0 2px 6px rgba(255, 154, 139, 0.3);
+}
+
+.communitySidebarSubtitle {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem; /* Space after subtitle */
+  text-align: left;
+  line-height: 1.5;
 }
 
 .communityRecipeList {
@@ -2572,39 +2591,80 @@ img {
 }
 
 .communityRecipeCard {
-  background-color: #fff;
-  border-radius: 8px;
-  padding: 1rem;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  background-color: var(--background-card); /* White card background */
+  border-radius: 12px; /* Consistent rounding */
+  padding: 1rem; /* Adjusted padding */
+  box-shadow: 0 4px 12px var(--shadow-color-soft); /* Softer shadow */
+  border: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  gap: 0.8rem; /* Space between elements in the card */
+  transition: all 0.2s ease;
+}
+
+.communityRecipeCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px var(--shadow-color-medium);
 }
 
 .communityRecipeCard .recipeNameCard {
-  margin-bottom: 0.5rem; /* Space between title and button */
-  padding: 0.5rem; /* Smaller padding for cards in sidebar */
+  /* This class is now used directly inside communityRecipeCard */
+  /* Remove background, shadow, border from here as communityRecipeCard handles it */
+  background: transparent;
+  box-shadow: none;
+  border: none;
+  padding: 0; /* Remove padding, communityRecipeCard has it */
+  margin-bottom: 0; /* Remove margin, gap in communityRecipeCard handles it */
 }
-.communityRecipeCard .recipeNameCard .recipeTitlePill {
-  font-size: 1rem; /* Smaller title for sidebar cards */
-  margin-bottom: 0.25rem;
+
+.communityRecipeCard .recipeTitlePill {
+  font-size: 1.1rem; /* Slightly smaller title for sidebar */
+  margin-bottom: 0.4rem;
+  color: var(--accent-primary); /* Ensure title color */
+  text-shadow: none; /* Remove glow if too much for sidebar */
+}
+
+.communityRecipeCard .recipeNameCard p { /* For description */
+  font-size: 0.85rem; /* Smaller description */
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: 0.6rem;
+  /* Limit lines for description if needed */
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* Show 2 lines */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.communityRecipeCard .recipeMeta {
+  font-size: 0.75rem; /* Smaller meta */
+  padding-top: 0.5rem;
+  border-top: 1px dashed var(--border-color);
+  gap: 0.5rem 0.8rem; /* Adjust gap */
+}
+.communityRecipeCard .recipeMeta span strong {
+  font-weight: 500;
 }
 
 
 .communityRecipeCard .viewRecipeButton {
-  align-self: flex-end; /* Align button to the right */
-  padding: 0.5rem 1rem;
-  font-size: 0.9rem;
+  align-self: flex-start; /* Align button to the left, below content */
+  padding: 0.6rem 1rem; /* Adjusted padding */
+  font-size: 0.85rem; /* Adjusted font size */
   background-color: var(--accent-secondary);
-  color: white;
+  color: var(--button-text-dark); /* Darker text for lighter bg */
   border: none;
-  border-radius: 5px;
+  border-radius: 8px; /* Consistent rounding */
   cursor: pointer;
   transition: background-color 0.2s ease;
+  font-weight: 500;
+  margin-top: 0.5rem; /* Space above button */
 }
 
 .communityRecipeCard .viewRecipeButton:hover {
-  background-color: var(--accent-secondary-dark);
+  background-color: #FFCA8A; /* Slightly darker accent-secondary */
+  text-decoration: none;
 }
 
 /* Styles for save status messages in modals */
