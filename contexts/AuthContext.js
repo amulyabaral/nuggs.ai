@@ -106,6 +106,8 @@ export function AuthProvider({ children }) {
   
   async function signUp(email, password) {
     const { data, error } = await supabaseClient.auth.signUp({
+      email,
+      password,
     });
     if (error) {
       console.error("Sign up error:", error);
@@ -116,8 +118,17 @@ export function AuthProvider({ children }) {
   
   async function signOut() {
     try {
+      const { error } = await supabaseClient.auth.signOut();
+      if (error) {
+        console.error('Sign out error:', error);
+        return;
+      }
+      setProfile(null);
+      setIsPremium(false);
+      setUsageRemaining(0);
+      setProfileError(null);
     } catch (error) {
-      console.error('Sign out error:', error);
+      console.error('Unexpected error during sign out:', error);
     }
   }
   

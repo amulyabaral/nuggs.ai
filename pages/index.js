@@ -951,6 +951,8 @@ IMPORTANT:
                     user_id: user.id,
                     recipe_name: recipeData.recipeName || 'Untitled Recipe',
                     recipe_data: recipeData,
+                    folder: 'Saved Recipes', // Add default folder
+                    is_favorite: false,     // Default favorite status
                 });
                 
             if (error) throw error;

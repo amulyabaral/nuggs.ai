@@ -85,7 +85,8 @@ CREATE TABLE public.saved_recipes (
   created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
   recipe_name TEXT NOT NULL,
   recipe_data JSONB NOT NULL,
-  is_favorite BOOLEAN DEFAULT FALSE
+  is_favorite BOOLEAN DEFAULT FALSE,
+  folder TEXT DEFAULT 'Saved Recipes' NOT NULL -- Added folder column
 );
 
 -- Comments
@@ -93,6 +94,7 @@ COMMENT ON TABLE public.saved_recipes IS 'Stores recipes saved by users.';
 COMMENT ON COLUMN public.saved_recipes.user_id IS 'The user who saved the recipe.';
 COMMENT ON COLUMN public.saved_recipes.recipe_data IS 'The full JSON data of the recipe.';
 COMMENT ON COLUMN public.saved_recipes.is_favorite IS 'Whether the user has marked this recipe as a favorite.';
+COMMENT ON COLUMN public.saved_recipes.folder IS 'The folder or category the recipe belongs to (e.g., "Saved Recipes", "Favorites", "Weeknight Dinners").';
 
 -- Enable RLS
 ALTER TABLE public.saved_recipes ENABLE ROW LEVEL SECURITY;

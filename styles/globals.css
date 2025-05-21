@@ -2392,4 +2392,119 @@ img {
 
 .createAccountButton:hover {
   color: var(--accent-primary-hover);
+}
+
+/* Dashboard Folder and Recipe Card Action Styles */
+.recipeFolderSection {
+  margin-bottom: 2.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+.recipeFolderSection:last-child {
+  border-bottom: none;
+}
+
+.folderTitle {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+}
+
+.emptyFolderMessage {
+  color: var(--text-secondary);
+  font-style: italic;
+  padding: 1rem;
+  background-color: var(--background-card-subtle);
+  border-radius: 8px;
+  text-align: center;
+}
+
+.savedRecipeHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start; /* Align items to the top */
+  margin-bottom: 0.5rem; /* Reduced margin */
+}
+
+.recipeCardTitle { /* New class for recipe name in card */
+  font-size: 1.15rem; /* Slightly smaller */
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-right: 0.5rem; /* Space between title and actions */
+  flex-grow: 1; /* Allow title to take available space */
+}
+
+.recipeCardActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem; /* Spacing between icons */
+  flex-shrink: 0; /* Prevent actions from shrinking */
+}
+
+.iconButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.3rem;
+  font-size: 1.1rem; /* Adjust icon size */
+  color: var(--text-secondary);
+  transition: color 0.2s;
+}
+
+.iconButton:hover {
+  color: var(--accent-primary);
+}
+
+/* Move Recipe Modal Styles */
+.moveRecipeModal { /* Extends .authModal */
+  max-width: 480px; /* Or your preferred width */
+}
+
+.moveRecipeModal h4 {
+  font-size: 1.3rem;
+  margin-bottom: 1.5rem;
+  color: var(--text-primary);
+}
+
+.folderSelectDropdown,
+.newFolderInput {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  background-color: var(--background-card-subtle);
+  margin-bottom: 0.5rem; /* Space if they stack */
+}
+.folderSelectDropdown:focus,
+.newFolderInput:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px rgba(255, 154, 139, 0.2);
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.8rem;
+  margin-top: 1.5rem;
+}
+
+/* Ensure primary and secondary button styles from authButton are applied if not overridden */
+.moveRecipeModal .primaryButton {
+  background-color: var(--accent-primary);
+  color: var(--button-text-light);
+}
+.moveRecipeModal .primaryButton:hover {
+  background-color: var(--accent-primary-hover);
+}
+
+.moveRecipeModal .secondaryButton {
+  background-color: var(--background-card-subtle);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+.moveRecipeModal .secondaryButton:hover {
+  border-color: var(--text-secondary);
 } 

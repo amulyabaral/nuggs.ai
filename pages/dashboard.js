@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '../contexts/AuthContext';
+import { FaHeart, FaRegHeart, FaTrash, FaEdit } from 'react-icons/fa';
 
 export default function Dashboard() {
   const { user, profile, signOut, loading: authLoading, usageRemaining, isPremium, refreshUserProfile, supabaseClient, profileError } = useAuth();
@@ -10,6 +11,15 @@ export default function Dashboard() {
   const [loadingRecipes, setLoadingRecipes] = useState(false);
   const [errorRecipes, setErrorRecipes] = useState('');
   const router = useRouter();
+
+  // State for folder management
+  const [uniqueFolders, setUniqueFolders] = useState(['Favorites', 'Saved Recipes']);
+
+  // State for move recipe modal
+  const [showMoveModal, setShowMoveModal] = useState(false);
+  const [recipeToMove, setRecipeToMove] = useState(null); // Store the whole recipe object
+  const [selectedDestinationFolder, setSelectedDestinationFolder] = useState(''); // For dropdown
+  const [customDestinationFolder, setCustomDestinationFolder] = useState(''); // For new folder input
 
   // Simple effect to check authentication and redirect if needed
   useEffect(() => {
@@ -67,6 +77,138 @@ export default function Dashboard() {
       fetchRecipes();
     }
   }, [user, supabaseClient]);
+  
+  // Effect to derive unique folders from savedRecipes
+  useEffect(() => {
+    if (savedRecipes.length > 0) {
+      const allFolders = savedRecipes.map(r => r.folder).filter(Boolean); // Filter out null/undefined folders
+
+      let distinctFoldersSet = new Set(['Favorites', 'Saved Recipes', ...allFolders]);
+      let distinctFoldersArray = Array.from(distinctFoldersSet);
+      
+      // Sort: Favorites first, then Saved Recipes, then alphabetically
+      distinctFoldersArray.sort((a, b) => {
+        if (a === 'Favorites') return -1;
+        if (b === 'Favorites') return 1;
+        if (a === 'Saved Recipes') return -1;
+        if (b === 'Saved Recipes') return 1;
+        return a.localeCompare(b);
+      });
+      
+      setUniqueFolders(distinctFoldersArray);
+    } else {
+      setUniqueFolders(['Favorites', 'Saved Recipes']);
+    }
+  }, [savedRecipes]);
+
+  const handleToggleFavorite = async (recipe) => {
+    if (!user || !supabaseClient) return;
+
+    const newIsFavorite = !recipe.is_favorite;
+    const newFolder = newIsFavorite
+      ? 'Favorites'
+      : recipe.folder === 'Favorites' 
+      ? 'Saved Recipes' // Default to 'Saved Recipes' if unfavorited from 'Favorites'
+      : recipe.folder;
+
+    try {
+      const { data: updatedRecipe, error } = await supabaseClient
+        .from('saved_recipes')
+        .update({ is_favorite: newIsFavorite, folder: newFolder })
+        .eq('id', recipe.id)
+        .eq('user_id', user.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setSavedRecipes(prevRecipes =>
+        prevRecipes.map(r => (r.id === recipe.id ? updatedRecipe : r))
+      );
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+      setErrorRecipes('Could not update favorite status.');
+    }
+  };
+
+  const handleDeleteRecipe = async (recipeId) => {
+    if (!user || !supabaseClient) return;
+
+    if (!window.confirm('Are you sure you want to delete this recipe?')) {
+      return;
+    }
+
+    try {
+      const { error } = await supabaseClient
+        .from('saved_recipes')
+        .delete()
+        .eq('id', recipeId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      setSavedRecipes(prevRecipes => prevRecipes.filter(r => r.id !== recipeId));
+    } catch (error) {
+      console.error('Error deleting recipe:', error);
+      setErrorRecipes('Could not delete recipe.');
+    }
+  };
+
+  const openMoveModal = (recipe) => {
+    setRecipeToMove(recipe);
+    setSelectedDestinationFolder(recipe.folder || 'Saved Recipes'); // Default to current or 'Saved Recipes'
+    setCustomDestinationFolder('');
+    setShowMoveModal(true);
+  };
+
+  const handleConfirmMove = async () => {
+    if (!recipeToMove || !supabaseClient || !user) return;
+
+    const destinationFolder = customDestinationFolder.trim() || selectedDestinationFolder;
+
+    if (!destinationFolder) {
+      alert("Please select or enter a folder name.");
+      return;
+    }
+    
+    if (destinationFolder === recipeToMove.folder) {
+      setShowMoveModal(false); // No change needed
+      return;
+    }
+
+    // If moving to 'Favorites', is_favorite becomes true.
+    // If moving out of 'Favorites', is_favorite becomes false.
+    // Otherwise, is_favorite status remains unchanged unless explicitly set by favoriting action.
+    let newIsFavorite = recipeToMove.is_favorite;
+    if (destinationFolder === 'Favorites') {
+      newIsFavorite = true;
+    } else if (recipeToMove.folder === 'Favorites' && destinationFolder !== 'Favorites') {
+      newIsFavorite = false;
+    }
+
+    try {
+      const { data: updatedRecipe, error } = await supabaseClient
+        .from('saved_recipes')
+        .update({ folder: destinationFolder, is_favorite: newIsFavorite })
+        .eq('id', recipeToMove.id)
+        .eq('user_id', user.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setSavedRecipes(prevRecipes =>
+        prevRecipes.map(r => (r.id === recipeToMove.id ? updatedRecipe : r))
+      );
+      setShowMoveModal(false);
+      setRecipeToMove(null);
+      setCustomDestinationFolder('');
+      setSelectedDestinationFolder('');
+    } catch (error) {
+      console.error('Error moving recipe:', error);
+      setErrorRecipes(`Could not move recipe: ${error.message}`);
+    }
+  };
   
   // Simple loading state
   if (authLoading) {
@@ -156,22 +298,64 @@ export default function Dashboard() {
               </Link>
             </div>
           ) : (
-            <div className="savedRecipesGrid">
-              {savedRecipes.map(recipe => (
-                <div key={recipe.id} className="savedRecipeCard">
-                  <h3>{recipe.recipe_name}</h3>
-                  <div className="savedRecipeDate">
-                    Saved on {new Date(recipe.created_at).toLocaleDateString()}
-                  </div>
-                  <Link 
-                    href={`/recipe/${recipe.id}`} 
-                    className="viewRecipeButton"
-                  >
-                    View Recipe
-                  </Link>
+            uniqueFolders.map(folderName => {
+              const recipesInFolder = savedRecipes.filter(r => r.folder === folderName);
+              // Optionally, only render folder if it has recipes or if it's a default one
+              // if (recipesInFolder.length === 0 && folderName !== 'Favorites' && folderName !== 'Saved Recipes') {
+              //   return null; 
+              // }
+
+              return (
+                <div key={folderName} className="recipeFolderSection">
+                  <h3 className="folderTitle">{folderName} ({recipesInFolder.length})</h3>
+                  {recipesInFolder.length === 0 ? (
+                    <p className="emptyFolderMessage">This folder is empty.</p>
+                  ) : (
+                    <div className="savedRecipesGrid">
+                      {recipesInFolder.map(recipe => (
+                        <div key={recipe.id} className="savedRecipeCard">
+                          <div className="savedRecipeHeader">
+                            <h4 className="recipeCardTitle">{recipe.recipe_name}</h4>
+                            <div className="recipeCardActions">
+                              <button 
+                                onClick={() => handleToggleFavorite(recipe)} 
+                                title={recipe.is_favorite ? "Unfavorite" : "Favorite"} 
+                                className="iconButton"
+                              >
+                                {recipe.is_favorite ? <FaHeart style={{ color: 'var(--accent-primary)' }} /> : <FaRegHeart />}
+                              </button>
+                              <button 
+                                onClick={() => openMoveModal(recipe)} 
+                                title="Move to folder" 
+                                className="iconButton"
+                              >
+                                <FaEdit />
+                              </button>
+                              <button 
+                                onClick={() => handleDeleteRecipe(recipe.id)} 
+                                title="Delete recipe" 
+                                className="iconButton"
+                              >
+                                <FaTrash />
+                              </button>
+                            </div>
+                          </div>
+                          <div className="savedRecipeDate">
+                            Saved on {new Date(recipe.created_at).toLocaleDateString()}
+                          </div>
+                          <Link 
+                            href={`/recipe/${recipe.id}`} 
+                            className="viewRecipeButton"
+                          >
+                            View Recipe
+                          </Link>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              ))}
-            </div>
+              );
+            })
           )}
         </section>
         
@@ -199,6 +383,51 @@ export default function Dashboard() {
           <button onClick={signOut} className="signOutButton">Sign Out</button>
         </div>
       </main>
+
+      {/* Modal for Moving Recipe */}
+      {showMoveModal && recipeToMove && (
+        <div className="modalOverlay">
+          <div className="authModal moveRecipeModal"> {/* Reusing authModal style for base */}
+            <button className="modalCloseButton" onClick={() => setShowMoveModal(false)}>×</button>
+            <h4>Move "{recipeToMove.recipe_name}"</h4>
+            <div className="formGroup">
+              <label htmlFor="folderSelect">Select Folder:</label>
+              <select
+                id="folderSelect"
+                className="folderSelectDropdown"
+                value={selectedDestinationFolder}
+                onChange={(e) => {
+                  setSelectedDestinationFolder(e.target.value);
+                  if (customDestinationFolder) setCustomDestinationFolder(''); // Clear custom if selecting from dropdown
+                }}
+              >
+                {uniqueFolders.map(f => (
+                  <option key={f} value={f}>{f}</option>
+                ))}
+              </select>
+            </div>
+            <div className="formGroup">
+              <label htmlFor="newFolderInput">Or Create New Folder:</label>
+              <input
+                type="text"
+                id="newFolderInput"
+                className="newFolderInput"
+                placeholder="Type new folder name"
+                value={customDestinationFolder}
+                onChange={(e) => {
+                  setCustomDestinationFolder(e.target.value);
+                  if (e.target.value.trim()) setSelectedDestinationFolder(''); // Clear selection if typing new
+                }}
+              />
+            </div>
+            <div className="modalActions">
+              <button onClick={handleConfirmMove} className="authButton primaryButton">Confirm Move</button>
+              <button onClick={() => setShowMoveModal(false)} className="authButton secondaryButton">Cancel</button>
+            </div>
+            {errorRecipes && <p className="errorMessage" style={{marginTop: '1rem'}}>{errorRecipes}</p>}
+          </div>
+        </div>
+      )}
     </div>
   );
 } 
