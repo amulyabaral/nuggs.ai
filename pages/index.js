@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useAuth } from '../contexts/AuthContext';
 import AuthModal from '../components/AuthModal';
+import CommunityRecipeModal from '../components/CommunityRecipeModal'; // New Import
 
 const AMAZON_AFFILIATE_TAG = 'nuggs00-20';
 
@@ -134,6 +135,16 @@ export default function HomePage() {
     const [saveStatus, setSaveStatus] = useState(null); // 'success', 'error', or null
     const [saveMessage, setSaveMessage] = useState('');
 
+    // New state for community recipes
+    const [communityRecipes, setCommunityRecipes] = useState([]);
+    const [loadingCommunityRecipes, setLoadingCommunityRecipes] = useState(true);
+    const [errorCommunityRecipes, setErrorCommunityRecipes] = useState('');
+    const [selectedCommunityRecipe, setSelectedCommunityRecipe] = useState(null);
+    const [showCommunityRecipeModal, setShowCommunityRecipeModal] = useState(false);
+    const [isCommunityRecipeSaved, setIsCommunityRecipeSaved] = useState(false);
+    const [saveCommunityRecipeStatus, setSaveCommunityRecipeStatus] = useState(null);
+    const [saveCommunityRecipeMessage, setSaveCommunityRecipeMessage] = useState('');
+
     // Fetch anonymous usage info
     useEffect(() => {
         // This useEffect is now simplified as we are not fetching anonymous usage on page load.
@@ -148,6 +159,29 @@ export default function HomePage() {
             });
         }
     }, [authLoading, user]);
+
+    // Fetch community recipes on mount
+    useEffect(() => {
+        const fetchCommunityRecipes = async () => {
+            setLoadingCommunityRecipes(true);
+            setErrorCommunityRecipes('');
+            try {
+                const response = await fetch('/api/community-recipes');
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `Failed to fetch community recipes: ${response.statusText}`);
+                }
+                const data = await response.json();
+                setCommunityRecipes(data);
+            } catch (err) {
+                console.error("Error fetching community recipes:", err);
+                setErrorCommunityRecipes(err.message || 'Could not load community recipes.');
+            } finally {
+                setLoadingCommunityRecipes(false);
+            }
+        };
+        fetchCommunityRecipes();
+    }, []);
 
     // Effect to update activeTool when selectedToolId changes
     useEffect(() => {
@@ -1000,6 +1034,85 @@ IMPORTANT:
         }
     };
 
+    // Handler for viewing a community recipe
+    const handleViewCommunityRecipe = async (recipe) => {
+        setSelectedCommunityRecipe(recipe);
+        setShowCommunityRecipeModal(true);
+        setSaveCommunityRecipeStatus(null);
+        setSaveCommunityRecipeMessage('');
+        setIsCommunityRecipeSaved(false); // Reset
+
+        if (user && supabaseClient && recipe.recipe_data?.recipeName) {
+            try {
+                const { data, error, count } = await supabaseClient
+                    .from('saved_recipes')
+                    .select('id', { count: 'exact', head: true })
+                    .eq('user_id', user.id)
+                    .eq('recipe_name', recipe.recipe_data.recipeName);
+
+                if (error) {
+                    console.error("Error checking if community recipe is saved:", error);
+                    // Don't throw, just assume not saved or handle silently
+                    setIsCommunityRecipeSaved(false);
+                    return;
+                };
+                setIsCommunityRecipeSaved(count > 0);
+            } catch (err) {
+                console.error("Exception checking if community recipe is saved:", err);
+                setIsCommunityRecipeSaved(false);
+            }
+        }
+    };
+
+    // Handler for saving a selected community recipe
+    const handleSaveSelectedCommunityRecipe = async () => {
+        if (!user) {
+            setAuthMode('login');
+            setShowAuthModal(true);
+            setShowCommunityRecipeModal(false); // Close recipe modal to show login
+            return;
+        }
+        if (!selectedCommunityRecipe || !selectedCommunityRecipe.recipe_data || !supabaseClient) {
+            setSaveCommunityRecipeStatus('error');
+            setSaveCommunityRecipeMessage('Error: No recipe selected or data missing.');
+            return;
+        }
+
+        setSaveCommunityRecipeStatus('loading');
+        setSaveCommunityRecipeMessage('Saving...');
+
+        try {
+            const recipeToSave = selectedCommunityRecipe.recipe_data;
+            const { error } = await supabaseClient
+                .from('saved_recipes')
+                .insert({
+                    user_id: user.id,
+                    recipe_name: recipeToSave.recipeName || 'Untitled Community Recipe',
+                    recipe_data: recipeToSave,
+                    folder: 'Saved Recipes', // Default folder
+                    is_favorite: false,     // Default favorite status
+                });
+
+            if (error) throw error;
+
+            setSaveCommunityRecipeStatus('success');
+            setSaveCommunityRecipeMessage('Recipe saved to your collection!');
+            setIsCommunityRecipeSaved(true);
+
+            setTimeout(() => {
+                if (setSaveCommunityRecipeStatus) { // Check if component is still mounted
+                    setSaveCommunityRecipeStatus(null);
+                    setSaveCommunityRecipeMessage('');
+                }
+            }, 3000);
+
+        } catch (error) {
+            console.error('Error saving community recipe:', error);
+            setSaveCommunityRecipeStatus('error');
+            setSaveCommunityRecipeMessage(`Failed to save: ${error.message}`);
+        }
+    };
+
     return (
         <div className="pageContainer">
             <Head>
@@ -1077,260 +1190,305 @@ IMPORTANT:
                 </nav>
             </header>
             
-            {/* Replace the separate food showcase with an integrated hero section */}
-            <section className="enhancedHeroSection">
-                <div className="heroContent">
-                    <h2 className="heroTitle">Delicious <strong>Healthy</strong> Recipes</h2>
-                    <p className="heroSubtitle">
-                        Craving something delicious and nutritious? Tell us what you want or what you have in your fridge,  
-                        and we&apos;ll whip up a custom recipe, just for you. Powered by AI.
-                    </p>
-                    
-                    {/* This form is always for recipeGenerator now */}
-                    <div className="pillSearchContainer">
-                        <form onSubmit={handleSubmit} className="pillSearchForm">
-                            <div className="pillSearchBar">
-                                <input
-                                    type="text"
-                                    value={inputValue}
-                                    onChange={(e) => setInputValue(e.target.value)}
-                                    placeholder="E.g., 'Pasta without gluten' or 'High-protein breakfast bowl'"
-                                    className="pillSearchInput"
-                                    disabled={isLoading || isRandomLoading}
-                                />
-                                <button
-                                    type="submit"
-                                    className="searchSubmitButton"
-                                    disabled={isLoading || isRandomLoading || !inputValue}
-                                    title="Generate recipe based on your input"
-                                >
-                                    🔍
-                                </button>
-                            </div>
+            <div className="homePageLayout"> {/* New wrapper for main content and sidebar */}
+                <main className="mainContentArea">
+                    <section className="enhancedHeroSection">
+                        <div className="heroContent">
+                            <h2 className="heroTitle">Delicious <strong>Healthy</strong> Recipes</h2>
+                            <p className="heroSubtitle">
+                                Craving something delicious and nutritious? Tell us what you want or what you have in your fridge,  
+                                and we&apos;ll whip up a custom recipe, just for you. Powered by AI.
+                            </p>
                             
-                            {/* Recipe options in a more vertical layout */}
-                            <div className="recipeOptionsCompact">
-                                <div className="optionsSection">
-                                    <h4>Difficulty:</h4>
-                                    <div className="optionButtons">
-                                        {activeTool.difficultyOptions.map(opt => (
-                                            <button
-                                                type="button"
-                                                key={opt.value}
-                                                className={`optionPill ${selectedDifficulty === opt.value ? "optionPillSelected" : ''}`}
-                                                onClick={() => setSelectedDifficulty(opt.value)}
-                                                disabled={isLoading}
-                                            >
-                                                <span className="optionEmoji">{opt.emoji}</span> {opt.label}
-                                            </button>
-                                        ))}
+                            {/* This form is always for recipeGenerator now */}
+                            <div className="pillSearchContainer">
+                                <form onSubmit={handleSubmit} className="pillSearchForm">
+                                    <div className="pillSearchBar">
+                                        <input
+                                            type="text"
+                                            value={inputValue}
+                                            onChange={(e) => setInputValue(e.target.value)}
+                                            placeholder="E.g., 'Pasta without gluten' or 'High-protein breakfast bowl'"
+                                            className="pillSearchInput"
+                                            disabled={isLoading || isRandomLoading}
+                                        />
+                                        <button
+                                            type="submit"
+                                            className="searchSubmitButton"
+                                            disabled={isLoading || isRandomLoading || !inputValue}
+                                            title="Generate recipe based on your input"
+                                        >
+                                            🔍
+                                        </button>
                                     </div>
-                                </div>
-                                
-                                <div className="optionsSection">
-                                    <h4>Cook Time:</h4>
-                                    <div className="optionButtons">
-                                        {activeTool.cookTimeOptions.map(opt => (
-                                            <button
-                                                type="button"
-                                                key={opt.value}
-                                                className={`optionPill ${selectedCookTime === opt.value ? "optionPillSelected" : ''}`}
-                                                onClick={() => setSelectedCookTime(opt.value)}
-                                                disabled={isLoading}
-                                            >
-                                                <span className="optionEmoji">{opt.emoji}</span> {opt.label}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                                
-                                <div className="optionsSection">
-                                    <h4>Equipment:</h4>
-                                    <div className="optionButtons">
-                                        {activeTool.equipmentOptions.map(opt => (
-                                            <button
-                                                type="button"
-                                                key={opt.value}
-                                                className={`optionPill ${selectedEquipment[opt.value] ? "optionPillSelected" : ''}`}
-                                                onClick={() => handleEquipmentToggle(opt.value)}
-                                                disabled={isLoading}
-                                            >
-                                                <span className="optionEmoji">{opt.emoji}</span> {opt.label}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                                
-                                {/* New section for exclusions */}
-                                <div className="optionsSection">
-                                    <h4>Exclude Ingredients:</h4>
-                                    <div className="optionButtons">
-                                        {commonExclusions.map(exclusion => (
-                                            <button
-                                                type="button"
-                                                key={exclusion.id}
-                                                className={`optionPill ${selectedExclusions[exclusion.id] ? "optionPillExcluded" : ''}`}
-                                                onClick={() => handleExclusionToggle(exclusion.id)}
-                                                disabled={isLoading}
-                                            >
-                                                <span className="optionEmoji">{exclusion.emoji}</span>
-                                                <span className={selectedExclusions[exclusion.id] ? "excludedText" : ""}>
-                                                    {exclusion.label}
-                                                </span>
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
+                                    
+                                    {/* Recipe options in a more vertical layout */}
+                                    <div className="recipeOptionsCompact">
+                                        <div className="optionsSection">
+                                            <h4>Difficulty:</h4>
+                                            <div className="optionButtons">
+                                                {activeTool.difficultyOptions.map(opt => (
+                                                    <button
+                                                        type="button"
+                                                        key={opt.value}
+                                                        className={`optionPill ${selectedDifficulty === opt.value ? "optionPillSelected" : ''}`}
+                                                        onClick={() => setSelectedDifficulty(opt.value)}
+                                                        disabled={isLoading}
+                                                    >
+                                                        <span className="optionEmoji">{opt.emoji}</span> {opt.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="optionsSection">
+                                            <h4>Cook Time:</h4>
+                                            <div className="optionButtons">
+                                                {activeTool.cookTimeOptions.map(opt => (
+                                                    <button
+                                                        type="button"
+                                                        key={opt.value}
+                                                        className={`optionPill ${selectedCookTime === opt.value ? "optionPillSelected" : ''}`}
+                                                        onClick={() => setSelectedCookTime(opt.value)}
+                                                        disabled={isLoading}
+                                                    >
+                                                        <span className="optionEmoji">{opt.emoji}</span> {opt.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="optionsSection">
+                                            <h4>Equipment:</h4>
+                                            <div className="optionButtons">
+                                                {activeTool.equipmentOptions.map(opt => (
+                                                    <button
+                                                        type="button"
+                                                        key={opt.value}
+                                                        className={`optionPill ${selectedEquipment[opt.value] ? "optionPillSelected" : ''}`}
+                                                        onClick={() => handleEquipmentToggle(opt.value)}
+                                                        disabled={isLoading}
+                                                    >
+                                                        <span className="optionEmoji">{opt.emoji}</span> {opt.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        
+                                        {/* New section for exclusions */}
+                                        <div className="optionsSection">
+                                            <h4>Exclude Ingredients:</h4>
+                                            <div className="optionButtons">
+                                                {commonExclusions.map(exclusion => (
+                                                    <button
+                                                        type="button"
+                                                        key={exclusion.id}
+                                                        className={`optionPill ${selectedExclusions[exclusion.id] ? "optionPillExcluded" : ''}`}
+                                                        onClick={() => handleExclusionToggle(exclusion.id)}
+                                                        disabled={isLoading}
+                                                    >
+                                                        <span className="optionEmoji">{exclusion.emoji}</span>
+                                                        <span className={selectedExclusions[exclusion.id] ? "excludedText" : ""}>
+                                                            {exclusion.label}
+                                                        </span>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
 
-                                {/* New section for dietary preferences */}
-                                <div className="optionsSection">
-                                    <h4>Dietary Preferences:</h4>
-                                    <div className="optionButtons">
-                                        {dietaryPreferences.map(preference => (
-                                            <button
-                                                type="button"
-                                                key={preference.id}
-                                                className={`optionPill ${selectedPreferences[preference.id] ? "optionPillSelected" : ''}`}
-                                                onClick={() => handlePreferenceToggle(preference.id)}
-                                                disabled={isLoading}
-                                            >
-                                                <span className="optionEmoji">{preference.emoji}</span>
-                                                {preference.label}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
+                                        {/* New section for dietary preferences */}
+                                        <div className="optionsSection">
+                                            <h4>Dietary Preferences:</h4>
+                                            <div className="optionButtons">
+                                                {dietaryPreferences.map(preference => (
+                                                    <button
+                                                        type="button"
+                                                        key={preference.id}
+                                                        className={`optionPill ${selectedPreferences[preference.id] ? "optionPillSelected" : ''}`}
+                                                        onClick={() => handlePreferenceToggle(preference.id)}
+                                                        disabled={isLoading}
+                                                    >
+                                                        <span className="optionEmoji">{preference.emoji}</span>
+                                                        {preference.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
 
-                                <div className="optionsSection">
-                                    <h4>Serving Size:</h4>
-                                    <div className="optionButtons">
-                                        {activeTool.servingSizeOptions.map(opt => (
-                                            <button
-                                                type="button"
-                                                key={opt.value}
-                                                className={`optionPill ${selectedServingSize === opt.value ? "optionPillSelected" : ''}`}
-                                                onClick={() => setSelectedServingSize(opt.value)}
-                                                disabled={isLoading}
-                                            >
-                                                <span className="optionEmoji">{opt.emoji}</span> {opt.label}
-                                            </button>
-                                        ))}
+                                        <div className="optionsSection">
+                                            <h4>Serving Size:</h4>
+                                            <div className="optionButtons">
+                                                {activeTool.servingSizeOptions.map(opt => (
+                                                    <button
+                                                        type="button"
+                                                        key={opt.value}
+                                                        className={`optionPill ${selectedServingSize === opt.value ? "optionPillSelected" : ''}`}
+                                                        onClick={() => setSelectedServingSize(opt.value)}
+                                                        disabled={isLoading}
+                                                    >
+                                                        <span className="optionEmoji">{opt.emoji}</span> {opt.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
+                                    
+                                    <div className="heroActionButtons">
+                                        <button
+                                            type="submit"
+                                            className="pillSearchButton"
+                                            disabled={isLoading || isRandomLoading || !inputValue}
+                                        >
+                                            {isLoading ? 'Building your recipe...' : '✨ Create Healthy Recipe'}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="pillSearchButton randomRecipeButton"
+                                            onClick={handleRandomRecipeSubmit}
+                                            disabled={isLoading || isRandomLoading}
+                                        >
+                                            {isRandomLoading ? 'Building your recipe...' : '🎲 Surprise Me!'}
+                                        </button>
+                                    </div>
+                                </form>
                             </div>
-                            
-                            <div className="heroActionButtons">
-                                <button
-                                    type="submit"
-                                    className="pillSearchButton"
-                                    disabled={isLoading || isRandomLoading || !inputValue}
-                                >
-                                    {isLoading ? 'Building your recipe...' : '✨ Create Healthy Recipe'}
-                                </button>
-                                <button
-                                    type="button"
-                                    className="pillSearchButton randomRecipeButton"
-                                    onClick={handleRandomRecipeSubmit}
-                                    disabled={isLoading || isRandomLoading}
-                                >
-                                    {isRandomLoading ? 'Building your recipe...' : '🎲 Surprise Me!'}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-                
-                {/* Removed heroImageLayout and Image components as per instruction */}
-            </section>
-            
-            {/* Only show the tool container section if showToolContainer is true */}
-            {activeTool && showToolContainer && (
-                <section className={`toolDisplaySection ${resultsShown ? 'resultsActive' : ''}`}>
-                    <div className="toolContainer">
-                        {(isLoading || isRandomLoading) && (
-                            <div className="loadingSpinner" ref={loadingRef}>
-                                <p className="loadingText">Building your healthy recipe{loadingDots}</p>
-                            </div>
-                        )}
-                        {error && <p className="errorMessage">{error}</p>}
+                        </div>
                         
-                        {results && (
-                            <div className="resultsContainer">
-                                {renderRecipeResults(results)}
-                            </div>
-                        )}
-                    </div>
-                </section>
-            )}
-
-            {results && (
-                <div className="saveRecipeContainer">
-                    <button onClick={handleSaveRecipe} className="saveRecipeButton">
-                        Save Recipe
-                    </button>
+                        {/* Removed heroImageLayout and Image components as per instruction */}
+                    </section>
                     
-                    {saveStatus && (
-                        <div className={`saveStatusMessage ${saveStatus === 'success' ? 'saveSuccess' : 'saveError'}`}>
-                            {saveMessage}
+                    {/* Only show the tool container section if showToolContainer is true */}
+                    {activeTool && showToolContainer && (
+                        <section className={`toolDisplaySection ${resultsShown ? 'resultsActive' : ''}`}>
+                            <div className="toolContainer">
+                                {(isLoading || isRandomLoading) && (
+                                    <div className="loadingSpinner" ref={loadingRef}>
+                                        <p className="loadingText">Building your healthy recipe{loadingDots}</p>
+                                    </div>
+                                )}
+                                {error && <p className="errorMessage">{error}</p>}
+                                
+                                {results && (
+                                    <div className="resultsContainer">
+                                        {renderRecipeResults(results)}
+                                    </div>
+                                )}
+                            </div>
+                        </section>
+                    )}
+
+                    {results && (
+                        <div className="saveRecipeContainer">
+                            <button onClick={handleSaveRecipe} className="saveRecipeButton">
+                                Save Recipe
+                            </button>
+                            
+                            {saveStatus && (
+                                <div className={`saveStatusMessage ${saveStatus === 'success' ? 'saveSuccess' : 'saveError'}`}>
+                                    {saveMessage}
+                                </div>
+                            )}
                         </div>
                     )}
-                </div>
-            )}
 
-            {/* Display for logged-in, non-premium users showing remaining tries */}
-            {!authLoading && user && !isPremium && typeof usageRemaining === 'number' && usageRemaining >= 0 && (
-                <div className="usageRemainingTodayInfo">
-                    <p>You have {usageRemaining} recipe generation{usageRemaining === 1 ? '' : 's'} left today.</p>
-                </div>
-            )}
+                    {/* Display for logged-in, non-premium users showing remaining tries */}
+                    {!authLoading && user && !isPremium && typeof usageRemaining === 'number' && usageRemaining >= 0 && (
+                        <div className="usageRemainingTodayInfo">
+                            <p>You have {usageRemaining} recipe generation{usageRemaining === 1 ? '' : 's'} left today.</p>
+                        </div>
+                    )}
 
-            {/* Display for anonymous users showing remaining tries */}
-            {!authLoading && !user && !anonymousUserTries.loading && typeof anonymousUserTries.remaining === 'number' && (
-                 <div className="usageRemainingTodayInfo">
-                    <p>You have {anonymousUserTries.remaining} recipe generation{anonymousUserTries.remaining === 1 ? '' : 's'} left today.</p>
-                </div>
-            )}
+                    {/* Display for anonymous users showing remaining tries */}
+                    {!authLoading && !user && !anonymousUserTries.loading && typeof anonymousUserTries.remaining === 'number' && (
+                         <div className="usageRemainingTodayInfo">
+                            <p>You have {anonymousUserTries.remaining} recipe generation{anonymousUserTries.remaining === 1 ? '' : 's'} left today.</p>
+                        </div>
+                    )}
 
-            {usageLimitReached && user && ( // This shows when a logged-in user HITS their limit
-                <div className="usageLimitAlert">
-                    <p>You've reached your daily limit of {isPremium ? 'unlimited' : (process.env.NEXT_PUBLIC_FREE_TRIES || 5)} recipe generations.</p>
-                    <Link href="/pricing" className="upgradeToPremiumButton">
-                        Upgrade to Premium
-                    </Link>
-                </div>
-            )}
+                    {usageLimitReached && user && ( // This shows when a logged-in user HITS their limit
+                        <div className="usageLimitAlert">
+                            <p>You've reached your daily limit of {isPremium ? 'unlimited' : (process.env.NEXT_PUBLIC_FREE_TRIES || 5)} recipe generations.</p>
+                            <Link href="/pricing" className="upgradeToPremiumButton">
+                                Upgrade to Premium
+                            </Link>
+                        </div>
+                    )}
 
-            {!user && !authLoading && ( // General CTA for anonymous users
-                <div className="anonymousUsageNote">
-                    <p>
-                        {/* Removed: <strong>Anonymous users:</strong> You can generate up to {process.env.NEXT_PUBLIC_ANONYMOUS_TRIES || 3} recipes per day. */}
-                        <button
-                            onClick={() => {
-                                setAuthMode('signup');
-                                setShowAuthModal(true);
-                            }}
-                            className="createAccountButton"
-                        >
-                            Create a free account
-                        </button>
-                        &nbsp;to generate up to {process.env.NEXT_PUBLIC_FREE_TRIES || 5} recipes and save them for later.
-                        <br />
-                        For just $2 a month, you can also get premium to get unlimited recipes and saves.&nbsp;
-                        <Link href="/pricing" className="learnMoreLink">
-                            Learn more
-                        </Link>.
-                    </p>
-                </div>
-            )}
+                    {!user && !authLoading && ( // General CTA for anonymous users
+                        <div className="anonymousUsageNote">
+                            <p>
+                                {/* Removed: <strong>Anonymous users:</strong> You can generate up to {process.env.NEXT_PUBLIC_ANONYMOUS_TRIES || 3} recipes per day. */}
+                                <button
+                                    onClick={() => {
+                                        setAuthMode('signup');
+                                        setShowAuthModal(true);
+                                    }}
+                                    className="createAccountButton"
+                                >
+                                    Create a free account
+                                </button>
+                                &nbsp;to generate up to {process.env.NEXT_PUBLIC_FREE_TRIES || 5} recipes and save them for later.
+                                <br />
+                                For just $2 a month, you can also get premium to get unlimited recipes and saves.&nbsp;
+                                <Link href="/pricing" className="learnMoreLink">
+                                    Learn more
+                                </Link>.
+                            </p>
+                        </div>
+                    )}
+                </main> {/* End of mainContentArea */}
 
-            <AuthModal 
-                isOpen={showAuthModal}
-                onClose={() => setShowAuthModal(false)}
-                authMode={authMode}
-                message={authMode === 'login' 
-                    ? "Log in to save recipes and track your usage"
-                    : "Create an account to save recipes and get 3 free generations daily"}
-            />
+                {/* Community Recipes Sidebar */}
+                { !loadingCommunityRecipes && communityRecipes && communityRecipes.length > 0 && (
+                  <aside className="communityRecipesSidebar">
+                    <h2>Community Recipes</h2>
+                    {errorCommunityRecipes && <p className="errorMessage">{errorCommunityRecipes}</p>}
+                    <div className="communityRecipeList">
+                      {communityRecipes.map((recipe) => (
+                        recipe.recipe_data && recipe.recipe_data.recipeName ? ( // Ensure data exists
+                          <div key={recipe.id} className="communityRecipeCard">
+                            <div className="recipeNameCard highlightedRecipeCard">
+                              <h3 className="recipeTitlePill">{recipe.recipe_data.recipeName}</h3>
+                            </div>
+                            <button
+                              onClick={() => handleViewCommunityRecipe(recipe)}
+                              className="viewRecipeButton"
+                            >
+                              View Recipe
+                            </button>
+                          </div>
+                        ) : null // Skip rendering if essential data is missing
+                      ))}
+                    </div>
+                  </aside>
+                )}
+                { loadingCommunityRecipes && (
+                  <aside className="communityRecipesSidebar">
+                    <h2>Community Recipes</h2>
+                    <div className="loadingSpinner" style={{margin: '1rem auto'}}>Loading community recipes...</div>
+                  </aside>
+                )}
+            </div> {/* End of homePageLayout */}
+
+                <AuthModal 
+                    isOpen={showAuthModal}
+                    onClose={() => setShowAuthModal(false)}
+                    authMode={authMode}
+                    message={authMode === 'login' 
+                        ? "Log in to save recipes and track your usage"
+                        : "Create an account to save recipes and get 3 free generations daily"}
+                />
+
+                <CommunityRecipeModal
+                    isOpen={showCommunityRecipeModal}
+                    onClose={() => setShowCommunityRecipeModal(false)}
+                    recipe={selectedCommunityRecipe}
+                    onSave={handleSaveSelectedCommunityRecipe}
+                    isSaved={isCommunityRecipeSaved}
+                    userLoggedIn={!!user}
+                    saveStatus={saveCommunityRecipeStatus}
+                    saveMessage={saveCommunityRecipeMessage}
+                />
         </div>
     );
 } 
