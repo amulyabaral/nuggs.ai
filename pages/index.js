@@ -1067,9 +1067,9 @@ IMPORTANT:
     // Handler for saving a selected community recipe
     const handleSaveSelectedCommunityRecipe = async () => {
         if (!user) {
-            setAuthMode('login');
-            setShowAuthModal(true);
-            setShowCommunityRecipeModal(false); // Close recipe modal to show login
+            setShowCommunityRecipeModal(false); // Close community modal
+            setAuthMode('login'); // Set auth modal to login
+            setShowAuthModal(true); // Show main auth modal
             return;
         }
         if (!selectedCommunityRecipe || !selectedCommunityRecipe.recipe_data || !supabaseClient) {
@@ -1111,6 +1111,13 @@ IMPORTANT:
             setSaveCommunityRecipeStatus('error');
             setSaveCommunityRecipeMessage(`Failed to save: ${error.message}`);
         }
+    };
+
+    // New handler to open auth modal from community recipe modal
+    const handleCommunityRecipeAuthRequest = () => {
+        setShowCommunityRecipeModal(false); // Close the community recipe modal
+        setAuthMode('login'); // Default to login, or 'signup' if preferred
+        setShowAuthModal(true);     // Open the main auth modal
     };
 
     return (
@@ -1503,6 +1510,7 @@ IMPORTANT:
                     userLoggedIn={!!user}
                     saveStatus={saveCommunityRecipeStatus}
                     saveMessage={saveCommunityRecipeMessage}
+                    onAuthRequest={handleCommunityRecipeAuthRequest}
                 />
         </div>
     );

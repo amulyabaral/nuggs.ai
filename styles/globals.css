@@ -205,7 +205,7 @@ img {
   align-items: center; /* Ensure content inside is centered */
   justify-content: center;
   padding-right: 0; /* Remove padding if centered */
-  max-width: 650px; /* Control max width of text content */
+  max-width: 850px; /* UPDATED: Was 650px - Control max width of text content */
   width: 100%;
 }
 
@@ -2688,4 +2688,34 @@ img {
   color: #721c24;
   background-color: #f8d7da;
   border: 1px solid #f5c6cb;
+}
+
+.moveRecipeModal .secondaryButton:hover {
+  border-color: var(--text-secondary);
+}
+
+.authPromptText {
+  text-align: center;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  padding: 5px 0; /* Add some padding if needed */
+}
+
+.authPromptButton {
+  background: none;
+  border: none;
+  color: var(--accent-primary);
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  font-size: inherit;
+  text-decoration: underline;
+}
+
+.authPromptButton:hover {
+  color: var(--accent-primary-hover);
+}
+
+.learnMoreLink:hover {
+  color: var(--accent-primary-hover);
 }
