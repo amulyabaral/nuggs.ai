@@ -289,6 +289,16 @@ export default function Dashboard() {
           <h1>Your Profile</h1>
         </div>
         
+        {/* Add Upgrade to Premium button for non-premium users */}
+        {!authLoading && user && !isPremium && (
+          <div className="upgradePremiumPrompt">
+            <p>Unlock unlimited recipe generations and save all your creations!</p>
+            <Link href="/pricing" className="primaryButton">
+              Upgrade to Premium
+            </Link>
+          </div>
+        )}
+        
         <section className="savedRecipesSection">
           <h2>Your Saved Recipes</h2>
           
@@ -377,6 +387,14 @@ export default function Dashboard() {
                 {isPremium ? 'Premium' : 'Free'}
               </span>
             </div>
+            
+            {isPremium && profile?.subscription_expires_at && (
+              <div className="subscriptionExpires">
+                <strong>Expires on:</strong> 
+                {' '}
+                {new Date(profile.subscription_expires_at).toLocaleDateString()}
+              </div>
+            )}
             
             {!isPremium && (
               <div className="usageLimits">

@@ -2836,3 +2836,60 @@ img {
   /* Specific Google colors if desired, or keep generic */
   /* color: #4285F4; */ /* Google Blue */
 }
+
+/* Add Upgrade to Premium button for non-premium users */
+.upgradePremiumPrompt {
+  background-color: var(--accent-secondary); /* Light peach/apricot */
+  color: var(--text-primary);
+  padding: 1.5rem;
+  border-radius: 12px;
+  text-align: center;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.upgradePremiumPrompt p {
+  margin-bottom: 1rem;
+  font-size: 1.05rem;
+  line-height: 1.5;
+}
+
+.upgradePremiumPrompt .primaryButton { /* Re-use existing primary button style */
+  display: inline-block;
+  padding: 0.8rem 1.8rem;
+  font-size: 1rem;
+}
+
+.signOutButton {
+  background-color: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.signOutButton:hover {
+  border-color: var(--text-primary);
+  color: var(--text-primary);
+}
+
+.subscriptionInfo {
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.subscriptionExpires {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.subscriptionTier {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-bottom: 0.8rem;
+}
