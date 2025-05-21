@@ -26,10 +26,11 @@ body {
   margin: 0;
   font-family: 'Manrope', -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
     Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
-  background-color: var(--background-main); /* Use CSS variable */
+  background: linear-gradient(180deg, var(--background-main) 0%, #FFF6E8 100%); /* ADDED */
   color: var(--text-primary); /* Use CSS variable */
   line-height: 1.6;
   scroll-behavior: smooth;
+  min-height: 100vh; /* ADDED - Ensures gradient covers full initial viewport */
 }
 
 /* REMOVE body::before noise filter */
@@ -2550,11 +2551,17 @@ img {
   flex: 1; /* Sidebar takes less space */
   min-width: 0; /* Prevents flex items from overflowing */
   padding: 1.5rem 1rem; /* Adjusted padding */
-  background-color: var(--background-main); /* Use main background color */
+  /* background-color: var(--background-main); /* Use main background color */ /* MODIFIED */
+  background: transparent; /* ADDED - Allows body gradient to show through */
   border-radius: 8px;
   max-height: calc(100vh - 100px); /* Adjust based on header height and desired spacing */
   overflow-y: auto;
   border-left: 1px solid var(--border-color); /* Optional: subtle separator */
+  
+  /* Added for vertical centering of content */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .communityRecipesSidebar h2 {
