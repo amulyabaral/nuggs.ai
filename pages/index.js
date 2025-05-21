@@ -530,6 +530,15 @@ IMPORTANT:
             const data = await response.json();
 
             if (!response.ok) {
+                // If the response is not OK (e.g., 429, 500 error)
+                // Check if this is an anonymous user hitting their rate limit.
+                if (!user && response.status === 429 && data && data.limitReached) {
+                    setAnonymousUserTries(prev => ({
+                        ...prev,
+                        remaining: 0, // Explicitly set remaining tries to 0
+                        loading: false,
+                    }));
+                }
                 throw new Error(data.error || `API request failed: ${response.statusText}`);
             }
 
