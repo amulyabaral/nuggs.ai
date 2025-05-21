@@ -6,31 +6,37 @@ import { useAuth } from '../contexts/AuthContext';
 import AuthModal from '../components/AuthModal';
 
 export default function Pricing() {
-  const { user, isPremium, loading, signOut } = useAuth();
+  const { user, isPremium, loading, signOut, refreshUserProfile } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState('login');
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const router = useRouter();
   
-  // Check for success or canceled payment
+  // Check for success or canceled payment from Paddle
   useEffect(() => {
-    const { success, canceled } = router.query;
+    const { paddle_success, paddle_canceled, user_id } = router.query;
     
-    if (success) {
-      // Handle successful payment
+    if (paddle_success === 'true' && user_id) {
+      // Payment was successful
       alert('Thank you for subscribing to Nuggs Premium!');
+      // Optionally, refresh user profile to get new subscription status
+      if (user && user.id === user_id) {
+        refreshUserProfile();
+      }
       // Clean up the URL
       router.replace('/pricing', undefined, { shallow: true });
     }
     
-    if (canceled) {
-      alert('Payment was canceled. You can try again whenever you\'re ready.');
+    if (paddle_canceled === 'true') {
+      alert('Your subscription process was canceled. You can try again whenever you\'re ready.');
       // Clean up the URL
       router.replace('/pricing', undefined, { shallow: true });
     }
-  }, [router]);
+  }, [router, user, refreshUserProfile]);
   
   const handleSubscribe = async () => {
+    if (loading) return; // Don't proceed if auth is loading
+
     if (!user) {
       setAuthMode('login');
       setShowAuthModal(true);
@@ -40,8 +46,8 @@ export default function Pricing() {
     try {
       setCheckoutLoading(true);
       
-      // Call your API endpoint to create a Stripe checkout session
-      const response = await fetch('/api/create-checkout-session', {
+      // Call your API endpoint to create a Paddle checkout session
+      const response = await fetch('/api/create-paddle-checkout', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -49,19 +55,28 @@ export default function Pricing() {
         body: JSON.stringify({
           email: user.email,
           userId: user.id,
+          // priceId: process.env.NEXT_PUBLIC_PADDLE_PREMIUM_PRICE_ID, // The price ID is now handled server-side
         }),
       });
       
-      const { url } = await response.json();
+      const responseData = await response.json();
+
+      if (!response.ok || !responseData.url) {
+        console.error("Paddle checkout creation failed:", responseData);
+        alert(responseData.error || 'There was a problem initiating checkout. Please try again.');
+        setCheckoutLoading(false);
+        return;
+      }
       
-      // Redirect to Stripe Checkout
-      router.push(url);
+      // Redirect to Paddle Checkout
+      window.location.href = responseData.url; // Use window.location.href for external redirects
     } catch (error) {
       console.error('Error creating checkout session:', error);
       alert('There was a problem initiating checkout. Please try again.');
-    } finally {
       setCheckoutLoading(false);
     }
+    // No finally here, as redirect will happen or error will be caught.
+    // If redirect doesn't happen due to an error before it, setCheckoutLoading(false) is handled.
   };
   
   return (

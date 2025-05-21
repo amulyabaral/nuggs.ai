@@ -52,7 +52,7 @@ export default function TermsOfService() {
 
       <main className="contentContainer" style={{ maxWidth: '800px', margin: '2rem auto', padding: '0 1.5rem' }}>
         <h1>Terms of Service</h1>
-        <p>Last Updated: [Date]</p>
+        <p>Last Updated: May 20, 2024</p>
 
         <section>
           <h2>OVERVIEW</h2>
