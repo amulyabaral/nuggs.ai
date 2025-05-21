@@ -1082,7 +1082,7 @@ IMPORTANT:
                 <div className="heroContent">
                     <h2 className="heroTitle">Delicious <strong>Healthy</strong> Recipes</h2>
                     <p className="heroSubtitle">
-                        Craving something delicious and nutritious? Tell us your what you want or what you have in your fridge,  
+                        Craving something delicious and nutritious? Tell us what you want or what you have in your fridge,  
                         and we&apos;ll whip up a custom recipe, just for you. Powered by AI.
                     </p>
                     
