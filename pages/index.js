@@ -1262,9 +1262,9 @@ IMPORTANT:
             {!user && (
                 <div className="anonymousUsageNote">
                     <p>
-                        <strong>Anonymous users:</strong> You can generate up to 3 recipes per day.
+                        <strong>Anonymous users:</strong> You can generate up to {process.env.NEXT_PUBLIC_ANONYMOUS_TRIES || 3} recipes per day.
                         <br />
-                        <button 
+                        <button
                             onClick={() => {
                                 setAuthMode('signup');
                                 setShowAuthModal(true);
@@ -1272,8 +1272,13 @@ IMPORTANT:
                             className="createAccountButton"
                         >
                             Create a free account
-                        </button> 
-                        for 5 daily recipes and to save your favorites!
+                        </button>
+                        &nbsp;to generate up to {process.env.NEXT_PUBLIC_FREE_TRIES || 5} recipes and save them for later.
+                        <br />
+                        For just $2 a month, you can also get premium to get unlimited recipes and saves.&nbsp;
+                        <Link href="/pricing" className="learnMoreLink">
+                            Learn more
+                        </Link>.
                     </p>
                 </div>
             )}
