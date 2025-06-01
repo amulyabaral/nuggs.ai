@@ -71,6 +71,11 @@ const tools = [
 
 const PROXY_API_URL = '/api/generate';
 
+// Helper function to convert number (1-26) to a letter (a-z)
+const numberToLetter = (num) => {
+  return String.fromCharCode(96 + num);
+};
+
 export default function HomePage() {
     // Set 'recipeGenerator' as the default selected tool
     const [selectedToolId, setSelectedToolId] = useState(tools[0].id);
@@ -605,91 +610,25 @@ IMPORTANT:
     };
 
     const handleRandomRecipeSubmit = () => {
-        // Create arrays of diverse recipe components that will force variation
-        const proteins = [
-            "chicken", "salmon", "tofu", "beans", "lentils", "chickpeas", 
-            "tempeh", "eggs", "tuna", "turkey", "shrimp", "ground beef",
-            "cod", "halibut", "mackerel", "scallops", "black beans", "edamame"
-        ];
+        // Generate a random number between 1 and 26
+        const randomNumber = Math.floor(Math.random() * 26) + 1;
+        const randomLetter = numberToLetter(randomNumber);
+
+        // Create a new prompt based on the random letter
+        const letterBasedPrompt = `Generate a creative and healthy recipe where the main theme, a key ingredient, or the recipe name prominently relates to the letter '${randomLetter}'. For example, if the letter is 'A', think apples, asparagus, Asian-inspired, an 'Awesome Avocado Bowl', etc. Ensure it's a complete, healthy recipe. Be inventive!`;
         
-        const vegetables = [
-            "spinach", "kale", "bell peppers", "zucchini", "mushrooms", "broccoli",
-            "cauliflower", "carrots", "sweet potatoes", "asparagus", "brussels sprouts",
-            "eggplant", "tomatoes", "cucumber", "peas", "cabbage", "bok choy"
-        ];
-        
-        const carbs = [
-            "quinoa", "brown rice", "farro", "pasta", "sweet potato", "whole grain bread",
-            "barley", "oats", "millet", "wild rice", "buckwheat noodles", "bulgur",
-            "corn tortillas", "rice noodles", "whole wheat couscous"
-        ];
-        
-        const cuisines = [
-            "Mediterranean", "Thai", "Mexican", "Japanese", "Italian", "Lebanese",
-            "Vietnamese", "Indian", "Korean", "Moroccan", "Greek", "American",
-            "Chinese", "Brazilian", "Spanish", "French", "Turkish", "Ethiopian",
-            "Caribbean", "Southwestern"
-        ];
-        
-        const mealTypes = [
-            "dinner", "lunch", "breakfast", "brunch", "snack", "appetizer", "side dish"
-        ];
-        
-        const cookingMethods = [
-            "baked", "grilled", "steamed", "stir-fried", "slow-cooked", "roasted",
-            "sautéed", "air-fried", "braised", "poached", "pressure-cooked", 
-            "pan-seared", "broiled"
-        ];
-        
-        const dietaryStyles = [
-            "vegetarian", "high-protein", "low-carb", "Mediterranean diet", "low-calorie",
-            "balanced", "heart-healthy", "antioxidant-rich", "dairy-free", "gluten-free"
-        ];
-        
-        // Function to get multiple random items from an array
-        const getRandomItems = (array, count = 1) => {
-            const shuffled = [...array].sort(() => 0.5 - Math.random());
-            return shuffled.slice(0, count);
-        };
-        
-        // Generate a randomized recipe prompt with specific components that force variation
-        const randomProtein = getRandomItems(proteins, 1)[0];
-        const randomVeggies = getRandomItems(vegetables, 2);
-        const randomCarb = getRandomItems(carbs, 1)[0];
-        const randomCuisine = getRandomItems(cuisines, 1)[0];
-        const randomMealType = getRandomItems(mealTypes, 1)[0];
-        const randomCookingMethod = getRandomItems(cookingMethods, 1)[0];
-        const randomDietaryStyle = getRandomItems(dietaryStyles, 1)[0];
-        
-        // Create a uniquely structured prompt each time by combining components differently
-        let promptStructures = [
-            `Create a ${randomCookingMethod} ${randomProtein} ${randomMealType} with ${randomVeggies[0]} and ${randomVeggies[1]}, ${randomCuisine}-inspired.`,
-            `I want a ${randomDietaryStyle} recipe using ${randomProtein}, ${randomVeggies[0]}, and ${randomCarb} for ${randomMealType}.`,
-            `Give me a ${randomCuisine} ${randomMealType} that uses ${randomProtein} and ${randomVeggies[0]}, cooked by ${randomCookingMethod}.`,
-            `How can I make a healthy ${randomMealType} with ${randomProtein}, ${randomVeggies[0]}, and ${randomVeggies[1]}?`,
-            `I need a quick ${randomDietaryStyle} ${randomCuisine} dish using ${randomProtein} and ${randomCarb}.`,
-            `Create a ${randomCookingMethod} ${randomCarb} bowl with ${randomProtein} and ${randomVeggies[0]}.`,
-            `I want to try a new ${randomCuisine} recipe that's ${randomDietaryStyle} and uses ${randomCookingMethod} ${randomProtein}.`,
-            `How do I make ${randomCuisine}-style ${randomProtein} with ${randomVeggies[0]} for a healthy ${randomMealType}?`
-        ];
-        
-        // Select a random prompt structure
-        const selectedPromptIndex = Math.floor(Math.random() * promptStructures.length);
-        let finalPrompt = promptStructures[selectedPromptIndex];
-        
-        // Add explicit instructions to ensure uniqueness
-        finalPrompt += ` Make sure this is a unique recipe that hasn't been suggested before. Be creative with the flavors and presentation.`;
-        
-        // Store original input value
+        // Store original input value (if any, though for "Surprise Me" it's often empty)
         const originalInput = inputValue;
         
-        // Set the prompt for API call but don't show it to user
-        setInputValue(finalPrompt);
+        // Set the new letter-based prompt for the API call
+        // This will be used by getPromptForTool as the 'userInput'
+        setInputValue(letterBasedPrompt);
         
-        // Submit with the random prompt
+        // Submit with the random prompt, isRandom = true for loading state
         handleSubmit(null, true);
         
-        // Restore original input
+        // Restore original input value after submission logic has started
+        // (handleSubmit is async, so this restoration happens quickly)
         setInputValue(originalInput);
     };
 
