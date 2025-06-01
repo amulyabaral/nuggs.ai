@@ -52,12 +52,12 @@ export default function TermsOfService() {
 
       <main className="contentContainer" style={{ maxWidth: '800px', margin: '2rem auto', padding: '0 1.5rem' }}>
         <h1>Terms of Service</h1>
-        <p>Last Updated: May 20, 2024</p>
+        <p>Last Updated: May 24, 2024</p>
 
         <section>
           <h2>OVERVIEW</h2>
           <p>
-            This website is operated by nuggs.ai's owners. Throughout the site, the terms "we", "us" and "our" refer to nuggs.ai's owners. We offer this website, including all
+            This website is operated by nuggs.ai. Throughout the site, the terms "we", "us" and "our" refer to nuggs.ai. We offer this website, including all
             information, tools and Services available from this site to you, the user, conditioned upon your acceptance of all terms, conditions, policies and
             notices stated here.
           </p>
@@ -336,14 +336,14 @@ export default function TermsOfService() {
         <section>
           <h2>SECTION 16 - GOVERNING LAW</h2>
           <p>
-            These Terms shall be governed and construed in accordance with the laws of [Your Jurisdiction, e.g., State of California, USA], without regard to its conflict of law provisions.
+            These Terms shall be governed and construed in accordance with the laws of Norway, without regard to its conflict of law provisions.
           </p>
         </section>
 
         <section>
           <h2>SECTION 17 - CONTACT INFORMATION</h2>
           <p>
-            Questions about the Terms of Service should be sent to us at [Your Contact Email].
+            Questions about the Terms of Service should be sent to us at amulyabaral2@gmail.com.
           </p>
         </section>
 

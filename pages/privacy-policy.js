@@ -49,12 +49,12 @@ export default function PrivacyPolicy() {
 
       <main className="contentContainer" style={{ maxWidth: '800px', margin: '2rem auto', padding: '0 1.5rem' }}>
         <h1>Privacy Policy</h1>
-        <p>Last Updated: May 19, 2024</p>
+        <p>Last Updated: May 24, 2024</p>
 
         <section>
           <h2>Introduction</h2>
           <p>
-            Welcome to nuggs.ai ("we", "us", or "our"). We are committed to protecting your personal information and your right to privacy. If you have any questions or concerns about this privacy notice, or our practices with regards to your personal information, please contact us at [Your Contact Email].
+            Welcome to nuggs.ai ("we", "us", or "our"). We are committed to protecting your personal information and your right to privacy. If you have any questions or concerns about this privacy notice, or our practices with regards to your personal information, please contact us at amulyabaral2@gmail.com.
           </p>
           <p>
             This privacy notice describes how we might use your information if you:
@@ -117,7 +117,7 @@ export default function PrivacyPolicy() {
             We use the information we collect or receive:
             <ul>
               <li><strong>To facilitate account creation and logon process.</strong> If you choose to link your account with us to a third-party account (such as your Google or Facebook account), we use the information you allowed us to collect from those third parties to facilitate account creation and logon process for the performance of the contract.</li>
-              <li><strong>To post testimonials.</strong> We post testimonials on our Website that may contain personal information. Prior to posting a testimonial, we will obtain your consent to use your name and the content of the testimonial. If you wish to update, or delete your testimonial, please contact us at [Your Contact Email] and be sure to include your name, testimonial location, and contact information.</li>
+              <li><strong>To post testimonials.</strong> We post testimonials on our Website that may contain personal information. Prior to posting a testimonial, we will obtain your consent to use your name and the content of the testimonial. If you wish to update, or delete your testimonial, please contact us at amulyabaral2@gmail.com and be sure to include your name, testimonial location, and contact information.</li>
               <li><strong>Request feedback.</strong> We may use your information to request feedback and to contact you about your use of our Website.</li>
               <li><strong>To manage user accounts.</strong> We may use your information for the purposes of managing our account and keeping it in working order.</li>
               <li><strong>To send administrative information to you.</strong> We may use your personal information to send you product, service and new feature information and/or information about changes to our terms, conditions, and policies.</li>
@@ -203,10 +203,10 @@ export default function PrivacyPolicy() {
             If we are relying on your consent to process your personal information, you have the right to withdraw your consent at any time. Please note however that this will not affect the lawfulness of the processing before its withdrawal, nor will it affect the processing of your personal information conducted in reliance on lawful processing grounds other than consent.
           </p>
           <p>
-            If you are a resident in the EEA or UK and you believe we are unlawfully processing your personal information, you also have the right to complain to your local data protection supervisory authority. You can find their contact details here: [Link to EU Data Protection Authorities]
+            If you are a resident in the EEA or UK and you believe we are unlawfully processing your personal information, you also have the right to complain to your local data protection supervisory authority. You can find their contact details here: <a href="https://edpb.europa.eu/about-edpb/board/members_en" target="_blank" rel="noopener noreferrer">https://edpb.europa.eu/about-edpb/board/members_en</a>
           </p>
           <p>
-            If you are a resident in Switzerland, the contact details for the data protection authorities are available here: [Link to Swiss FDPIC]
+            If you are a resident in Switzerland, the contact details for the data protection authorities are available here: <a href="https://www.edoeb.admin.ch/edoeb/en/home.html" target="_blank" rel="noopener noreferrer">https://www.edoeb.admin.ch/edoeb/en/home.html</a>
           </p>
           <p>
             <strong>Account Information:</strong> If you would at any time like to review or change the information in your account or terminate your account, you can log in to your account settings and update your user account or contact us using the contact information provided. Upon your request to terminate your account, we will deactivate or delete your account and information from our active databases. However, we may retain some information in our files to prevent fraud, troubleshoot problems, assist with any investigations, enforce our Terms of Use and/or comply with applicable legal requirements.
@@ -243,7 +243,7 @@ export default function PrivacyPolicy() {
         <section>
           <h2>11. HOW CAN YOU CONTACT US ABOUT THIS NOTICE?</h2>
           <p>
-            If you have questions or comments about this notice, you may email us at support@nuggs.ai or by post to:
+            If you have questions or comments about this notice, you may email us at amulyabaral2@gmail.com or by post to:
           </p>
         </section>
 
