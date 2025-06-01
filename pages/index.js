@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useAuth } from '../contexts/AuthContext';
 import AuthModal from '../components/AuthModal';
+import AdScript from '../components/AdScript'; // Import the AdScript component
 
 const AMAZON_AFFILIATE_TAG = 'nuggs00-20';
 
@@ -966,6 +967,7 @@ IMPORTANT:
                 <title>nuggs.ai - Healthy Recipes with AI</title>
                 <meta name="description" content="Discover tasty healthy recipes, find smart food substitutes, and get AI-powered nutrition advice with Nuggs.AI. Your free guide to healthier, delicious eating!" />
                 <link rel="icon" href="/favicon.ico" />
+                <AdScript /> {/* Add AdScript component here */}
 
                 {/* SEO / Open Graph / Twitter Card Meta Tags */}
                 <meta property="og:title" content="nuggs.ai - Healthy Recipes with AI" />

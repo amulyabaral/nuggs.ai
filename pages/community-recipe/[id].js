@@ -6,6 +6,7 @@ import { createPagesServerClient } from '@supabase/auth-helpers-nextjs';
 import { useAuth } from '../../contexts/AuthContext';
 import RecipeDisplay from '../../components/RecipeDisplay';
 import AuthModal from '../../components/AuthModal'; // For login prompt
+import AdScript from '../../components/AdScript'; // Import the AdScript component
 
 // Supabase Admin Client for server-side fetching
 // Note: In a real app, you might centralize admin client creation
@@ -157,6 +158,7 @@ export default function CommunityRecipePage({ recipe }) {
       <Head>
         <title>{recipeName} | Community Recipe | nuggs.ai</title>
         <meta name="description" content={`View the community recipe: ${recipeName}`} />
+        <AdScript />
       </Head>
 
       <header className="mainHeader">

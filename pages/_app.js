@@ -24,8 +24,6 @@ function MyApp({ Component, pageProps }) {
             <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
             <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet" />
             <link rel="icon" href="/favicon.ico" />
-            <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6736452598930373"
-     crossOrigin="anonymous"></script>
           </Head>
           <Script
             strategy="afterInteractive"

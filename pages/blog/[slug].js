@@ -6,6 +6,7 @@ import path from 'path';
 import matter from 'gray-matter';
 import ReactMarkdown from 'react-markdown';
 import { useAuth } from '../../contexts/AuthContext';
+import AdScript from '../../components/AdScript';
 
 // Get paths for all blog posts at build time
 export async function getStaticPaths() {
@@ -58,6 +59,7 @@ export default function BlogPost({ title, content, date }) {
       <Head>
         <title>{title} | nuggs.ai</title>
         <meta name="description" content={`Read our article about ${title}`} />
+        <AdScript />
       </Head>
       
       <header className="mainHeader">
