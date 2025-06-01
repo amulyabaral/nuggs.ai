@@ -231,7 +231,7 @@ export default function CommunityRecipePage({ recipe }) {
         authMode={authMode}
         message={authMode === 'login' 
             ? "Log in to save this recipe to your collection."
-            : "Sign up to save recipes and get more features!"}
+            : "Sign up to save recipes and enjoy unlimited recipe generations!"}
       />
     </div>
   );

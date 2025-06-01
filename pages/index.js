@@ -115,12 +115,11 @@ export default function HomePage() {
     const router = useRouter();
 
     // Add this to access auth context
-    const { user, usageRemaining, isPremium, incrementUsage, signOut, profile, loading: authLoading, refreshUserProfile, profileError, supabaseClient } = useAuth();
+    const { user, signOut, profile, loading: authLoading, refreshUserProfile, profileError, supabaseClient } = useAuth();
 
     // Add to your existing state variables
     const [showAuthModal, setShowAuthModal] = useState(false);
     const [authMode, setAuthMode] = useState('login');
-    const [usageLimitReached, setUsageLimitReached] = useState(false);
 
     // New state for anonymous user's remaining tries
     // Initial state assumes full tries, no longer loading from a separate API.
@@ -507,19 +506,6 @@ IMPORTANT:
                 setError("Please describe the type of healthy recipe you'd like, or list some ingredients you have.");
             }
             return;
-        }
-
-        // Usage increment logic
-        let canProceed = true;
-        if (user) { // For logged-in users
-            canProceed = await incrementUsage();
-            if (!canProceed) {
-                setError(`You've reached your daily limit of ${isPremium ? 'unlimited' : (process.env.NEXT_PUBLIC_FREE_TRIES || 5)} recipe generations. Upgrade to premium for unlimited recipes, or check your dashboard for more details.`);
-                setUsageLimitReached(true);
-                return;
-            }
-        } else { // For anonymous users, the API route /api/generate will handle IP-based limiting
-          // No client-side increment for anonymous, API handles it
         }
 
         // Show the tool container when either button is clicked
@@ -1316,13 +1302,6 @@ IMPORTANT:
                         </div>
                     )}
 
-                    {/* Display for logged-in, non-premium users showing remaining tries */}
-                    {!authLoading && user && !isPremium && typeof usageRemaining === 'number' && usageRemaining >= 0 && (
-                        <div className="usageRemainingTodayInfo">
-                            <p>You have {usageRemaining} recipe generation{usageRemaining === 1 ? '' : 's'} left today.</p>
-                        </div>
-                    )}
-
                     {/* Display for anonymous users showing remaining tries */}
                     {!authLoading && !user && !anonymousUserTries.loading && typeof anonymousUserTries.remaining === 'number' && (
                          <div className="usageRemainingTodayInfo">
@@ -1330,19 +1309,9 @@ IMPORTANT:
                         </div>
                     )}
 
-                    {usageLimitReached && user && ( // This shows when a logged-in user HITS their limit
-                        <div className="usageLimitAlert">
-                            <p>You've reached your daily limit of {isPremium ? 'unlimited' : (process.env.NEXT_PUBLIC_FREE_TRIES || 5)} recipe generations.</p>
-                            <Link href="/pricing" className="upgradeToPremiumButton">
-                                Upgrade to Premium
-                            </Link>
-                        </div>
-                    )}
-
                     {!user && !authLoading && ( // General CTA for anonymous users
                         <div className="anonymousUsageNote">
                             <p>
-                                {/* Removed: <strong>Anonymous users:</strong> You can generate up to {process.env.NEXT_PUBLIC_ANONYMOUS_TRIES || 3} recipes per day. */}
                                 <button
                                     onClick={() => {
                                         setAuthMode('signup');
@@ -1352,12 +1321,7 @@ IMPORTANT:
                                 >
                                     Create a free account
                                 </button>
-                                &nbsp;to generate up to {process.env.NEXT_PUBLIC_FREE_TRIES || 5} recipes and save them for later.
-                                <br />
-                                For just $2 a month, you can also get premium to get unlimited recipes and saves.&nbsp;
-                                <Link href="/pricing" className="learnMoreLink">
-                                    Learn more
-                                </Link>.
+                                &nbsp;to save your favorite recipes and enjoy unlimited recipe generations.
                             </p>
                         </div>
                     )}
@@ -1415,8 +1379,8 @@ IMPORTANT:
                     onClose={() => setShowAuthModal(false)}
                     authMode={authMode}
                     message={authMode === 'login' 
-                        ? "Log in to save recipes and track your usage"
-                        : "Create an account to save recipes and get 3 free generations daily"}
+                        ? "Log in to save recipes."
+                        : "Create an account to save recipes and enjoy unlimited recipe generations!"}
                 />
         </div>
     );

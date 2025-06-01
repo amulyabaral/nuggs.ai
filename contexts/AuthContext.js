@@ -9,9 +9,6 @@ const AuthContext = createContext({
   signInWithGoogle: async () => {},
   signOut: async () => {},
   loading: true,
-  usageRemaining: 0,
-  isPremium: false,
-  incrementUsage: async () => false,
   refreshUserProfile: async () => {},
   profileError: null,
 });
@@ -28,14 +25,10 @@ export function AuthProvider({ children }) {
   const [profile, setProfile] = useState(null);
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileError, setProfileError] = useState(null);
-  const [usageRemaining, setUsageRemaining] = useState(0);
-  const [isPremium, setIsPremium] = useState(false);
 
   const fetchProfile = useCallback(async (userId) => {
     if (!userId || !supabaseClient) {
       setProfile(null);
-      setIsPremium(false);
-      setUsageRemaining(0);
       return null;
     }
     
@@ -51,17 +44,9 @@ export function AuthProvider({ children }) {
       if (error) throw error;
       
       if (data) {
-        const defaultFreeTries = parseInt(process.env.NEXT_PUBLIC_FREE_TRIES || '5', 10);
-        const premiumStatus = data.subscription_tier === 'premium' &&
-          (data.subscription_expires_at ? new Date(data.subscription_expires_at) > new Date() : false);
-          
-        setIsPremium(premiumStatus);
-        setUsageRemaining(premiumStatus ? Infinity : Math.max(0, defaultFreeTries - (data.daily_usage_count || 0)));
         setProfile(data);
       } else {
         setProfile(null);
-        setIsPremium(false);
-        setUsageRemaining(0);
         console.warn(`Profile not found for user ${userId}. This might be a new user whose profile is still being created, or an issue with profile data.`);
       }
       return data;
@@ -69,8 +54,6 @@ export function AuthProvider({ children }) {
       console.error('Error fetching profile:', err);
       setProfileError(err.message || 'Failed to fetch profile.');
       setProfile(null);
-      setIsPremium(false);
-      setUsageRemaining(0);
       return null;
     } finally {
       setProfileLoading(false);
@@ -85,10 +68,8 @@ export function AuthProvider({ children }) {
         fetchProfile(currentUserId);
       }
     } else {
-      if (profile !== null || isPremium !== false || usageRemaining !== 0 || profileError !== null) {
+      if (profile !== null || profileError !== null) {
         setProfile(null);
-        setIsPremium(false);
-        setUsageRemaining(0);
         setProfileError(null);
       }
     }
@@ -125,8 +106,6 @@ export function AuthProvider({ children }) {
         return;
       }
       setProfile(null);
-      setIsPremium(false);
-      setUsageRemaining(0);
       setProfileError(null);
     } catch (error) {
       console.error('Unexpected error during sign out:', error);
@@ -138,37 +117,6 @@ export function AuthProvider({ children }) {
       console.error('Session error from AuthContext:', sessionError);
     }
   }, [sessionError]);
-
-  const incrementUsage = useCallback(async () => {
-    if (!user || !profile || !supabaseClient) return false;
-    if (isPremium) return true;
-
-    const currentUsage = profile.daily_usage_count || 0;
-    const defaultFreeTries = parseInt(process.env.NEXT_PUBLIC_FREE_TRIES || '5', 10);
-
-    if (currentUsage >= defaultFreeTries) {
-      setUsageRemaining(0);
-      return false;
-    }
-
-    try {
-      const { data, error } = await supabaseClient
-        .from('profiles')
-        .update({ daily_usage_count: currentUsage + 1 })
-        .eq('id', user.id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      
-      setProfile(data);
-      setUsageRemaining(Math.max(0, defaultFreeTries - data.daily_usage_count));
-      return true;
-    } catch (error) {
-      console.error('Error incrementing usage:', error);
-      return false;
-    }
-  }, [user, profile, isPremium, supabaseClient]);
 
   async function refreshUserProfile() {
     if (user?.id) {
@@ -203,9 +151,6 @@ export function AuthProvider({ children }) {
     signInWithGoogle,
     signOut,
     loading: overallLoading,
-    usageRemaining,
-    isPremium,
-    incrementUsage,
     refreshUserProfile,
     supabaseClient,
     profileError,

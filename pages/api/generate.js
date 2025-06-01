@@ -13,7 +13,6 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY; // Ensure this
 const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
 const ANONYMOUS_TRIES_PER_DAY = parseInt(process.env.NEXT_PUBLIC_ANONYMOUS_TRIES || '3', 10);
-const FREE_USER_TRIES_PER_DAY = parseInt(process.env.NEXT_PUBLIC_FREE_TRIES || '5', 10);
 
 if (!GEMINI_API_KEY) {
     console.error("CRITICAL: GEMINI_API_KEY environment variable is not set. The API route will not function.");
@@ -88,50 +87,9 @@ export default async function handler(req, res) {
             }
         }
         // Log anonymous attempt (will happen after successful generation or if limit check fails open)
-    } else { // Logged-in user
-        try {
-            const { data: profile, error: profileError } = await supabaseAdmin
-                .from('profiles')
-                .select('subscription_tier, subscription_expires_at, daily_usage_count, daily_usage_reset_at')
-                .eq('id', userId)
-                .single();
-
-            if (profileError) {
-                console.error('Error fetching profile for usage check:', profileError.message);
-                // Fail open for logged-in user if profile fetch fails, but log it.
-            } else if (profile) {
-                const isPremium = profile.subscription_tier === 'premium' &&
-                                 (profile.subscription_expires_at ? new Date(profile.subscription_expires_at) > new Date() : false);
-
-                if (!isPremium) {
-                    const now = new Date();
-                    let currentUsageCount = profile.daily_usage_count || 0;
-                    let lastReset = profile.daily_usage_reset_at ? new Date(profile.daily_usage_reset_at) : new Date(0);
-
-                    if (now.toDateString() !== lastReset.toDateString()) {
-                        currentUsageCount = 0; // Reset count for the new day
-                        await supabaseAdmin
-                            .from('profiles')
-                            .update({ daily_usage_count: 1, daily_usage_reset_at: now.toISOString() })
-                            .eq('id', userId);
-                    } else {
-                         if (currentUsageCount >= FREE_USER_TRIES_PER_DAY) {
-                            return res.status(429).json({
-                                error: `Daily limit of ${FREE_USER_TRIES_PER_DAY} generations reached. Upgrade to premium for unlimited access.`,
-                                limitReached: true,
-                            });
-                        }
-                        await supabaseAdmin
-                            .from('profiles')
-                            .update({ daily_usage_count: currentUsageCount + 1 })
-                            .eq('id', userId);
-                    }
-                }
-            }
-        } catch (e) {
-            console.error('Exception during logged-in user usage check:', e.message);
-            // Fail open
-        }
+    } else { // Logged-in user - REMOVE ALL LIMIT CHECKS FOR LOGGED-IN USERS
+        // Logged-in users now have unlimited generations, so no specific checks here.
+        // Usage history will still be logged.
     }
     // --- End Usage Limit Check ---
 

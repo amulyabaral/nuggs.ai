@@ -3,20 +3,12 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
   updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-  email TEXT UNIQUE,
-  subscription_tier TEXT DEFAULT 'free' NOT NULL, -- 'free', 'premium'
-  subscription_expires_at TIMESTAMPTZ,
-  daily_usage_count INT DEFAULT 0 NOT NULL,
-  daily_usage_reset_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+  email TEXT UNIQUE
 );
 
 -- Comments for clarity
 COMMENT ON TABLE public.profiles IS 'Stores user profile information, extending auth.users.';
 COMMENT ON COLUMN public.profiles.id IS 'User ID, references auth.users.id.';
-COMMENT ON COLUMN public.profiles.subscription_tier IS 'User subscription level (e.g., free, premium).';
-COMMENT ON COLUMN public.profiles.subscription_expires_at IS 'Timestamp when the current premium subscription expires.';
-COMMENT ON COLUMN public.profiles.daily_usage_count IS 'Number of times the user has used a daily-limited feature.';
-COMMENT ON COLUMN public.profiles.daily_usage_reset_at IS 'Timestamp when the daily usage count was last reset.';
 
 -- Function to automatically create a profile for a new user
 CREATE OR REPLACE FUNCTION public.handle_new_user()
@@ -27,17 +19,11 @@ AS $$
 BEGIN
   INSERT INTO public.profiles (
     id, 
-    email, 
-    subscription_tier,
-    daily_usage_count,
-    daily_usage_reset_at
+    email
   )
   VALUES (
     NEW.id, 
-    NEW.email, 
-    'free',
-    0,
-    NOW()
+    NEW.email
   );
   RETURN NEW;
 EXCEPTION WHEN OTHERS THEN
