@@ -493,7 +493,7 @@ IMPORTANT:
         return recipePrompt;
     };
 
-    const handleSubmit = async (event, isRandom = false) => {
+    const handleSubmit = async (event, isRandom = false, specificInputForRandom = null) => {
         if (event) event.preventDefault();
         if (!activeTool) return;
 
@@ -503,12 +503,20 @@ IMPORTANT:
             return;
         }
 
-        const currentInput = isRandom ? "Surprise me with a random healthy recipe." : inputValue;
+        const currentInput = isRandom
+            ? (specificInputForRandom || "Surprise me with a random healthy recipe.") // Use specific if provided for random
+            : inputValue;
+
         const promptText = getPromptForTool(activeTool, currentInput);
 
         if (!promptText) {
-            if (!isRandom) {
+            if (!isRandom && !specificInputForRandom) { // Only show error if it's not a random attempt that failed to get a prompt internally
                 setError("Please describe the type of healthy recipe you'd like, or list some ingredients you have.");
+            } else if (isRandom && !specificInputForRandom) {
+                // This case implies the default "Surprise me" prompt was used and somehow failed getPromptForTool,
+                // which is unlikely if getPromptForTool only fails on empty userInput.
+                // However, good to have a fallback.
+                setError("Could not generate a random recipe idea. Please try again.");
             }
             return;
         }
@@ -617,19 +625,8 @@ IMPORTANT:
         // Create a new prompt based on the random letter
         const letterBasedPrompt = `Generate a creative and healthy recipe where the main theme, a key ingredient, or the recipe name prominently relates to the letter '${randomLetter}'. For example, if the letter is 'A', think apples, asparagus, Asian-inspired, an 'Awesome Avocado Bowl', etc. Ensure it's a complete, healthy recipe. Be inventive!`;
         
-        // Store original input value (if any, though for "Surprise Me" it's often empty)
-        const originalInput = inputValue;
-        
-        // Set the new letter-based prompt for the API call
-        // This will be used by getPromptForTool as the 'userInput'
-        setInputValue(letterBasedPrompt);
-        
-        // Submit with the random prompt, isRandom = true for loading state
-        handleSubmit(null, true);
-        
-        // Restore original input value after submission logic has started
-        // (handleSubmit is async, so this restoration happens quickly)
-        setInputValue(originalInput);
+        // Submit with the random prompt, isRandom = true for loading state, and pass the specific prompt
+        handleSubmit(null, true, letterBasedPrompt);
     };
 
     const handleInstructionToggle = (toggledIndex) => {
