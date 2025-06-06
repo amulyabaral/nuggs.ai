@@ -267,6 +267,7 @@ export default function Dashboard() {
       <Head>
         <title>Your Profile | nuggs.ai</title>
         <meta name="description" content="Manage your nuggs.ai account and saved recipes" />
+        <meta name="robots" content="noindex, nofollow" />
       </Head>
       
       <header className="mainHeader">

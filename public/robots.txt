@@ -1,3 +1,8 @@
 User-agent: *
 Allow: /
-Sitemap: https://nuggs.ai/sitemap.xml 
+Disallow: /dashboard
+Disallow: /recipe/
+Disallow: /api/
+
+# Sitemap
+Sitemap: https://nuggs.ai/sitemap.xml

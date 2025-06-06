@@ -36,12 +36,12 @@ const dietaryPreferences = [
 const tools = [
     {
         id: 'recipeGenerator',
-        name: 'Healthy Recipe Ideas',
-        description: 'Get custom healthy recipes. Specify ingredients you have, dietary needs, preferred cuisine, cook time, and equipment.',
+        name: 'Custom Recipe Ideas',
+        description: 'Get custom recipes tailored to your needs. Specify ingredients you have, dietary preferences, preferred cuisine, cook time, and equipment.',
         icon: '🥗',
         inputType: 'textarea', // This might not be directly used if input is always in hero
         inputPlaceholder: "e.g., 'Quick vegan lunch with quinoa and avocado', 'Low-carb chicken dinner'",
-        buttonText: 'Generate Healthy Recipe',
+        buttonText: 'Generate Custom Recipe',
         difficultyOptions: [
             { label: 'Beginner', value: 'Beginner', emoji: '🧑‍🍳' },
             { label: 'Intermediate', value: 'Intermediate', emoji: '👩‍🍳' },
@@ -441,7 +441,7 @@ export default function HomePage() {
             .map(([key]) => dietaryPreferences.find(pref => pref.id === key)?.label || key)
             .join(', ');
 
-        let recipePrompt = `You are an AI chef specializing in creating healthy and delicious recipes.
+        let recipePrompt = `You are an AI chef specializing in creating delicious recipes that satisfy what users want.
 The user wants a recipe based on this core request: "${userInput}".
 Additionally, consider these user preferences:
 - Difficulty: ${selectedDifficulty}
@@ -454,7 +454,7 @@ Additionally, consider these user preferences:
 Please provide the response STRICTLY as a single, valid JSON object with the following structure:
 {
   "recipeName": "A catchy and descriptive healthy recipe name (e.g., 'Mediterranean Quinoa Salad with Lemon-Herb Dressing')",
-  "description": "A brief, enticing description of the recipe, highlighting its health aspects (2-3 sentences). Mention if any specific dietary preferences were addressed.",
+  "description": "A brief, enticing description of the recipe (2-3 sentences). Mention if any specific dietary preferences were addressed and highlight any notable health aspects when relevant.",
   "prepTime": "Estimated preparation time (e.g., '15 minutes')",
   "cookTime": "Estimated cooking time (e.g., '20 minutes')",
   "difficultyRating": "${selectedDifficulty}",
@@ -465,29 +465,30 @@ Please provide the response STRICTLY as a single, valid JSON object with the fol
     "carbs": "Carbs per serving (e.g., '45g')",
     "fat": "Fat per serving (e.g., '14g')"
   },
-  "healthBenefits": ["Briefly list 2-3 key health benefits or nutritional highlights (e.g., 'Rich in fiber', 'Good source of plant-based protein', 'Low in saturated fat')"],
+  "healthBenefits": ["Briefly list 2-3 key health benefits or nutritional highlights when applicable (e.g., 'Rich in fiber', 'Good source of protein', 'Contains antioxidants'). If the recipe is indulgent, focus on portion suggestions or pairing ideas."],
   "ingredients": [
     { "name": "Ingredient Name", "quantity": "Amount (e.g., '1', '1/2', '2-3')", "unit": "Unit (e.g., 'cup', 'tbsp', 'cloves', 'medium', 'oz')", "notes": "Optional: brief notes like 'cooked', 'finely chopped', 'low-sodium version recommended'" }
   ],
   "instructions": [
-    { "stepNumber": 1, "description": "Detailed instruction for this step. Be clear and concise. If specific equipment was mentioned, tailor instructions for it. Offer healthy cooking tips where appropriate (e.g., 'bake instead of fry')." }
+    { "stepNumber": 1, "description": "Detailed instruction for this step. Be clear and concise. If specific equipment was mentioned, tailor instructions for it. Offer helpful cooking tips where appropriate." }
   ],
   "substitutionSuggestions": [
-    { "originalIngredient": "Original Ingredient Name (if applicable)", "healthierSubstitute": "Healthier Substitute Name", "reason": "Why it's a healthier choice (1-2 sentences)", "notes": "Optional: tips for using the substitute" }
+    { "originalIngredient": "Original Ingredient Name (if applicable)", "healthierSubstitute": "Alternative Substitute Name", "reason": "Why this substitution works or could be beneficial (1-2 sentences)", "notes": "Optional: tips for using the substitute" }
   ],
   "pairingSuggestions": [
-    { "type": "Side Dish | Drink | Garnish", "name": "Item Name", "description": "Why it pairs well and complements the meal's healthiness (1-2 sentences)", "amazonSearchKeywords": ["keyword1", "keyword2 for pairing"] }
+    { "type": "Side Dish | Drink | Garnish", "name": "Item Name", "description": "Why it pairs well and complements the meal (1-2 sentences)", "amazonSearchKeywords": ["keyword1", "keyword2 for pairing"] }
   ]
 }
 
 IMPORTANT:
-- You MUST ONLY generate healthy food recipes. If asked for an unhealthy recipe without a request for modification, or a non-food recipe, respond with a JSON object: {"error": "I specialize in healthy recipes. How can I help you make a healthier version or find a nutritious alternative?"}.
+- You can generate any food recipe the user requests. For indulgent recipes, still try to offer helpful suggestions in the "substitutionSuggestions" and "healthBenefits" sections where appropriate.
+- If asked for a non-food recipe, respond with a JSON object: {"error": "I specialize in food recipes. Please ask for a recipe you'd like to cook or bake!"}.
 - Ensure the entire response is a single, valid JSON object. Do not include any text, pleasantries, or markdown formatting outside of this JSON object.
 - ALWAYS include calorie information and basic nutritional values in the "nutritionInfo" object.
 - For "ingredients", "quantity" and "unit" should be strings.
 - For "instructions", "stepNumber" should be a number.
-- For "substitutionSuggestions" (0-3 suggestions): focus on common swaps to make the dish even healthier or cater to restrictions.
-- For "pairingSuggestions" (0-2 suggestions): suggest healthy side dishes, drinks, or garnishes.
+- For "substitutionSuggestions" (0-3 suggestions): focus on helpful alternatives, healthier swaps when relevant, or ingredient substitutions for dietary restrictions.
+- For "pairingSuggestions" (0-2 suggestions): suggest complementary side dishes, drinks, or garnishes.
 - If "Positive Dietary Preferences" are specified (e.g., Vegan, Low Carb), the recipe MUST adhere to these. Clearly state in the recipe 'description' how these preferences have been met.
 - ABSOLUTELY DO NOT include any ingredients that match the "Ingredients/Categories to STRICTLY EXCLUDE": ${activeExclusionLabels || 'None specified'}. Completely remove these ingredients and find suitable alternatives. If an exclusion makes a requested positive preference impossible (e.g., excluding all legumes for a vegan high-protein request), note this challenge in the recipe description and offer the best possible compliant recipe.
 - All string values within the JSON must be properly escaped.`;
@@ -703,10 +704,10 @@ IMPORTANT:
 
     // Helper function to render recipe results from JSON
     const renderRecipeResults = (jsonData) => {
-        console.log("Attempting to parse healthy recipe JSON. Raw data received:", jsonData);
+        console.log("Attempting to parse recipe JSON. Raw data received:", jsonData);
         try {
             const recipe = JSON.parse(jsonData);
-            console.log("Successfully parsed healthy recipe JSON:", recipe);
+            console.log("Successfully parsed recipe JSON:", recipe);
 
             if (recipe.error) {
                 return <p className="errorMessage">Error from AI: {recipe.error}</p>;
@@ -715,7 +716,7 @@ IMPORTANT:
             return (
                 <div className="recipeOutputContainer">
                     <div className="recipeNameCard highlightedRecipeCard" ref={recipeResultsRef}>
-                        <h2 className="recipeTitlePill">{recipe.recipeName || 'Healthy Recipe'}</h2>
+                        <h2 className="recipeTitlePill">{recipe.recipeName || 'Custom Recipe'}</h2>
                         <p>{recipe.description || 'No description provided.'}</p>
                         <div className="recipeMeta">
                             <span><strong>Prep:</strong> {recipe.prepTime || 'N/A'}</span>
@@ -812,7 +813,7 @@ IMPORTANT:
 
                     {recipe.substitutionSuggestions && recipe.substitutionSuggestions.length > 0 && (
                         <div className="recipeSection">
-                            <h3>Healthier Substitution Ideas</h3>
+                            <h3>Substitution Ideas</h3>
                             <div className="suggestionCardsContainer">
                                 {recipe.substitutionSuggestions.map((sub, index) => (
                                     <div key={`sub-${index}`} className="suggestionCard">
@@ -828,7 +829,7 @@ IMPORTANT:
 
                     {recipe.pairingSuggestions && recipe.pairingSuggestions.length > 0 && (
                         <div className="recipeSection">
-                            <h3>Healthy Pairing Suggestions</h3>
+                            <h3>Pairing Suggestions</h3>
                             <div className="suggestionCardsContainer">
                                 {recipe.pairingSuggestions.map((item, index) => (
                                     <div
@@ -879,7 +880,7 @@ IMPORTANT:
                 </div>
             );
         } catch (e) {
-            console.error("Failed to parse healthy recipe JSON. Error:", e);
+            console.error("Failed to parse recipe JSON. Error:", e);
             console.error("Raw JSON data that failed to parse:", jsonData);
             // Improved error message for users
             return (
@@ -964,22 +965,22 @@ IMPORTANT:
     return (
         <div className="pageContainer">
             <Head>
-                <title>nuggs.ai - Healthy Recipes with AI</title>
-                <meta name="description" content="Discover tasty healthy recipes, find smart food substitutes, and get AI-powered nutrition advice with Nuggs.AI. Your free guide to healthier, delicious eating!" />
+                <title>nuggs.ai - Custom Recipes with AI</title>
+                <meta name="description" content="Discover delicious custom recipes tailored to your needs, find smart ingredient substitutes, and get AI-powered cooking advice with Nuggs.AI. Your free guide to personalized cooking!" />
                 <link rel="icon" href="/favicon.ico" />
                 <AdScript /> {/* Add AdScript component here */}
 
                 {/* SEO / Open Graph / Twitter Card Meta Tags */}
-                <meta property="og:title" content="nuggs.ai - Healthy Recipes with AI" />
-                <meta property="og:description" content="AI companion for smarter, healthier eating choices. Find substitutes, generate recipes, analyze meals, and get nutrition facts." />
+                <meta property="og:title" content="nuggs.ai - Custom Recipes with AI" />
+                <meta property="og:description" content="AI companion for personalized cooking. Find substitutes, generate custom recipes, and get cooking advice tailored to your needs." />
                 <meta property="og:type" content="website" />
                 <meta property="og:url" content="https://nuggs.ai" />
                 <meta property="og:image" content="https://nuggs.ai/logo.png" />
                 <meta property="og:image:alt" content="nuggs.ai Logo" />
                 
                 <meta name="twitter:card" content="summary_large_image" />
-                <meta name="twitter:title" content="nuggs.ai - Delicious Healthy Recipes Powered by AI" />
-                <meta name="twitter:description" content="Your AI companion for smarter, healthier eating choices. Find substitutes, generate recipes, analyze meals, and get nutrition facts." />
+                <meta name="twitter:title" content="nuggs.ai - Delicious Custom Recipes Powered by AI" />
+                <meta name="twitter:description" content="Your AI companion for personalized cooking. Find substitutes, generate custom recipes, and get cooking advice tailored to your needs." />
                 <meta name="twitter:image" content="https://nuggs.ai/logo.png" />
 
                 <link rel="canonical" href="https://nuggs.ai" />
@@ -1043,9 +1044,9 @@ IMPORTANT:
                 <main className="mainContentArea">
                     <section className="enhancedHeroSection">
                         <div className="heroContent">
-                            <h2 className="heroTitle">Delicious <strong>Healthy</strong> Recipes</h2>
+                            <h2 className="heroTitle">Delicious <strong>Custom</strong> Recipes</h2>
                             <p className="heroSubtitle">
-                                Craving something delicious and nutritious? Tell us what you want or what you have in your fridge,  
+                                Craving something delicious? Tell us what you want or what you have in your fridge,  
                                 and we&apos;ll whip up a custom recipe, just for you. Powered by AI.
                             </p>
                             
@@ -1188,7 +1189,7 @@ IMPORTANT:
                                             className="pillSearchButton"
                                             disabled={isLoading || isRandomLoading || !inputValue}
                                         >
-                                            {isLoading ? 'Building your recipe...' : '✨ Create Healthy Recipe'}
+                                            {isLoading ? 'Building your recipe...' : '✨ Create Custom Recipe'}
                                         </button>
                                         <button
                                             type="button"
@@ -1212,7 +1213,7 @@ IMPORTANT:
                             <div className="toolContainer">
                                 {(isLoading || isRandomLoading) && (
                                     <div className="loadingSpinner" ref={loadingRef}>
-                                        <p className="loadingText">Building your healthy recipe{loadingDots}</p>
+                                        <p className="loadingText">Building your custom recipe{loadingDots}</p>
                                     </div>
                                 )}
                                 {error && <p className="errorMessage">{error}</p>}

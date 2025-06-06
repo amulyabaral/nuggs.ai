@@ -103,6 +103,7 @@ export default function SavedRecipePage({ recipe }) {
       <Head>
         <title>{recipe.recipe_name || 'View Recipe'} | nuggs.ai</title>
         <meta name="description" content={`Details for your saved recipe: ${recipe.recipe_name || 'A healthy recipe from nuggs.ai'}`} />
+        <meta name="robots" content="noindex, nofollow" />
       </Head>
 
       <header className="mainHeader">
