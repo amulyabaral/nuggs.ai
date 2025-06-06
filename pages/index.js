@@ -36,12 +36,12 @@ const dietaryPreferences = [
 const tools = [
     {
         id: 'recipeGenerator',
-        name: 'Custom Recipe Ideas',
-        description: 'Get custom recipes tailored to your needs. Specify ingredients you have, dietary preferences, preferred cuisine, cook time, and equipment.',
+        name: 'Healthy Recipe Ideas',
+        description: 'Get healthy recipes tailored to your needs. Specify ingredients you have, dietary preferences, preferred cuisine, cook time, and equipment.',
         icon: '🥗',
         inputType: 'textarea', // This might not be directly used if input is always in hero
         inputPlaceholder: "e.g., 'Quick vegan lunch with quinoa and avocado', 'Low-carb chicken dinner'",
-        buttonText: 'Generate Custom Recipe',
+        buttonText: 'Generate Healthy Recipe',
         difficultyOptions: [
             { label: 'Beginner', value: 'Beginner', emoji: '🧑‍🍳' },
             { label: 'Intermediate', value: 'Intermediate', emoji: '👩‍🍳' },
@@ -704,10 +704,10 @@ IMPORTANT:
 
     // Helper function to render recipe results from JSON
     const renderRecipeResults = (jsonData) => {
-        console.log("Attempting to parse recipe JSON. Raw data received:", jsonData);
+        console.log("Attempting to parse healthy recipe JSON. Raw data received:", jsonData);
         try {
             const recipe = JSON.parse(jsonData);
-            console.log("Successfully parsed recipe JSON:", recipe);
+            console.log("Successfully parsed healthy recipe JSON:", recipe);
 
             if (recipe.error) {
                 return <p className="errorMessage">Error from AI: {recipe.error}</p>;
@@ -716,7 +716,7 @@ IMPORTANT:
             return (
                 <div className="recipeOutputContainer">
                     <div className="recipeNameCard highlightedRecipeCard" ref={recipeResultsRef}>
-                        <h2 className="recipeTitlePill">{recipe.recipeName || 'Custom Recipe'}</h2>
+                        <h2 className="recipeTitlePill">{recipe.recipeName || 'Healthy Recipe'}</h2>
                         <p>{recipe.description || 'No description provided.'}</p>
                         <div className="recipeMeta">
                             <span><strong>Prep:</strong> {recipe.prepTime || 'N/A'}</span>
@@ -813,7 +813,7 @@ IMPORTANT:
 
                     {recipe.substitutionSuggestions && recipe.substitutionSuggestions.length > 0 && (
                         <div className="recipeSection">
-                            <h3>Substitution Ideas</h3>
+                            <h3>Healthier Substitution Ideas</h3>
                             <div className="suggestionCardsContainer">
                                 {recipe.substitutionSuggestions.map((sub, index) => (
                                     <div key={`sub-${index}`} className="suggestionCard">
@@ -829,7 +829,7 @@ IMPORTANT:
 
                     {recipe.pairingSuggestions && recipe.pairingSuggestions.length > 0 && (
                         <div className="recipeSection">
-                            <h3>Pairing Suggestions</h3>
+                            <h3>Healthy Pairing Suggestions</h3>
                             <div className="suggestionCardsContainer">
                                 {recipe.pairingSuggestions.map((item, index) => (
                                     <div
@@ -880,7 +880,7 @@ IMPORTANT:
                 </div>
             );
         } catch (e) {
-            console.error("Failed to parse recipe JSON. Error:", e);
+            console.error("Failed to parse healthy recipe JSON. Error:", e);
             console.error("Raw JSON data that failed to parse:", jsonData);
             // Improved error message for users
             return (
@@ -965,22 +965,22 @@ IMPORTANT:
     return (
         <div className="pageContainer">
             <Head>
-                <title>nuggs.ai - Custom Recipes with AI</title>
-                <meta name="description" content="Discover delicious custom recipes tailored to your needs, find smart ingredient substitutes, and get AI-powered cooking advice with Nuggs.AI. Your free guide to personalized cooking!" />
+                <title>nuggs.ai - Healthy Recipes with AI</title>
+                <meta name="description" content="Discover delicious healthy recipes tailored to your needs, find smart ingredient substitutes, and get AI-powered nutrition advice with Nuggs.AI. Your free guide to healthier, delicious eating!" />
                 <link rel="icon" href="/favicon.ico" />
                 <AdScript /> {/* Add AdScript component here */}
 
                 {/* SEO / Open Graph / Twitter Card Meta Tags */}
-                <meta property="og:title" content="nuggs.ai - Custom Recipes with AI" />
-                <meta property="og:description" content="AI companion for personalized cooking. Find substitutes, generate custom recipes, and get cooking advice tailored to your needs." />
+                <meta property="og:title" content="nuggs.ai - Healthy Recipes with AI" />
+                <meta property="og:description" content="AI companion for smarter, healthier eating choices. Find substitutes, generate healthy recipes, and get nutrition advice tailored to your needs." />
                 <meta property="og:type" content="website" />
                 <meta property="og:url" content="https://nuggs.ai" />
                 <meta property="og:image" content="https://nuggs.ai/logo.png" />
                 <meta property="og:image:alt" content="nuggs.ai Logo" />
                 
                 <meta name="twitter:card" content="summary_large_image" />
-                <meta name="twitter:title" content="nuggs.ai - Delicious Custom Recipes Powered by AI" />
-                <meta name="twitter:description" content="Your AI companion for personalized cooking. Find substitutes, generate custom recipes, and get cooking advice tailored to your needs." />
+                <meta name="twitter:title" content="nuggs.ai - Delicious Healthy Recipes Powered by AI" />
+                <meta name="twitter:description" content="Your AI companion for smarter, healthier eating choices. Find substitutes, generate healthy recipes, and get nutrition advice tailored to your needs." />
                 <meta name="twitter:image" content="https://nuggs.ai/logo.png" />
 
                 <link rel="canonical" href="https://nuggs.ai" />
@@ -1044,9 +1044,9 @@ IMPORTANT:
                 <main className="mainContentArea">
                     <section className="enhancedHeroSection">
                         <div className="heroContent">
-                            <h2 className="heroTitle">Delicious <strong>Custom</strong> Recipes</h2>
+                            <h2 className="heroTitle">Delicious <strong>Healthy</strong> Recipes</h2>
                             <p className="heroSubtitle">
-                                Craving something delicious? Tell us what you want or what you have in your fridge,  
+                                Craving something delicious and nutritious? Tell us what you want or what you have in your fridge,  
                                 and we&apos;ll whip up a custom recipe, just for you. Powered by AI.
                             </p>
                             
@@ -1189,7 +1189,7 @@ IMPORTANT:
                                             className="pillSearchButton"
                                             disabled={isLoading || isRandomLoading || !inputValue}
                                         >
-                                            {isLoading ? 'Building your recipe...' : '✨ Create Custom Recipe'}
+                                            {isLoading ? 'Building your recipe...' : '✨ Create Healthy Recipe'}
                                         </button>
                                         <button
                                             type="button"
@@ -1213,7 +1213,7 @@ IMPORTANT:
                             <div className="toolContainer">
                                 {(isLoading || isRandomLoading) && (
                                     <div className="loadingSpinner" ref={loadingRef}>
-                                        <p className="loadingText">Building your custom recipe{loadingDots}</p>
+                                        <p className="loadingText">Building your healthy recipe{loadingDots}</p>
                                     </div>
                                 )}
                                 {error && <p className="errorMessage">{error}</p>}
