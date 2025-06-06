@@ -1,6 +1,7 @@
 import Head from 'next/head';
 import Link from 'next/link';
 import { useAuth } from '../contexts/AuthContext'; // Assuming you might want the header
+import AdScript from '../components/AdScript';
 
 export default function PrivacyPolicy() {
   const { user } = useAuth(); // For the header, if you keep it consistent
@@ -11,6 +12,7 @@ export default function PrivacyPolicy() {
         <title>Privacy Policy | nuggs.ai</title>
         <meta name="description" content="Read the Privacy Policy for nuggs.ai." />
         <meta name="robots" content="noindex, follow" /> {/* Optional: tell search engines not to index it */}
+        <AdScript />
       </Head>
 
       {/* Consistent Header */}

@@ -1,6 +1,7 @@
 import Head from 'next/head';
 import Link from 'next/link';
 import { useAuth } from '../contexts/AuthContext'; // Assuming you might want the header
+import AdScript from '../components/AdScript';
 
 export default function TermsOfService() {
   const { user } = useAuth(); // For the header, if you keep it consistent
@@ -11,6 +12,7 @@ export default function TermsOfService() {
         <title>Terms of Service | nuggs.ai</title>
         <meta name="description" content="Read the Terms of Service for nuggs.ai." />
         <meta name="robots" content="noindex, follow" /> {/* Optional: tell search engines not to index it if it's boilerplate */}
+        <AdScript />
       </Head>
 
       {/* Consistent Header - You can reuse your existing header structure */}
