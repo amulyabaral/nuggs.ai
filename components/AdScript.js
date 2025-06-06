@@ -10,7 +10,7 @@ const AdScript = () => {
       async
       src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6736452598930373"
       crossOrigin="anonymous"
-      strategy="afterInteractive" // Loads after the page becomes interactive
+      strategy="beforeInteractive" // Loads before the page becomes interactive
     />
   );
 };
