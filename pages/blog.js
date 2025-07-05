@@ -6,7 +6,6 @@ import path from 'path';
 import matter from 'gray-matter';
 import Image from 'next/image';
 import { useAuth } from '../contexts/AuthContext';
-import AdScript from '../components/AdScript';
 
 // This function runs at build time on the server
 export async function getStaticProps() {
@@ -65,7 +64,6 @@ export default function Blog({ posts }) {
       <Head>
         <title>Blog | nuggs.ai</title>
         <meta name="description" content="Explore articles about healthy eating, plant-based foods, and sustainable nutrition." />
-        <AdScript />
       </Head>
       
       <header className="mainHeader">
